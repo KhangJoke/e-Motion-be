@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service;
+package com.swp391.e_Motion_be.service.user;
 
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.repository.UserRepository;

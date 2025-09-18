@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service;
+package com.swp391.e_Motion_be.service.auth;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

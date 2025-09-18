@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.requests;
+package com.swp391.e_Motion_be.dto.requests.user;
 
 import lombok.Data;
 

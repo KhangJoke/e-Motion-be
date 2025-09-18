@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApiResponse<T> {
-    private int status;
+    private int status = 200;
     private String message;
     private T data;
 }

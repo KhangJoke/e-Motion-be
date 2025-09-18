@@ -1,6 +1,6 @@
 package com.swp391.e_Motion_be.config;
 
-import com.swp391.e_Motion_be.service.CustomUserDetailsService;
+import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

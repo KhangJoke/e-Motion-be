@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.service.UserService;
+import com.swp391.e_Motion_be.service.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +27,7 @@ public class UserController {
         return ResponseEntity.ok(currentUser);
     }
 
-    @GetMapping("/")
+    @GetMapping()
     public ResponseEntity<List<User>> getAllUsers(){
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);

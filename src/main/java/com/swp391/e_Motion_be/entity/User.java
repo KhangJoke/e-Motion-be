@@ -12,36 +12,33 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "users")
 @Data
-
 public class User implements UserDetails {
 
     @Id
-    @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "Fullname", nullable = false)
+    @Column(name = "full_name", nullable = false)
     private String fullname;
 
-    @Column(name = "Email", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "Password", nullable = false)
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "Role", nullable = false)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(name = "Enabled")
     private boolean enabled;
 
-    @Column(name = "VerificationCode")
+    @Column(name = "verification_code")
     private String verificationCode;
 
-    @Column(name = "VerificationCodeExpiration")
+    @Column(name = "verification_code_expiration")
     private LocalDateTime verificationCodeExpiresAt;
 
     public User(String fullname, String email, String password, Role role) {

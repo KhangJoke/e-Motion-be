@@ -1,9 +1,9 @@
-package com.swp391.e_Motion_be.service;
+package com.swp391.e_Motion_be.service.auth;
 
-import com.swp391.e_Motion_be.dto.requests.ForgotPasswordUserDto;
-import com.swp391.e_Motion_be.dto.requests.LoginUserDto;
-import com.swp391.e_Motion_be.dto.requests.RegisterUserDto;
-import com.swp391.e_Motion_be.dto.requests.VerifyUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.LoginUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.RegisterUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.VerifyUserDto;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.repository.UserRepository;

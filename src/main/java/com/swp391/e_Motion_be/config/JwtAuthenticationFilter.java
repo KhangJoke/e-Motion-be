@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.config;
 
-import com.swp391.e_Motion_be.service.CustomUserDetailsService;
-import com.swp391.e_Motion_be.service.JwtService;
+import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
+import com.swp391.e_Motion_be.service.auth.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

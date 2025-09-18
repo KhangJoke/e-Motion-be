@@ -1,15 +1,15 @@
 package com.swp391.e_Motion_be.controller;
 
 
-import com.swp391.e_Motion_be.dto.requests.ForgotPasswordUserDto;
-import com.swp391.e_Motion_be.dto.requests.LoginUserDto;
-import com.swp391.e_Motion_be.dto.requests.RegisterUserDto;
-import com.swp391.e_Motion_be.dto.requests.VerifyUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.LoginUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.RegisterUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.VerifyUserDto;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.LoginResponse;
 import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.service.AuthenticationService;
-import com.swp391.e_Motion_be.service.JwtService;
+import com.swp391.e_Motion_be.service.auth.AuthenticationService;
+import com.swp391.e_Motion_be.service.auth.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
