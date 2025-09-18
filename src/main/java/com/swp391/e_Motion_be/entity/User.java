@@ -6,10 +6,11 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -19,36 +20,42 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
     @Column(name = "full_name", nullable = false)
     private String fullname;
-
     @Column(nullable = false, unique = true)
     private String email;
-
     @Column(nullable = false)
     private String password;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
-
+    @Column(nullable = false, name = "enabled")
     private boolean enabled;
 
-    @Column(name = "verification_code")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<UserDocument> userDocuments;
+
+    @Transient
     private String verificationCode;
-
-    @Column(name = "verification_code_expiration")
+    @Transient
     private LocalDateTime verificationCodeExpiresAt;
-
-    public User(String fullname, String email, String password, Role role) {
-        this.fullname = fullname;
-        this.password = password;
-        this.role = role;
-        this.email = email;
-    }
+    @Transient
+    private String forgotPasswordCode;
+    @Transient
+    private LocalDateTime forgotPasswordCodeExpiresAt;
 
     public User() {
+        userDocuments = new ArrayList<>();
+    }
+
+    public void addUserDocument(UserDocument userDocument) {
+        userDocuments.add(userDocument);
+        userDocument.setUser(this);
+    }
+
+    public void removeUserDocument(UserDocument userDocument) {
+        userDocuments.remove(userDocument);
+        userDocument.setUser(null);
     }
 
     @Override

@@ -23,6 +23,8 @@ public class UserDocument {
     DocType docType;
     @Column(name = "doc_number", unique = true)
     String docNumber;
-    @Column(name = "user_id")
-    long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-//     exception
+    //Exception
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
-    // Exception bắt bằng appException
+    // Exception bắt bằng AppException
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse<String>> handlingRuntimeException(AppException ex){
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
+    // Exception bắt bằng MethodArgumentNotValidException
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<String>> handleBadRequestException(MethodArgumentNotValidException e){
         ApiResponse<String> apiResponse = new ApiResponse<>();

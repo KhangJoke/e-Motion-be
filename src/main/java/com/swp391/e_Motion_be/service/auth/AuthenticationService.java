@@ -6,8 +6,8 @@ import com.swp391.e_Motion_be.dto.requests.user.RegisterUserDto;
 import com.swp391.e_Motion_be.dto.requests.user.VerifyUserDto;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,15 +28,18 @@ public class AuthenticationService {
 
     private final EmailService emailService;
 
-    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, EmailService emailService) {
+    private final UserMapper userMapper;
+
+    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, EmailService emailService, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.emailService = emailService;
+        this.userMapper = userMapper;
     }
 
     public User signup(RegisterUserDto input) {
-        User user = new User(input.getFullName(), input.getEmail(), passwordEncoder.encode(input.getPassword()), Role.ROLE_USER);
+        User user = userMapper.toRegisterUserDto(input);
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
@@ -91,7 +94,8 @@ public class AuthenticationService {
                 throw new RuntimeException("Verification code expired");
             }
             if(user.getVerificationCode().equals(input.getVerificationCode())) {
-                user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+                user.setForgotPasswordCode(null);
+                user.setForgotPasswordCodeExpiresAt(null);
                 userRepository.save(user);
             } else {
                 throw new RuntimeException("Invalid verification code");
@@ -124,8 +128,8 @@ public class AuthenticationService {
             if(!user.isEnabled()) {
                 throw new RuntimeException("Account not verified, Please verify your account");
             }
-            user.setVerificationCode(generateVerificationCode());
-            user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+            user.setForgotPasswordCode(generateVerificationCode());
+            user.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
             sendVerificationEmail(user);
         } else {
@@ -147,8 +151,6 @@ public class AuthenticationService {
                 throw new RuntimeException("Invalid verification code");
             }
             user.setPassword(passwordEncoder.encode(input.getNewPassword()));
-            user.setVerificationCodeExpiresAt(null);
-            user.setVerificationCode(null);
             userRepository.save(user);
         } else {
             throw new RuntimeException("User not found");
