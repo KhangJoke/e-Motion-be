@@ -15,7 +15,7 @@ import jakarta.validation.constraints.Pattern;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserDocumentCreationRequest {
     @NotBlank(message = "Image URL must not be blank")
-    @Size(max = 255, message = "Image URL must not exceed 255 characters")
+    @Size(min =10,max = 255, message = "Image URL must not exceed 255 characters")
     String imgUrl;
 
     @NotNull(message = "Document type is required")

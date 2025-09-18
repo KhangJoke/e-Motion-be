@@ -5,7 +5,9 @@ import com.swp391.e_Motion_be.dto.requests.user.LoginUserDto;
 import com.swp391.e_Motion_be.dto.requests.user.RegisterUserDto;
 import com.swp391.e_Motion_be.dto.requests.user.VerifyUserDto;
 import com.swp391.e_Motion_be.entity.User;
+import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
+import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -136,7 +138,7 @@ public class AuthenticationService {
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
             if(!input.getNewPassword().equals(input.getConfirmNewPassword())) {
-                throw new RuntimeException("New password and confirm new password do not match");
+                throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
             }
             if(user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new RuntimeException("Verification code expired");
