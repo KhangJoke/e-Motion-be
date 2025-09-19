@@ -3,11 +3,13 @@ package com.swp391.e_Motion_be.service.document;
 import com.swp391.e_Motion_be.dto.requests.document.UserDocumentCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.document.UserDocumentUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.UserDocumentRespon;
+import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.entity.UserDocument;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserDocumentMapper;
 import com.swp391.e_Motion_be.repository.UserDocumentRepository;
+import com.swp391.e_Motion_be.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,14 +22,19 @@ import java.util.List;
 public class UserDocumentService {
 
     UserDocumentRepository userDocumentRepository;
+    UserRepository userRepository;
     UserDocumentMapper userDocumentMapper;
 
     public UserDocumentRespon createDocument(UserDocumentCreationRequest request) {
         if(userDocumentRepository.existsByDocNumber(request.getDocNumber())){
             throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
         }
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_EXISTS));
         UserDocument document = userDocumentMapper.toDocumentEntity(request);
-        return userDocumentMapper.toDocumentResponse(userDocumentRepository.save(document));
+        user.addUserDocument(document);
+        userRepository.save(user);
+        return userDocumentMapper.toDocumentResponse(document);
     }
 
     public List<UserDocumentRespon> getAllDocuments(){

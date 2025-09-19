@@ -1,5 +1,7 @@
 package com.swp391.e_Motion_be.controller;
 
+import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.UserResponse;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.service.user.UserService;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +30,10 @@ public class UserController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<User>> getAllUsers(){
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    public ApiResponse<List<UserResponse>> getAllUsers(){
+        ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Get all users successfully");
+        apiResponse.setData(userService.getAllUsers());
+        return apiResponse;
     }
 }

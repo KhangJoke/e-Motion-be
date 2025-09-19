@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
 
     //Exception
-    @ExceptionHandler(value = RuntimeException.class)
-    ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
-        ApiResponse<String> apiResponse = new ApiResponse<>();
-        apiResponse.setStatus(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
-        apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
-        return ResponseEntity.badRequest().body(apiResponse);
-    }
+//    @ExceptionHandler(value = RuntimeException.class)
+//    ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
+//        ApiResponse<String> apiResponse = new ApiResponse<>();
+//        apiResponse.setStatus(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
+//        apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
+//        return ResponseEntity.badRequest().body(apiResponse);
+//    }
 
     // Exception bắt bằng AppException
     @ExceptionHandler(value = AppException.class)
@@ -36,7 +36,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handleBadRequestException(MethodArgumentNotValidException e){
         ApiResponse<String> apiResponse = new ApiResponse<>();
         String message = "";
-
         for(FieldError fieldError : e.getFieldErrors()){
             message += fieldError.getField() +": "+ fieldError.getDefaultMessage() + "\n";
         }

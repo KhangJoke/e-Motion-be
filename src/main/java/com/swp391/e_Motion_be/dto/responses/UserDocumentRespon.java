@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.swp391.e_Motion_be.enums.DocType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -11,10 +12,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDocumentRespon {
-    long id;
     String imgUrl;
     DocType docType;
     String docNumber;
-    long userId;
+    String email;
 }

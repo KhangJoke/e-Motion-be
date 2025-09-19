@@ -6,11 +6,13 @@ import com.swp391.e_Motion_be.dto.requests.document.UserDocumentUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.UserDocumentRespon;
 import com.swp391.e_Motion_be.entity.UserDocument;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserDocumentMapper {
     UserDocument toDocumentEntity(UserDocumentCreationRequest request);
+    @Mapping(source = "user.email", target = "email")
     UserDocumentRespon toDocumentResponse(UserDocument document);
     void updateDocumentFromRequest(@MappingTarget UserDocument document, UserDocumentUpdateRequest request);
 }

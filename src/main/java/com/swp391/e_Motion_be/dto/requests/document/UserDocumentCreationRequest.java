@@ -26,6 +26,6 @@ public class UserDocumentCreationRequest {
     @Pattern(regexp = "^[0-9]{9,12}$", message = "Document number must be 9–12 digits (for CCCD/CMND)")
     String docNumber;
 
-    @NotNull(message = "User ID is required")
-    Long userId;
+    @NotNull(message = "Email is required")
+    String email;
 }

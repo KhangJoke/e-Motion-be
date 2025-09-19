@@ -6,8 +6,8 @@ import com.swp391.e_Motion_be.dto.requests.user.RegisterUserDto;
 import com.swp391.e_Motion_be.dto.requests.user.VerifyUserDto;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,21 +28,19 @@ public class AuthenticationService {
 
     private final EmailService emailService;
 
-    private final UserMapper userMapper;
-
-    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, EmailService emailService, UserMapper userMapper) {
+    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.emailService = emailService;
-        this.userMapper = userMapper;
     }
 
     public User signup(RegisterUserDto input) {
-        User user = userMapper.toRegisterUserDto(input);
+        User user = new User(input.getFullName(),input.getEmail(), passwordEncoder.encode(input.getPassword()), Role.ROLE_USER);
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
+        user.setRole(Role.ROLE_USER);
         sendVerificationEmail(user);
         return userRepository.save(user);
     }

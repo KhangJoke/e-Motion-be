@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,9 +20,9 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
     @Column(name = "full_name", nullable = false)
-    private String fullname;
+    private String fullName;
     @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
@@ -31,21 +32,27 @@ public class User implements UserDetails {
     private Role role;
     @Column(nullable = false, name = "enabled")
     private boolean enabled;
+    @Column(name= "verification_code")
+    private String verificationCode;
+    @Column(name= "verification_code_expires_at")
+    private LocalDateTime verificationCodeExpiresAt;
+    @Column(name = "forgot_password_code")
+    private String forgotPasswordCode;
+    @Column(name = "forgot_password_code_expires_at")
+    private LocalDateTime forgotPasswordCodeExpiresAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<UserDocument> userDocuments;
 
-    @Transient
-    private String verificationCode;
-    @Transient
-    private LocalDateTime verificationCodeExpiresAt;
-    @Transient
-    private String forgotPasswordCode;
-    @Transient
-    private LocalDateTime forgotPasswordCodeExpiresAt;
-
     public User() {
         userDocuments = new ArrayList<>();
+    }
+
+    public User(String fullName, String email, String password, Role role) {
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.role = role;
     }
 
     public void addUserDocument(UserDocument userDocument) {
