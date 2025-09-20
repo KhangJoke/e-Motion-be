@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EmailService {
 
-    private JavaMailSender emailSender;
+    private final JavaMailSender emailSender;
 
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
         MimeMessage mimeMessage = emailSender.createMimeMessage();

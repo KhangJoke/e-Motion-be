@@ -10,6 +10,7 @@ import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.UserRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -173,7 +174,7 @@ public class AuthenticationService {
         try{
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
         }
-        catch (Exception e){
+        catch (MessagingException e){
             throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
         }
     }
