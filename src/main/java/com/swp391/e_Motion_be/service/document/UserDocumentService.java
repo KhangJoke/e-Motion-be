@@ -2,7 +2,7 @@ package com.swp391.e_Motion_be.service.document;
 
 import com.swp391.e_Motion_be.dto.requests.document.UserDocumentCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.document.UserDocumentUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.UserDocumentRespon;
+import com.swp391.e_Motion_be.dto.responses.UserDocumentResponse;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.entity.UserDocument;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -25,7 +26,7 @@ public class UserDocumentService {
     UserRepository userRepository;
     UserDocumentMapper userDocumentMapper;
 
-    public UserDocumentRespon createDocument(UserDocumentCreationRequest request) {
+    public UserDocumentResponse createDocument(UserDocumentCreationRequest request) {
         if(userDocumentRepository.existsByDocNumber(request.getDocNumber())){
             throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
         }
@@ -37,24 +38,24 @@ public class UserDocumentService {
         return userDocumentMapper.toDocumentResponse(document);
     }
 
-    public List<UserDocumentRespon> getAllDocuments(){
+    public List<UserDocumentResponse> getAllDocuments(){
         return userDocumentRepository.findAll().stream()
                 .map(userDocumentMapper::toDocumentResponse)
                 .toList();
     }
 
-    public UserDocumentRespon getDocumentById(long id){
+    public UserDocumentResponse getDocumentById(long id){
         return userDocumentMapper.toDocumentResponse(userDocumentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.DOCUMENT_NOT_FOUND)));
     }
 
-    public List<UserDocumentRespon> getDocumentsByUserId(long userId){
+    public List<UserDocumentResponse> getDocumentsByUserId(long userId){
         return userDocumentRepository.findByUserId(userId).stream()
                 .map(userDocumentMapper :: toDocumentResponse)
                 .toList();
     }
 
-    public UserDocumentRespon updateDocument(long docId, UserDocumentUpdateRequest request){
+    public UserDocumentResponse updateDocument(long docId, UserDocumentUpdateRequest request){
         UserDocument document = userDocumentRepository.findById(docId)
                 .orElseThrow(() -> new AppException(ErrorCode.DOCUMENT_NOT_FOUND));
         userDocumentMapper.updateDocumentFromRequest(document, request);

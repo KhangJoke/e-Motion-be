@@ -2,11 +2,7 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
-import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.service.user.UserService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,10 +19,12 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> authenticateUser(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(currentUser);
+    public ApiResponse<UserResponse> authenticateUser(){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        UserResponse userResponse = userService.getCurrentUser();
+        apiResponse.setMessage("Get current user successfully");
+        apiResponse.setData(userResponse);
+        return apiResponse;
     }
 
     @GetMapping()
