@@ -8,7 +8,9 @@ import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +21,7 @@ import java.util.Optional;
 import java.util.Random;
 
 @Service
+@RequiredArgsConstructor
 public class AuthenticationService {
     private final UserRepository userRepository;
 
@@ -28,29 +31,26 @@ public class AuthenticationService {
 
     private final EmailService emailService;
 
-    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, EmailService emailService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.emailService = emailService;
-    }
+    private final UserMapper userMapper;
 
     public User signup(RegisterUserDto input) {
-        User user = new User(input.getFullName(),input.getEmail(), passwordEncoder.encode(input.getPassword()), Role.ROLE_USER);
+        User user = userMapper.toUser(input);
+        user.setRole(Role.ROLE_USER);
+        user.setPassword(passwordEncoder.encode(input.getUserPassword()));
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
-        user.setRole(Role.ROLE_USER);
+        user.setCreateAt(LocalDateTime.now());
         sendVerificationEmail(user);
         return userRepository.save(user);
     }
 
     public User authenticate(LoginUserDto input) {
         User user = userRepository.findByEmail(input.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         if(!user.isEnabled()) {
-            throw new RuntimeException("Account not verified, Please verify your account");
+            throw new AppException(ErrorCode.ACCOUNT_NOT_VERIFIED);
         }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -68,7 +68,7 @@ public class AuthenticationService {
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
             if(user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Verification code expired");
+                throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
             if(user.getVerificationCode().equals(input.getVerificationCode())) {
                 user.setEnabled(true);
@@ -76,10 +76,10 @@ public class AuthenticationService {
                 user.setVerificationCodeExpiresAt(null);
                 userRepository.save(user);
             } else {
-                throw new RuntimeException("Invalid verification code");
+                throw new AppException(ErrorCode.VERIFY_CODE_NOT_MATCH);
             }
         } else {
-            throw new RuntimeException("User not found");
+            throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
     }
 
@@ -89,17 +89,17 @@ public class AuthenticationService {
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
             if(user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Verification code expired");
+                throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
             if(user.getVerificationCode().equals(input.getVerificationCode())) {
                 user.setForgotPasswordCode(null);
                 user.setForgotPasswordCodeExpiresAt(null);
                 userRepository.save(user);
             } else {
-                throw new RuntimeException("Invalid verification code");
+                throw new AppException(ErrorCode.VERIFY_CODE_NOT_MATCH);
             }
         } else {
-            throw new RuntimeException("User not found");
+            throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
     }
 
@@ -108,14 +108,14 @@ public class AuthenticationService {
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
             if(user.isEnabled()) {
-                throw new RuntimeException("Account already verified, Please verify your account");
+                throw new AppException(ErrorCode.ACCOUNT_ALREADY_VERIFIED);
             }
             user.setVerificationCode(generateVerificationCode());
             user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
             sendVerificationEmail(user);
         } else {
-            throw new RuntimeException("User not found");
+            throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
     }
 
@@ -124,14 +124,14 @@ public class AuthenticationService {
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
             if(!user.isEnabled()) {
-                throw new RuntimeException("Account not verified, Please verify your account");
+                throw new AppException(ErrorCode.ACCOUNT_NOT_VERIFIED);
             }
             user.setForgotPasswordCode(generateVerificationCode());
             user.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
             sendVerificationEmail(user);
         } else {
-            throw new RuntimeException("User not found");
+            throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
     }
 
@@ -143,15 +143,15 @@ public class AuthenticationService {
                 throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
             }
             if(user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Verification code expired");
+                throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
             if(!user.getVerificationCode().equals(input.getVerificationCode())) {
-                throw new RuntimeException("Invalid verification code");
+                throw new AppException(ErrorCode.VERIFY_CODE_NOT_MATCH);
             }
             user.setPassword(passwordEncoder.encode(input.getNewPassword()));
             userRepository.save(user);
         } else {
-            throw new RuntimeException("User not found");
+            throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
     }
 
@@ -172,8 +172,9 @@ public class AuthenticationService {
                 + "</html>";
         try{
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
+        }
+        catch (Exception e){
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
         }
     }
 

@@ -13,8 +13,11 @@ public class RegisterUserDto {
     private String email;
 
     @NotBlank(message = "Password must not be blank")
-    private String password;
+    private String userPassword;
 
     @NotBlank(message = "Full name must not be blank")
     private String fullName;
+
+    @Pattern(regexp = "^(84|0[3|5|7|8|9])[0-9]{8}$", message = "Invalid phone number")
+    private String phone;
 }

@@ -2,7 +2,6 @@ package com.swp391.e_Motion_be.entity;
 
 import com.swp391.e_Motion_be.enums.Role;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,7 +23,6 @@ public class User implements UserDetails {
     private long id;
     @Column(name = "full_name", nullable = false)
     private String fullName;
-    @Pattern(regexp = "/(84|0[3|5|7|8|9])+([0-9]{8})\\b/g", message = "Invalid phone number")
     @Column(name = "phone", nullable = false)
     private String phone;
     @Column(nullable = false, unique = true)
@@ -36,6 +34,9 @@ public class User implements UserDetails {
     private Role role;
     @Column(nullable = false, name = "enabled")
     private boolean enabled;
+    @Column(name = "create_at", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createAt;
     @Column(name= "verification_code")
     private String verificationCode;
     @Column(name= "verification_code_expires_at")
@@ -57,6 +58,7 @@ public class User implements UserDetails {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.createAt = LocalDateTime.now();
     }
 
     public void addUserDocument(UserDocument userDocument) {

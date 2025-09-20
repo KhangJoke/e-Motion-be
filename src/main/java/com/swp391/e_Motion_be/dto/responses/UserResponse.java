@@ -15,5 +15,6 @@ public class UserResponse {
     private String fullName;
     private String email;
     private Role role;
+
     private List<UserDocumentResponse> userDocuments;
 }
