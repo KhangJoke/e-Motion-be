@@ -1,11 +1,12 @@
 package com.swp391.e_Motion_be.controller;
 
+import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
+import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
 import com.swp391.e_Motion_be.service.user.UserService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,19 +20,54 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ApiResponse<UserResponse> authenticateUser(){
+    public ResponseEntity<ApiResponse<UserResponse>> authenticateUser(){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.getCurrentUser();
         apiResponse.setMessage("Get current user successfully");
         apiResponse.setData(userResponse);
-        return apiResponse;
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping()
-    public ApiResponse<List<UserResponse>> getAllUsers(){
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers(){
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get all users successfully");
         apiResponse.setData(userService.getAllUsers());
-        return apiResponse;
+        return ResponseEntity.ok(apiResponse);
     }
+
+    @GetMapping("/{email}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable String email){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        UserResponse userResponse = userService.getUserByEmail(email);
+        apiResponse.setMessage("Get user by email successfully");
+        apiResponse.setData(userResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @DeleteMapping("/delete/{email}")
+    public ResponseEntity<ApiResponse<UserResponse>> deleteUserByEmail(@PathVariable String email){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        userService.deleteUserByEmail(email);
+        apiResponse.setMessage("Delete user by email successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/me/change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordUserRequest request){
+        userService.changePassword(request);
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Change password successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/me/update-profile")
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestBody UpdateProfileRequest request){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        UserResponse userResponse = userService.updateProfile(request);
+        apiResponse.setMessage("Update profile successfully");
+        apiResponse.setData(userResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
 }

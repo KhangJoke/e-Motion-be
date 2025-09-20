@@ -143,10 +143,10 @@ public class AuthenticationService {
             if(!input.getNewPassword().equals(input.getConfirmNewPassword())) {
                 throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
             }
-            if(user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            if(user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
-            if(!user.getVerificationCode().equals(input.getVerificationCode())) {
+            if(!user.getForgotPasswordCode().equals(input.getForgotPasswordCode())) {
                 throw new AppException(ErrorCode.VERIFY_CODE_NOT_MATCH);
             }
             user.setPassword(passwordEncoder.encode(input.getNewPassword()));

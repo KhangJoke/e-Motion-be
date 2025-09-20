@@ -15,7 +15,9 @@ public enum ErrorCode {
     VERIFY_EXPIRED(2004, "Verification code expired"),
     VERIFY_CODE_NOT_MATCH(2005, "Verification code does not match"),
     ACCOUNT_ALREADY_VERIFIED(2006, "Account already verified, Please login"),
-    SEND_EMAIL_FAILED(3001, "Send email failed");
+    SEND_EMAIL_FAILED(3001, "Send email failed"),
+    OLD_PASSWORD_NOT_MATCH(2007, "Old password does not match"),
+    CONFIRM_PASSWORD_NOT_MATCH(2008, "Confirm password does not match");
     private final int code;
     private final String message;
 }

@@ -21,5 +21,5 @@ public class ForgotPasswordUserDto {
     @NotBlank(message = "Verification code must not be blank")
     @Size(min = 6, max = 6, message = "Verification code must be exactly 6 characters")
     @Pattern(regexp = "^[0-9]{6}$", message = "Verification code must be 6 digits")
-    private String verificationCode;
+    private String forgotPasswordCode;
 }

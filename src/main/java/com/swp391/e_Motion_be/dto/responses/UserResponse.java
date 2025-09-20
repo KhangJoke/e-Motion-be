@@ -14,7 +14,7 @@ import java.util.List;
 public class UserResponse {
     private String fullName;
     private String email;
+    private String phone;
     private Role role;
-
     private List<UserDocumentResponse> userDocuments;
 }
