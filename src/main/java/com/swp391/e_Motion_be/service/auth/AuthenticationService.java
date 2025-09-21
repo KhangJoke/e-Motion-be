@@ -53,12 +53,16 @@ public class AuthenticationService {
         if(!user.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_NOT_VERIFIED);
         }
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        input.getEmail(),
-                        input.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            input.getEmail(),
+                            input.getPassword()
+                    )
+            );
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
 
         return user;
     }
