@@ -1,12 +1,16 @@
 package com.swp391.e_Motion_be.config;
 
-import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.service.auth.JwtService;
+import com.swp391.e_Motion_be.service.auth.TokenBlacklistService;
+import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,21 +23,16 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import java.io.IOException;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     private final JwtService jwtService;
 
-    private final CustomUserDetailsService customUserDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthenticationFilter(HandlerExceptionResolver handlerExceptionResolver,
-                                   JwtService jwtService,
-                                   CustomUserDetailsService customUserDetailsService) {
-        this.handlerExceptionResolver = handlerExceptionResolver;
-        this.jwtService = jwtService;
-        this.customUserDetailsService = customUserDetailsService;
-    }
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
@@ -58,13 +57,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
 
                 if(jwtService.isTokenValid(jwt, userDetails)){
-                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
+                    if(!tokenBlacklistService.isBlacklisted(jwt)){
+                        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities()
+                        );
 
-                    token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    SecurityContextHolder.getContext().setAuthentication(token);
+                        SecurityContextHolder.getContext().setAuthentication(token);
+                    }else {
+                        throw new AppException(ErrorCode.TOKEN_EXPIRED);
+                    }
                 }
             }
 

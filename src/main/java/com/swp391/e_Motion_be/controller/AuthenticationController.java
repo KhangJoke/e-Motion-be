@@ -1,10 +1,11 @@
 package com.swp391.e_Motion_be.controller;
 
 
+import com.swp391.e_Motion_be.dto.requests.auth.LogoutRequest;
 import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
-import com.swp391.e_Motion_be.dto.requests.user.LoginUserDto;
-import com.swp391.e_Motion_be.dto.requests.user.RegisterUserDto;
-import com.swp391.e_Motion_be.dto.requests.user.VerifyUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.RegisterUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.VerifyUserDto;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.LoginResponse;
 import com.swp391.e_Motion_be.entity.User;
@@ -15,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthenticationController {
 
     private final JwtService jwtService;
@@ -46,6 +47,16 @@ public class AuthenticationController {
         apiResponse.setMessage("User logged in successfully");
         apiResponse.setData(loginResponse);
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody LogoutRequest logoutRequest) {
+        authenticationService.logout(logoutRequest);
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus(200);
+        apiResponse.setMessage("User logout successfully");
+        apiResponse.setData(null);
+        return ResponseEntity.ok().body(apiResponse);
     }
 
     @PostMapping("/verify")

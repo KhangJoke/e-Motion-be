@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.requests.user;
+package com.swp391.e_Motion_be.dto.requests.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

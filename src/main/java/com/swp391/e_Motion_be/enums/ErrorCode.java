@@ -18,7 +18,9 @@ public enum ErrorCode {
     SEND_EMAIL_FAILED(3001, "Send email failed"),
     OLD_PASSWORD_NOT_MATCH(2007, "Old password does not match"),
     CONFIRM_PASSWORD_NOT_MATCH(2008, "Confirm password does not match"),
-    INVALID_PASSWORD(2009, "Invalid password");
+    INVALID_PASSWORD(2009, "Invalid password"),
+    TOKEN_EXPIRED(2010, "Token has been expired. Please login again.");
+
     private final int code;
     private final String message;
 }

@@ -35,7 +35,7 @@
 
 ## Cách chạy project (JAR)
 
-1. **Build JAR**
+**1. Build JAR**
 
 cd e-Motion-be
 
@@ -43,11 +43,11 @@ mvn clean package
 
 java -jar target/e-Motion-0.0.1-SNAPSHOT.jar
 
-2. **Run JAR**
+**2. Run JAR**
 
 java -jar target/e-Motion-0.0.1-SNAPSHOT.jar
 
-3. **Truy cập ứng dụng**
+**3. Truy cập ứng dụng**
 
 API: http://localhost:8080
 
@@ -138,8 +138,29 @@ This document provides detailed information about the API endpoints for the e-Mo
     }
   }
   ```
+### 3. Logout
 
-### 3. Verify user account
+- **Endpoint:** `POST /api/auth/logout`
+- **Description:** Blacklist user's token and returns a message.
+- **Request Body:**
+
+  ```json
+  {
+    "token": "jwt.token.string"
+  }
+  ```
+
+- **Success Response (200):**
+
+  ```json
+  {
+    "status": 200,
+    "message": "User logout in successfully",
+    "data": null
+  }
+  ```
+
+### 4. Verify user account
 
 - **Endpoint:** `POST /api/auth/verify`
 - **Description:** Verifies a user's email address using the verification code.
@@ -162,7 +183,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 4. Resend verification code
+### 5. Resend verification code
 
 - **Endpoint:** `POST /api/auth/resend`
 - **Description:** Resends the verification code to the user's email.
@@ -178,7 +199,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 5. Send verification code for password update
+### 6. Send verification code for password update
 
 - **Endpoint:** `POST /api/auth/forgotPassword/sendVerify/{email}`
 - **Description:** Sends a verification code to the user's email to initiate a password update.
@@ -194,7 +215,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 6. Verify forgot password request
+### 7. Verify forgot password request
 
 - **Endpoint:** `POST /api/auth/forgotPassword/verify`
 - **Description:** Verifies the code for a forgot password request.
@@ -217,7 +238,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 7. Update password after forgetting
+### 8. Update password after forgetting
 
 - **Endpoint:** `POST /api/auth/forgotPassword/update`
 - **Description:** Updates the user's password after a successful verification.

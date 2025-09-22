@@ -1,9 +1,10 @@
 package com.swp391.e_Motion_be.service.auth;
 
+import com.swp391.e_Motion_be.dto.requests.auth.LogoutRequest;
 import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
-import com.swp391.e_Motion_be.dto.requests.user.LoginUserDto;
-import com.swp391.e_Motion_be.dto.requests.user.RegisterUserDto;
-import com.swp391.e_Motion_be.dto.requests.user.VerifyUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.RegisterUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.VerifyUserDto;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
@@ -32,6 +33,8 @@ public class AuthenticationService {
 
     private final EmailService emailService;
 
+    private final TokenBlacklistService tokenBlacklistService;
+
     private final UserMapper userMapper;
 
     public User signup(RegisterUserDto input) {
@@ -44,6 +47,10 @@ public class AuthenticationService {
         user.setCreateAt(LocalDateTime.now());
         sendVerificationEmail(user);
         return userRepository.save(user);
+    }
+
+    public void logout(LogoutRequest logoutRequest) {
+        tokenBlacklistService.addToken(logoutRequest.getToken());
     }
 
     public User authenticate(LoginUserDto input) {

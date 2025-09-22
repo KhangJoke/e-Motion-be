@@ -59,7 +59,7 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable()) // disable CSRF nếu xài JWT
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Cấu hình CORS
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"

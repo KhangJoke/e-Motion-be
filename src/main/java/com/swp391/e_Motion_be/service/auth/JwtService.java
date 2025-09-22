@@ -13,6 +13,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -26,6 +27,11 @@ public class JwtService {
     // Lấy username từ token
     public String extractUsername(String token) {
         return extractClaim(token, claims -> claims.getSubject());
+    }
+
+    // Lấy username từ token
+    public String extractId(String token) {
+        return extractClaim(token, claims -> claims.getId());
     }
 
     // Lấy 1 claim cụ thể (ví dụ: sub, exp, ...)
@@ -50,6 +56,7 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setId(UUID.randomUUID().toString())
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
