@@ -35,7 +35,7 @@ public class SwaggerConfig {
     @Bean
     public OpenApiCustomizer filterAuthApis() {
         return openApi -> openApi.getPaths().forEach((path, pathItem) -> {
-            if (path.startsWith("/auth")) {
+            if (path.startsWith("/api/auth")) {
                 // API public → bỏ security
                 pathItem.readOperations().forEach(op -> op.setSecurity(List.of()));
             }
