@@ -47,10 +47,10 @@ public class User implements UserDetails {
     private LocalDateTime forgotPasswordCodeExpiresAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<UserDocument> userDocuments;
+    private List<Document> documents;
 
     public User() {
-        userDocuments = new ArrayList<>();
+        documents = new ArrayList<>();
     }
 
     public User(String fullName, String email, String password, Role role) {
@@ -61,14 +61,14 @@ public class User implements UserDetails {
         this.createAt = LocalDateTime.now();
     }
 
-    public void addUserDocument(UserDocument userDocument) {
-        userDocuments.add(userDocument);
-        userDocument.setUser(this);
+    public void addUserDocument(Document document) {
+        documents.add(document);
+        document.setUser(this);
     }
 
-    public void removeUserDocument(UserDocument userDocument) {
-        userDocuments.remove(userDocument);
-        userDocument.setUser(null);
+    public void removeUserDocument(Document document) {
+        documents.remove(document);
+        document.setUser(null);
     }
 
     @Override

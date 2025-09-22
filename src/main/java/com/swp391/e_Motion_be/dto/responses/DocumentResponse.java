@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserDocumentResponse {
+public class DocumentResponse {
     String imgUrl;
     DocType docType;
     String docNumber;
