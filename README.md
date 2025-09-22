@@ -59,7 +59,7 @@ SQL Server 19
 
 Dùng Code First (Hibernate) → khi chạy lần đầu, các bảng sẽ tự sinh trong database e-Motion.
 
-## Cấu hình (application.properties)
+## Config (application.properties)
 
 **8Database**: spring.datasource.\*
 
