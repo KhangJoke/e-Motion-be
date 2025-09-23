@@ -2,8 +2,8 @@ package com.swp391.e_Motion_be.config;
 
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.service.auth.InvalidatedTokenService;
 import com.swp391.e_Motion_be.service.auth.JwtService;
-import com.swp391.e_Motion_be.service.auth.TokenBlacklistService;
 import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
-    private final TokenBlacklistService tokenBlacklistService;
+    private final InvalidatedTokenService invalidatedTokenService;
 
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -53,11 +54,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            if(userEmail != null && authentication == null){
+            if (userEmail != null && (authentication == null || authentication instanceof AnonymousAuthenticationToken)) {
                 UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
 
                 if(jwtService.isTokenValid(jwt, userDetails)){
-                    if(!tokenBlacklistService.isBlacklisted(jwt)){
+                    if(!invalidatedTokenService.isTokenInvalidated(jwtService.extractInvalidatedToken(jwt))){
                         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities()
                         );
@@ -66,8 +67,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                         SecurityContextHolder.getContext().setAuthentication(token);
                     }else {
-                        throw new AppException(ErrorCode.TOKEN_EXPIRED);
+                        throw new AppException(ErrorCode.NOT_LOGIN_YET);
                     }
+                }else {
+                    throw new AppException(ErrorCode.INVALID_TOKEN);
                 }
             }
 

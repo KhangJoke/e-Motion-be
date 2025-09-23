@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.controller;
 
-
 import com.swp391.e_Motion_be.dto.requests.auth.LogoutRequest;
 import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
@@ -50,9 +49,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout(@RequestBody LogoutRequest logoutRequest) {
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest logoutRequest) {
         authenticationService.logout(logoutRequest);
-        ApiResponse<String> apiResponse = new ApiResponse<>();
+        ApiResponse<Void> apiResponse = new ApiResponse<>();
         apiResponse.setStatus(200);
         apiResponse.setMessage("User logout successfully");
         apiResponse.setData(null);

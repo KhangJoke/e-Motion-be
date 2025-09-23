@@ -19,7 +19,9 @@ public enum ErrorCode {
     OLD_PASSWORD_NOT_MATCH(2007, "Old password does not match"),
     CONFIRM_PASSWORD_NOT_MATCH(2008, "Confirm password does not match"),
     INVALID_PASSWORD(2009, "Invalid password"),
-    TOKEN_EXPIRED(2010, "Token has been expired. Please login again.");
+    TOKEN_EXPIRED(2010, "Token has been expired. Please login again."),
+    INVALID_TOKEN(2011, "Invalid token. Please login again."),
+    NOT_LOGIN_YET(2012, "You are not logged in. Please login to continue.");
 
     private final int code;
     private final String message;

@@ -1,10 +1,10 @@
 package com.swp391.e_Motion_be.service.auth;
 
-import com.swp391.e_Motion_be.dto.requests.auth.LogoutRequest;
-import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.LogoutRequest;
 import com.swp391.e_Motion_be.dto.requests.auth.RegisterUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.VerifyUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
@@ -15,6 +15,8 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +35,9 @@ public class AuthenticationService {
 
     private final EmailService emailService;
 
-    private final TokenBlacklistService tokenBlacklistService;
+    private final InvalidatedTokenService invalidatedTokenService;
+
+    private final JwtService jwtService;
 
     private final UserMapper userMapper;
 
@@ -50,7 +54,22 @@ public class AuthenticationService {
     }
 
     public void logout(LogoutRequest logoutRequest) {
-        tokenBlacklistService.addToken(logoutRequest.getToken());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = "";
+        try{
+            email = ((User) authentication.getPrincipal()).getEmail();
+        }catch(ClassCastException e){
+            throw new AppException(ErrorCode.NOT_LOGIN_YET);
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        String token = logoutRequest.getToken();
+        if(jwtService.isTokenValid(token, user)) {
+            invalidatedTokenService.addInvalidatedToken(jwtService.extractInvalidatedToken(token));
+        } else {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
     }
 
     public User authenticate(LoginUserDto input) {

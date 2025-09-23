@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.service.auth;
 
+import com.swp391.e_Motion_be.entity.InvalidatedToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -23,6 +24,12 @@ public class JwtService {
 
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
+
+    public InvalidatedToken extractInvalidatedToken(String token) {
+        String jti = extractId(token);
+        Date expiryTime = extractExpiration(token);
+        return new InvalidatedToken(jti, expiryTime);
+    }
 
     // Lấy username từ token
     public String extractUsername(String token) {
