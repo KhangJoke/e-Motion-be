@@ -20,6 +20,7 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private long id;
     @Column(name = "full_name", nullable = false)
     private String fullName;
@@ -27,7 +28,7 @@ public class User implements UserDetails {
     private String phone;
     @Column(nullable = false, unique = true)
     private String email;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String password;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

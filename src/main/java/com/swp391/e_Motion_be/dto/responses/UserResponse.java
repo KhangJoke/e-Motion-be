@@ -16,5 +16,5 @@ public class UserResponse {
     private String email;
     private String phone;
     private Role role;
-    private List<DocumentResponse> userDocuments;
+    private List<DocumentResponse> documents;
 }

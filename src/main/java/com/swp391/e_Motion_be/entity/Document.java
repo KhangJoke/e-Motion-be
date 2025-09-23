@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "user_documents")
+@Table(name = "documents")
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
