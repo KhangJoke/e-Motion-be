@@ -22,6 +22,8 @@ public enum ErrorCode {
     TOKEN_EXPIRED(2010, "Token has been expired. Please login again."),
     INVALID_TOKEN(2011, "Invalid token. Please login again."),
     NOT_LOGIN_YET(2012, "You are not logged in. Please login to continue."),
+    VEHICLE_EXIST(2013,"Vehicle is already exist"),
+    VEHICLE_NOT_EXIST(2014,"Vehicle does not exist");
     // Check image document errors
     DOCUMENT_NUMBER_MISMATCH(3001, "Document number does not match the one extracted from the image"),
     DOCUMENT_IMAGE_USED(3002, "This image has already been used for another document"),
