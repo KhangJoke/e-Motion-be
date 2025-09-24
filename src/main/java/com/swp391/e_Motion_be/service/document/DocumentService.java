@@ -10,6 +10,7 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.DocumentMapper;
 import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
+import com.swp391.e_Motion_be.service.cloudinary.CloudinaryService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,11 +26,28 @@ public class DocumentService {
     DocumentRepository documentRepository;
     UserRepository userRepository;
     DocumentMapper documentMapper;
+    OcrService ocrService;
+    CloudinaryService cloudinaryService;
 
     public DocumentResponse createDocument(DocumentCreationRequest request) {
-        if(documentRepository.existsByDocNumber(request.getDocNumber())){
-            throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
+        String extractedCccd = ocrService.extractCccdFromUrl(request.getImgUrl());
+        // 1. Verify OCR
+        if(extractedCccd.equals(request.getDocNumber())){
+            // 2. Check trùng số CCCD
+            if(documentRepository.existsByDocNumber(request.getDocNumber())){
+                throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
+            }
+        }else{
+            // Nếu mismatch → check ảnh đã dùng chưa
+            if(documentRepository.existsByDocNumber(extractedCccd)){
+                throw new AppException(ErrorCode.DOCUMENT_IMAGE_USED);
+            }else{
+                // Nếu chưa dùng → xóa ảnh trên Cloudinary
+                cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
+                throw new AppException(ErrorCode.DOCUMENT_NUMBER_MISMATCH);
+            }
         }
+        // 3. Lưu document vào user tương ứng
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_EXISTS));
         Document document = documentMapper.toDocumentEntity(request);
