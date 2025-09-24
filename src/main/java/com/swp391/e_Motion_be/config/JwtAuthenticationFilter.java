@@ -5,13 +5,13 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.service.auth.InvalidatedTokenService;
 import com.swp391.e_Motion_be.service.auth.JwtService;
 import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            if (userEmail != null && (authentication == null || authentication instanceof AnonymousAuthenticationToken)) {
+            if (userEmail != null && authentication == null) {
                 UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
 
                 if(jwtService.isTokenValid(jwt, userDetails)){
@@ -76,6 +76,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
+        } catch (SignatureException e) {
+            handlerExceptionResolver.resolveException(
+                    request, response, null,
+                    new AppException(ErrorCode.INVALID_TOKEN)
+            );
         } catch (Exception e) {
             handlerExceptionResolver.resolveException(request, response, null, e);
         }

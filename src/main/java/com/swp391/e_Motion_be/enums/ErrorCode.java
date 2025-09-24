@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized exception"),
+    UNEXPECTED_EXCEPTION(9999, "Unexpected exception"),
     DOCUMENT_NUMBER_EXISTS(1001, "Document number already exists"),
     DOCUMENT_NOT_FOUND(1002, "Document not found"),
     USER_NOT_EXISTS(2001, "User does not exist"),

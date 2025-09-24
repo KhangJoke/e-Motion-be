@@ -82,7 +82,7 @@ public class OcrService {
         int w = img.getWidth();
         int h = img.getHeight();
 
-        // 1. Chuyển ảnh sang grayscale (đen trắng)
+        // Chuyển ảnh sang grayscale (đen trắng)
         BufferedImage gray = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g = gray.createGraphics();
         g.drawImage(img, 0, 0, null);

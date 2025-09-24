@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
 import com.swp391.e_Motion_be.service.user.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,16 +50,18 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> deleteUserByEmail(@PathVariable String email){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         userService.deleteUserByEmail(email);
+        apiResponse.setStatus(204);
         apiResponse.setMessage("Delete user by email successfully");
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 
     @PostMapping("/me/change-password")
     public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordUserRequest request){
         userService.changePassword(request);
         ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus(204);
         apiResponse.setMessage("Change password successfully");
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 
     @PostMapping("/me/update-profile")

@@ -52,10 +52,10 @@ public class AuthenticationController {
     public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest logoutRequest) {
         authenticationService.logout(logoutRequest);
         ApiResponse<Void> apiResponse = new ApiResponse<>();
-        apiResponse.setStatus(200);
+        apiResponse.setStatus(204);
         apiResponse.setMessage("User logout successfully");
         apiResponse.setData(null);
-        return ResponseEntity.ok().body(apiResponse);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 
     @PostMapping("/verify")

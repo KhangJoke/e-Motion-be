@@ -14,17 +14,17 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     //Exception
-//    @ExceptionHandler(value = RuntimeException.class)
-//    ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
-//        ApiResponse<String> apiResponse = new ApiResponse<>();
-//        apiResponse.setStatus(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
-//        apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
-//        return ResponseEntity.badRequest().body(apiResponse);
-//    }
+    @ExceptionHandler(value = Exception.class)
+    ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus(ErrorCode.UNEXPECTED_EXCEPTION.getCode());
+        apiResponse.setMessage(ErrorCode.UNEXPECTED_EXCEPTION.getMessage());
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
 
     // Exception bắt bằng AppException
     @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse<String>> handlingRuntimeException(AppException ex){
+    public ResponseEntity<ApiResponse<String>> handlingRuntimeException(AppException ex){
         ApiResponse<String> apiResponse = new ApiResponse<>();
         ErrorCode errorCode = ex.getErrorCode();
         apiResponse.setStatus(errorCode.getCode());
