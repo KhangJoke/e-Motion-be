@@ -8,7 +8,7 @@
 - **Staff**: quản lý xe & dịch vụ
 - **Renter**: khách hàng thuê xe
 
-Ứng dụng backend được xây dựng trên **Spring Boot 3.5.5**, kết nối **SQL Server 19**, sử dụng **JWT Authentication** và hỗ trợ **Mail Sender** cho việc gửi email xác thực/thông báo.
+Ứng dụng backend được xây dựng trên **Spring Boot 3.5.5**, kết nối **MySQL 8**, sử dụng **JWT Authentication** và hỗ trợ **Mail Sender** cho việc gửi email xác thực/thông báo.
 
 ---
 
@@ -18,7 +18,7 @@
 - Spring Boot 3.5.5
 - Spring Security (JWT)
 - Hibernate JPA
-- SQL Server 19
+- MySQL 8
 - Java Mail Sender
 - Springdoc OpenAPI (Swagger)
 - Maven 3.9.11
@@ -29,7 +29,7 @@
 
 - **JDK 17+**
 - **Maven 3.9.11+**
-- **SQL Server 19** (đang chạy sẵn trên máy, port `1433`)
+- **MySQL** (đang chạy sẵn trên máy, port `1433`)
 
 ---
 
@@ -55,7 +55,7 @@ Swagger UI: http://localhost:8080/swagger-ui/index.html
 
 ## Database
 
-SQL Server 19
+MySQL 8
 
 Dùng Code First (Hibernate) → khi chạy lần đầu, các bảng sẽ tự sinh trong database e-Motion.
 

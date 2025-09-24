@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.entity.InvalidatedToken;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.repository.InvalidatedTokenRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class InvalidatedTokenService {
         return invalidatedTokenRepository.existsById(invalidatedToken.getId());
     }
 
+    @Transactional
     @Scheduled(fixedDelay = 300000, initialDelay = 300000)
     public void cleanupExpiredTokens() {
         Date now = new Date();
