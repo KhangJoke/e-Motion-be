@@ -120,6 +120,19 @@
             <version>2.8.13</version>
         </dependency>
 
+        <!--        chạy ocr-->
+        <dependency>
+            <groupId>net.sourceforge.tess4j</groupId>
+            <artifactId>tess4j</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+        <!--        tích hợp cloudinary-->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.34.0</version>
+        </dependency>
+
 	</dependencies>
 
 	<build>

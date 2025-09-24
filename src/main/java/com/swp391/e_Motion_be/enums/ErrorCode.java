@@ -24,6 +24,15 @@ public enum ErrorCode {
     NOT_LOGIN_YET(2012, "You are not logged in. Please login to continue."),
     VEHICLE_EXIST(2013,"Vehicle is already exist"),
     VEHICLE_NOT_EXIST(2014,"Vehicle does not exist");
+    // Check image document errors
+    DOCUMENT_NUMBER_MISMATCH(3001, "Document number does not match the one extracted from the image"),
+    DOCUMENT_IMAGE_USED(3002, "This image has already been used for another document"),
+    CREATE_DOCUMENT_FAILED(3002, "Failed to create document"),
+    NOT_FOUND_CCCD_IN_IMAGE(3003, "Could not find a valid CCCD number in the provided image"),
+    UPLOAD_IMAGE_FAILED(3004, "Failed to upload image"),
+    DELETE_IMAGE_FAILED(3005, "Failed to delete image"),
+    FAIL_OCR(3006, "Failed to perform OCR on the image");
+
     private final int code;
     private final String message;
 }
