@@ -54,8 +54,7 @@ public class OcrService {
             uri = Objects.requireNonNull(OcrService.class.getClassLoader().getResource("tessdata")).toURI();
             if (uri.getScheme().equals("jar")) {
                 // Nếu chạy trong JAR
-                FileSystem fileSystem = null;
-                fileSystem = FileSystems.newFileSystem(uri, new java.util.HashMap<>());
+                FileSystem fileSystem = FileSystems.newFileSystem(uri, new java.util.HashMap<>());
                 sourcePath = fileSystem.getPath("/" + "tessdata");
             } else {
                 sourcePath = Paths.get(uri);
