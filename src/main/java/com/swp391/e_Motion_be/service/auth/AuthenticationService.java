@@ -42,6 +42,12 @@ public class AuthenticationService {
     private final UserMapper userMapper;
 
     public User signup(RegisterUserDto input) {
+        User oldUser = userRepository.getByEmail(input.getEmail());
+        if(oldUser != null && oldUser.isEnabled()) {
+            throw new AppException(ErrorCode.ACCOUNT_ALREADY_VERIFIED);
+        }else if(oldUser != null && !oldUser.isEnabled()){
+            return oldUser;
+        }
         User user = userMapper.toUser(input);
         user.setRole(Role.ROLE_USER);
         user.setPassword(passwordEncoder.encode(input.getUserPassword()));

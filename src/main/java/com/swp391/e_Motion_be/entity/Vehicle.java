@@ -44,6 +44,4 @@ public class Vehicle {
 
     @Column(name="last_maintenance",nullable = false)
     private LocalDateTime lastMaintenance;
-
-
 }

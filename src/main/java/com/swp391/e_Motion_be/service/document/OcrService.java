@@ -14,7 +14,6 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.*;
@@ -30,14 +29,16 @@ public class OcrService {
     private final CloudinaryService cloudinaryService;
     private static final Pattern CCCD_PATTERN = Pattern.compile("\\d{12}");
 
-    public static ITesseract getTesseract() throws IOException {
+    public static ITesseract getTesseract() {
         // Thư mục tạm để copy tessdata
         File tempTessDataDir = new File(System.getProperty("java.io.tmpdir"), "tessdata");
         if (!tempTessDataDir.exists()) {
-            tempTessDataDir.mkdirs();
+            boolean created = tempTessDataDir.mkdirs();
+            if (!created) {
+                throw new AppException(ErrorCode.CREATE_FOLDER_FAILED);
+            }
             copyTessDataFolder(tempTessDataDir.toPath());
         }
-
         // Khởi tạo Tesseract
         Tesseract tesseract = new Tesseract();
         tesseract.setDatapath(tempTessDataDir.getAbsolutePath());
@@ -45,36 +46,36 @@ public class OcrService {
         return tesseract;
     }
 
-    private static void copyTessDataFolder(Path targetDir) throws IOException {
+    private static void copyTessDataFolder(Path targetDir) {
         // Lấy URL của thư mục trong resources
         URI uri;
+        Path sourcePath;
         try {
             uri = Objects.requireNonNull(OcrService.class.getClassLoader().getResource("tessdata")).toURI();
-        } catch (Exception e) {
-            throw new IOException("Không tìm thấy resource folder: " + "tessdata", e);
-        }
-        Path sourcePath;
-        if (uri.getScheme().equals("jar")) {
-            // Nếu chạy trong JAR
-            FileSystem fileSystem = FileSystems.newFileSystem(uri, new java.util.HashMap<>());
-            sourcePath = fileSystem.getPath("/" + "tessdata");
-        } else {
-            sourcePath = Paths.get(uri);
-        }
-
-        // Copy toàn bộ file trong thư mục
-        Files.walk(sourcePath).forEach(source -> {
-            try {
-                Path destination = targetDir.resolve(sourcePath.relativize(source).toString());
-                if (Files.isDirectory(source)) {
-                    Files.createDirectories(destination);
-                } else {
-                    Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            if (uri.getScheme().equals("jar")) {
+                // Nếu chạy trong JAR
+                FileSystem fileSystem = null;
+                fileSystem = FileSystems.newFileSystem(uri, new java.util.HashMap<>());
+                sourcePath = fileSystem.getPath("/" + "tessdata");
+            } else {
+                sourcePath = Paths.get(uri);
             }
-        });
+            // Copy toàn bộ file trong thư mục
+            Files.walk(sourcePath).forEach(source -> {
+                try {
+                    Path destination = targetDir.resolve(sourcePath.relativize(source).toString());
+                    if (Files.isDirectory(source)) {
+                        Files.createDirectories(destination);
+                    } else {
+                        Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (IOException e) {
+                    throw new AppException(ErrorCode.FAIL_COPY_DATASET);
+                }
+            });
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.NOT_FOUND_FOLDER_DATASET);
+        }
     }
 
     // Tiền xử lý: grayscale + resize
