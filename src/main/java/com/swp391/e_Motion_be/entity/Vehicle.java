@@ -44,4 +44,20 @@ public class Vehicle {
 
     @Column(name="last_maintenance",nullable = false)
     private LocalDateTime lastMaintenance;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "station_id")
+    private Station station;
+
+    public Vehicle(String name, VehicleType vehicleType, VehicleStatus vehicleStatus, double consumptionRate, double batteryLevel, double batteryCapacity, String plateNumber, LocalDateTime lastMaintenance, Station station) {
+        this.name = name;
+        this.vehicleType = vehicleType;
+        this.vehicleStatus = vehicleStatus;
+        this.consumptionRate = consumptionRate;
+        this.batteryLevel = batteryLevel;
+        this.batteryCapacity = batteryCapacity;
+        this.plateNumber = plateNumber;
+        this.lastMaintenance = lastMaintenance;
+        this.station = station;
+    }
 }
