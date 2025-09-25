@@ -50,7 +50,12 @@ public enum ErrorCode {
     // OCR service errors
     NOT_FOUND_FOLDER_DATASET(4001, "Could not find dataset folder"),
     FAIL_COPY_DATASET(4002, "Failed to copy dataset folder"),
-    CREATE_FOLDER_FAILED(4003, "Failed to create folder");
+    CREATE_FOLDER_FAILED(4003, "Failed to create folder"),
+
+    // Station errors
+    STATION_NOT_FOUND(4001, "Station not found"),
+    STATION_NAME_EXISTS(4002, "Station name already exists"),
+    STAFF_NOT_FOUND(5001, "Staff not found");
 
     private final int code;
     private final String message;
