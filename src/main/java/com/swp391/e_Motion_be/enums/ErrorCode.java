@@ -66,7 +66,11 @@ public enum ErrorCode {
 
     // Staff errors
     STAFF_NOT_FOUND(5001, "Staff not found"),
-    USER_ALREADY_ASSIGNED_AS_STAFF(5002, "User is already assigned as staff");
+    USER_ALREADY_ASSIGNED_AS_STAFF(5002, "User is already assigned as staff"),
+
+    // Reservation errors
+    RESERVATION_ENDTIME_INVALID(6001, "Reservation end time must be in the future"),
+    RESERVATION_NOT_FOUND(6002, "Reservation not found");
 
     private final int code;
     private final String message;

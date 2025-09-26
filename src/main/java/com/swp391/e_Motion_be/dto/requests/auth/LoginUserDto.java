@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class LoginUserDto {
     @NotBlank(message = "Email must not be blank")
-    @Size(min=10, max=255, message = "Email must be between 5 and 255 characters")
+    @Size(min=10, max=255, message = "Email must be between 10 and 255 characters")
     @Pattern(regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", message = "Invalid email format")
     private String email;
 

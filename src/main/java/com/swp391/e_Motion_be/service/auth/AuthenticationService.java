@@ -42,7 +42,9 @@ public class AuthenticationService {
     private final UserMapper userMapper;
 
     public User signup(RegisterUserDto input) {
-        User oldUser = userRepository.getByEmail(input.getEmail());
+        User oldUser = userRepository.findByEmail(input.getEmail()).orElseThrow(
+                () -> new AppException(ErrorCode.USER_NOT_EXISTS)
+        );
         if(oldUser != null && oldUser.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_ALREADY_VERIFIED);
         }else if(oldUser != null && !oldUser.isEnabled()){

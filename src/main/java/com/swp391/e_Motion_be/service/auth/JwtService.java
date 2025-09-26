@@ -1,7 +1,10 @@
 package com.swp391.e_Motion_be.service.auth;
 
 import com.swp391.e_Motion_be.entity.InvalidatedToken;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.exception.AppException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -33,7 +36,11 @@ public class JwtService {
 
     // Lấy username từ token
     public String extractUsername(String token) {
-        return extractClaim(token, claims -> claims.getSubject());
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (JwtException e) { // SignatureException, MalformedJwtException, ExpiredJwtException...
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
     }
 
     // Lấy username từ token
