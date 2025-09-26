@@ -1,16 +1,14 @@
-package com.swp391.e_Motion_be.service.VehicleLog;
+package com.swp391.e_Motion_be.service.vehicleLog;
 
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
-import com.swp391.e_Motion_be.dto.responses.VehicleResponse;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.entity.VehicleLog;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleLogMapper;
-import com.swp391.e_Motion_be.mapper.VehicleMapper;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import com.swp391.e_Motion_be.repository.VehicleLogRepository;
 import com.swp391.e_Motion_be.repository.VehicleRepository;
@@ -45,7 +43,7 @@ public class VehicleLogService {
 
     // FIND BY VEHICLE ID
     public List<VehicleLogResponse> findVehicleLogByVehicleId(Long vehicleId) {
-        List<VehicleLog> logs = vehicleLogRepository.findByVehicleId(vehicleId);
+        List<VehicleLog> logs = vehicleLogRepository.findVehicleLogByVehicleId(vehicleId);
 
         if (logs.isEmpty()) {
             throw new AppException(ErrorCode.VEHICLE_LOG_LIST_EMPTY);
@@ -57,8 +55,8 @@ public class VehicleLogService {
     }
 
     // FIND BY USER ID
-    public List<VehicleLogResponse> findVehicleLogByUserId(Long userId) {
-        List<VehicleLog> logs = vehicleLogRepository.findByUserId(userId);
+    public List<VehicleLogResponse> findVehicleLogByStaffId(Long staffId) {
+        List<VehicleLog> logs = vehicleLogRepository.findByStaff_StaffId(staffId);
 
         if (logs.isEmpty()) {
             throw new AppException(ErrorCode.VEHICLE_LOG_LIST_EMPTY);
@@ -81,7 +79,7 @@ public class VehicleLogService {
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_ID_NOT_FOUND));
 
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         if(request.getVehicleLogType() == null){
@@ -90,7 +88,7 @@ public class VehicleLogService {
 
         VehicleLog log = vehicleLogMapper.toEntity(request);
         log.setVehicle(vehicle);
-        log.setUser(user);
+        log.setStaff(user.getStaff());
         log.setCreatedAt(LocalDateTime.now());
 
         return vehicleLogMapper.toResponse(vehicleLogRepository.save(log));

@@ -6,7 +6,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name ="vehicles")
@@ -48,6 +50,9 @@ public class Vehicle {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
     private Station station;
+
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<VehicleLog> vehicleLogs;
 
     public Vehicle(String name, VehicleType vehicleType, VehicleStatus vehicleStatus, double consumptionRate, double batteryLevel, double batteryCapacity, String plateNumber, LocalDateTime lastMaintenance, Station station) {
         this.name = name;

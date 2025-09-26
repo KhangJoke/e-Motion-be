@@ -3,27 +3,24 @@ package com.swp391.e_Motion_be.exception;
 
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.enums.ErrorCode;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.naming.AuthenticationException;
-import java.nio.file.AccessDeniedException;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     //Exception
-    @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
-        ApiResponse<String> apiResponse = new ApiResponse<>();
-        apiResponse.setStatus(ErrorCode.UNEXPECTED_EXCEPTION.getCode());
-        apiResponse.setMessage(ErrorCode.UNEXPECTED_EXCEPTION.getMessage());
-        return ResponseEntity.badRequest().body(apiResponse);
-    }
+//    @ExceptionHandler(value = Exception.class)
+//    ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
+//        ApiResponse<String> apiResponse = new ApiResponse<>();
+//        apiResponse.setStatus(ErrorCode.UNEXPECTED_EXCEPTION.getCode());
+//        apiResponse.setMessage(ErrorCode.UNEXPECTED_EXCEPTION.getMessage());
+//        return ResponseEntity.badRequest().body(apiResponse);
+//    }
 
     // Exception bắt bằng AppException
     @ExceptionHandler(value = AppException.class)

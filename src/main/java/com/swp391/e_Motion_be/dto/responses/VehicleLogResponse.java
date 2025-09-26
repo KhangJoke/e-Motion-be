@@ -15,5 +15,5 @@ public class VehicleLogResponse {
     private String description;
     private LocalDateTime createdAt;
     private Long vehicleId;
-    private Long userId;
+    private Long staffId;
 }

@@ -13,7 +13,6 @@ import com.swp391.e_Motion_be.repository.StaffRepository;
 import com.swp391.e_Motion_be.repository.StationRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class StaffService {
         if(staffRepository.existsByUser(user)){
             throw new AppException(ErrorCode.USER_ALREADY_ASSIGNED_AS_STAFF);
         }
-        Staff staff = staffMapper.staffToEntity(request);
+        Staff staff = staffMapper.staffCreationRequestToEntity(request);
         staff.setUser(user);
         staff.setStation(station);
         staffRepository.save(staff);

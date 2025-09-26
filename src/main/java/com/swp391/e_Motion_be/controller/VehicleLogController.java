@@ -4,7 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
-import com.swp391.e_Motion_be.service.VehicleLog.VehicleLogService;
+import com.swp391.e_Motion_be.service.vehicleLog.VehicleLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -66,7 +66,7 @@ public class VehicleLogController {
     // Find logs by userId
     @GetMapping("/user/{userId}")
     public ApiResponse<List<VehicleLogResponse>> getVehicleLogsByUser(@PathVariable Long userId) {
-        List<VehicleLogResponse> response = vehicleLogService.findVehicleLogByUserId(userId);
+        List<VehicleLogResponse> response = vehicleLogService.findVehicleLogByStaffId(userId);
         return new ApiResponse<>(200, "Success", response);
     }
 }

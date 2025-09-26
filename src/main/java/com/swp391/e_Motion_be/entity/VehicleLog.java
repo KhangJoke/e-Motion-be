@@ -34,15 +34,15 @@ public class VehicleLog {
     private Vehicle vehicle;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "staff_id")
+    private Staff staff;
 
-    public VehicleLog(VehicleLogType vehicleLogType, String description, LocalDateTime createdAt, Vehicle vehicle, User user) {
+    public VehicleLog(VehicleLogType vehicleLogType, String description, LocalDateTime createdAt, Vehicle vehicle, Staff staff) {
         this.vehicleLogType = vehicleLogType;
         this.description = description;
         this.createdAt = createdAt;
         this.vehicle = vehicle;
-        this.user = user;
+        this.staff = staff;
     }
 
 }

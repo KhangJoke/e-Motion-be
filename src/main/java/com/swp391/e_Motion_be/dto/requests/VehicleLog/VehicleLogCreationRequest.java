@@ -20,7 +20,7 @@ public class VehicleLogCreationRequest {
     @NotNull(message = "VehicleId is required")
     private Long vehicleId;
 
-    @NotNull(message = "UserId is required (Staff)")
-    private Long userId;
+    @NotNull(message = "StaffId is required (Staff)")
+    private Long staffId;
 
 }

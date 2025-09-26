@@ -10,7 +10,7 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface VehicleMapper {
-    @Mapping(target = "station", ignore = true)// handle manually in service
+    @Mapping(source = "stationId", target = "station.id")// handle manually in service
     Vehicle toVehicleEntity(VehicleCreationRequest request);
 
     @Mapping(source = "station.id", target = "stationId")

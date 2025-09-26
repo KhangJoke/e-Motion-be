@@ -10,12 +10,12 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface VehicleLogMapper {
-    @Mapping(target = "vehicle", ignore = true) // handle manually in service
-    @Mapping(target = "user", ignore = true)    // handle manually in service
+    @Mapping(source = "vehicleId", target = "vehicle.id") // handle manually in service
+    @Mapping(source = "staffId", target = "staff.staffId")    // handle manually in service
     VehicleLog toEntity(VehicleLogCreationRequest request);
 
     @Mapping(source = "vehicle.id", target = "vehicleId")
-    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "staff.staffId", target = "staffId")
     VehicleLogResponse toResponse(VehicleLog vehicleLog);
 
     void updateVehicleLogFromRequest(@MappingTarget VehicleLog vehicleLog, VehicleLogUpdateRequest request);

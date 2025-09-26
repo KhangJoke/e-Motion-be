@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.Vehicle;
+package com.swp391.e_Motion_be.service.vehicle;
 
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
@@ -74,14 +74,14 @@ public class VehicleService {
 
     // CREATE
     public VehicleResponse createVehicle(VehicleCreationRequest request) {
-        if (vehicleRepository.findByPlateNumber(request.getPlateNumber()) != null) {
-            throw new AppException(ErrorCode.VEHICLE_EXIST);
-        }
-        Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
-
         //Check Station is FOUNd or NOT
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+        if (vehicleRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
+            throw new AppException(ErrorCode.VEHICLE_EXIST);
+        }
+        Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
 
         vehicle.setStation(station);
         //SAVE

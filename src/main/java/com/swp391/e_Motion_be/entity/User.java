@@ -47,6 +47,9 @@ public class User implements UserDetails {
     @Column(name = "forgot_password_code_expires_at")
     private LocalDateTime forgotPasswordCodeExpiresAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Staff staff;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Document> documents;
 
