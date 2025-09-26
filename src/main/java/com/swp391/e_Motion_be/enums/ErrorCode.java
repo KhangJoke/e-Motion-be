@@ -30,6 +30,8 @@ public enum ErrorCode {
     VEHICLE_LOG_UPDATE_FAILED(4105,"Vehicle log update failed"),
     VEHICLE_LOG_CREATION_FAILED(4106,"Vehicle log creation failed"),
 
+    // Img Vehicle
+    IMG_VEHICLE_NOT_FOUND(5001,"Img vehicle not found"),
     // Verify errors
     VERIFY_EXPIRED(2004, "Verification code expired"),
     VERIFY_CODE_NOT_MATCH(2005, "Verification code does not match"),
