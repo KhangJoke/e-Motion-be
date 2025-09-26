@@ -19,8 +19,16 @@ public enum ErrorCode {
     DOCUMENT_NOT_FOUND(1002, "Document not found"),
 
     // Vehicle errors
-    VEHICLE_EXIST(2013,"Vehicle is already exist"),
-    VEHICLE_NOT_EXIST(2014,"Vehicle does not exist"),
+    VEHICLE_EXIST(4001,"Vehicle is already exist"),
+    VEHICLE_NOT_EXIST(4002,"Vehicle does not exist"),
+
+    // Vehicle Log erros
+    VEHICLE_LOG_NOT_EXIST(4101,"Vehicle Log does not exist"),
+    VEHICLE_ID_NOT_FOUND(4102,"Vehicle id is not found"),
+    VEHICLE_LOG_LIST_EMPTY(4103,"Vehicle log list is empty"),
+    VEHICLE_LOG_TYPE_EMPTY(4104,"Vehicle log type is empty"),
+    VEHICLE_LOG_UPDATE_FAILED(4105,"Vehicle log update failed"),
+    VEHICLE_LOG_CREATION_FAILED(4106,"Vehicle log creation failed"),
 
     // Verify errors
     VERIFY_EXPIRED(2004, "Verification code expired"),

@@ -12,6 +12,7 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
 import com.swp391.e_Motion_be.repository.StationRepository;
 import com.swp391.e_Motion_be.repository.VehicleRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,13 @@ public class VehicleService {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         return vehicleMapper.toVehicleResponse(vehicle);
+    }
+
+    // Find by PlateNumber
+    public VehicleResponse findVehicleByPlateNumber(String plateNumber) {
+        Vehicle vehicle = vehicleRepository.findByPlateNumber(plateNumber)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        return  vehicleMapper.toVehicleResponse(vehicle);
     }
 
     // Find all
@@ -82,29 +90,27 @@ public class VehicleService {
     }
 
     // UPDATE
+    @Transactional
     public VehicleResponse updateVehicle(Long id, VehicleUpdateRequest request) {
 
-        // 1. Find existing vehicle
         Vehicle existing = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
         if (!existing.getPlateNumber().equals(request.getPlateNumber())
                 && vehicleRepository.findByPlateNumber(request.getPlateNumber()) != null) {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
-        System.out.println(request.toString());
 
-        // 2. Update fields (mapper handles normal fields)
         vehicleMapper.updateVehicleFromRequest(existing, request);
-        // 3. Handle stationId separately if provided
+
         if (request.getStationId() != null) {
             Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-
             existing.setStation(station);
         }
 
-        Vehicle updated = vehicleRepository.save(existing);
-        return vehicleMapper.toVehicleResponse(updated);
+        // No need to call save() — transaction will automatically flush changes
+        return vehicleMapper.toVehicleResponse(existing);
     }
 
     //DELETE
