@@ -9,9 +9,9 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface StationMapper {
-    Station toStationEntity(StationCreationRequest stationCreationRequest);
+    Station toStationEntity(StationCreationRequest request);
     StationResponse toStationResponse(Station station);
-    void updateStation(StationUpdateRequest stationUpdateRequest ,
+    void updateStation(StationUpdateRequest request,
                        @MappingTarget Station station);
 
 }

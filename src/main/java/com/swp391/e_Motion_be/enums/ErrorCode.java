@@ -63,7 +63,10 @@ public enum ErrorCode {
     // Station errors
     STATION_NOT_FOUND(4001, "Station not found"),
     STATION_NAME_EXISTS(4002, "Station name already exists"),
-    STAFF_NOT_FOUND(5001, "Staff not found");
+
+    // Staff errors
+    STAFF_NOT_FOUND(5001, "Staff not found"),
+    USER_ALREADY_ASSIGNED_AS_STAFF(5002, "User is already assigned as staff");
 
     private final int code;
     private final String message;
