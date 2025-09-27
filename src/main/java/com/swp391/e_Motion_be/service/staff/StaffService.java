@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.entity.Staff;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.StaffMapper;
 import com.swp391.e_Motion_be.repository.StaffRepository;
@@ -33,7 +34,11 @@ public class StaffService {
         if(staffRepository.existsByUser(user)){
             throw new AppException(ErrorCode.USER_ALREADY_ASSIGNED_AS_STAFF);
         }
-        Staff staff = staffMapper.staffCreationRequestToEntity(request);
+
+        user.setRole(Role.ROLE_STAFF);
+        userRepository.save(user);
+
+        Staff staff = staffMapper.staffToEntity(request);
         staff.setUser(user);
         staff.setStation(station);
         staffRepository.save(staff);
@@ -50,6 +55,12 @@ public class StaffService {
 
     public void deleteStaffById(Long id){
         Staff staff = staffRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+        User user = staff.getUser();
+        if(user != null){
+            user.setRole(Role.ROLE_USER);
+            userRepository.save(user);
+        }
+
         staffRepository.delete(staff);
     }
 
