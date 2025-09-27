@@ -75,6 +75,9 @@ public enum ErrorCode {
     RESERVATION_ENDTIME_INVALID(6001, "Reservation end time must be in the future"),
     RESERVATION_NOT_FOUND(6002, "Reservation not found"),
 
+    // Deposit errors
+    DEPOSIT_NOT_FOUND(7001, "Deposit not found"),
+
     //Refresh token errors
     SENDED_TOKEN_NOT_FOUND (7001, "The sent refresh token was not found"),
     REFRESH_TOKEN_NOT_FOUND (7002, "Refresh token not found");
