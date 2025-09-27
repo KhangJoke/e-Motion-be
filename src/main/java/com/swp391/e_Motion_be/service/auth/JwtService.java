@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.service.auth;
 
-import com.swp391.e_Motion_be.entity.InvalidatedToken;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import io.jsonwebtoken.Claims;
@@ -17,7 +16,6 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -27,12 +25,6 @@ public class JwtService {
 
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
-
-    public InvalidatedToken extractInvalidatedToken(String token) {
-        String jti = extractId(token);
-        Date expiryTime = extractExpiration(token);
-        return new InvalidatedToken(jti, expiryTime);
-    }
 
     // Lấy username từ token
     public String extractUsername(String token) {
@@ -70,7 +62,6 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .setId(UUID.randomUUID().toString())
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

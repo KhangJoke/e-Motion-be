@@ -38,6 +38,7 @@ public enum ErrorCode {
     SEND_EMAIL_FAILED(3001, "Send email failed"),
 
     // Register errors
+    USER_EXISTS(2000, "User already exists"),
     USER_NOT_EXISTS(2001, "User does not exist"),
     ACCOUNT_NOT_VERIFIED(2003, "Account not verified, Please verify your account"),
     ACCOUNT_ALREADY_VERIFIED(2006, "Account already verified, Please login"),
@@ -72,7 +73,11 @@ public enum ErrorCode {
 
     // Reservation errors
     RESERVATION_ENDTIME_INVALID(6001, "Reservation end time must be in the future"),
-    RESERVATION_NOT_FOUND(6002, "Reservation not found");
+    RESERVATION_NOT_FOUND(6002, "Reservation not found"),
+
+    //Refresh token errors
+    SENDED_TOKEN_NOT_FOUND (7001, "The sent refresh token was not found"),
+    REFRESH_TOKEN_NOT_FOUND (7002, "Refresh token not found");
 
     private final int code;
     private final String message;
