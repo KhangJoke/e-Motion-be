@@ -72,7 +72,10 @@ public enum ErrorCode {
 
     // Reservation errors
     RESERVATION_ENDTIME_INVALID(6001, "Reservation end time must be in the future"),
-    RESERVATION_NOT_FOUND(6002, "Reservation not found");
+    RESERVATION_NOT_FOUND(6002, "Reservation not found"),
+
+    // Deposit errors
+    DEPOSIT_NOT_FOUND(7001, "Deposit not found");
 
     private final int code;
     private final String message;

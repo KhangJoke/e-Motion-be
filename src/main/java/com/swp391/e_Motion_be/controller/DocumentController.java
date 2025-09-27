@@ -43,9 +43,9 @@ public class DocumentController {
     }
 
     @GetMapping("/{email}")
-    ApiResponse<List<DocumentResponse>> getDocumentsByUserId(@PathVariable String email){
+    ApiResponse<List<DocumentResponse>> getDocumentsByUserEmail(@PathVariable String email){
         ApiResponse<List<DocumentResponse>> ApiResponse = new ApiResponse<>();
-        ApiResponse.setData(documentService.getDocumentsByEmail(email));
+        ApiResponse.setData(documentService.getDocumentsByUserEmail(email));
         return ApiResponse;
     }
 

@@ -29,6 +29,7 @@ public class DocumentService {
     OcrService ocrService;
     CloudinaryService cloudinaryService;
 
+
     public DocumentResponse createDocument(DocumentCreationRequest request) {
         String extractedCccd = ocrService.extractCccdFromUrl(request.getImgUrl());
         // 1. Verify OCR
@@ -51,8 +52,8 @@ public class DocumentService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_EXISTS));
         Document document = documentMapper.toDocumentEntity(request);
-        user.addUserDocument(document);
-        userRepository.save(user);
+        document.setUser(user);
+        documentRepository.save(document);
         return documentMapper.toDocumentResponse(document);
     }
 
@@ -67,7 +68,7 @@ public class DocumentService {
                 .orElseThrow(() -> new AppException(ErrorCode.DOCUMENT_NOT_FOUND)));
     }
 
-    public List<DocumentResponse> getDocumentsByEmail(String email){
+    public List<DocumentResponse> getDocumentsByUserEmail(String email){
         return documentRepository.findByUser_Email(email).stream()
                 .map(documentMapper:: toDocumentResponse)
                 .toList();

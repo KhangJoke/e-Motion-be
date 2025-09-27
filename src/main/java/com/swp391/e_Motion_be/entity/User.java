@@ -55,6 +55,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Reservation> reservations;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Deposit> deposits;
+
     public User() {
         this.createAt = LocalDateTime.now();
     }
@@ -65,16 +68,6 @@ public class User implements UserDetails {
         this.password = password;
         this.role = role;
         this.createAt = LocalDateTime.now();
-    }
-
-    public void addUserDocument(Document document) {
-        documents.add(document);
-        document.setUser(this);
-    }
-
-    public void removeUserDocument(Document document) {
-        documents.remove(document);
-        document.setUser(null);
     }
 
     @Override
