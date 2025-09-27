@@ -40,7 +40,7 @@ public class StaffController {
         return response;
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteStaffById(@PathVariable Long id){
         staffService.deleteStaffById(id);
         ApiResponse<Void> response = new ApiResponse<>();
@@ -48,7 +48,7 @@ public class StaffController {
         return response;
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     public ApiResponse<StaffResponse> updateStaffById(@PathVariable Long id,
                                                       @RequestBody StaffUpdateRequest request){
         ApiResponse<StaffResponse> response = new ApiResponse<>();
