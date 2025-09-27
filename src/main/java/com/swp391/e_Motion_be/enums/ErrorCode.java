@@ -40,15 +40,17 @@ public enum ErrorCode {
 
     // Register errors
     USER_EXISTS(450, "User already exists"),
-    USER_NOT_EXISTS(451, "User does not exist"),
+    PHONE_ALREADY_EXISTS(451, "Phone number already exists"),
     ACCOUNT_NOT_VERIFIED(452, "Account not verified, Please verify your account"),
     ACCOUNT_ALREADY_VERIFIED(453, "Account already verified, Please login"),
     INVALID_PASSWORD(454, "Invalid password"),
+    EMAIL_ALREADY_EXISTS(455, "Email already exists"),
 
     //Login errors
-    TOKEN_EXPIRED(455, "Token has been expired. Please login again."),
-    INVALID_TOKEN(456, "Invalid token. Please login again."),
-    NOT_LOGIN_YET(457, "You are not logged in. Please login to continue."),
+    TOKEN_EXPIRED(456, "Token has been expired. Please login again."),
+    INVALID_TOKEN(457, "Invalid token. Please login again."),
+    NOT_LOGIN_YET(458, "You are not logged in. Please login to continue."),
+    USER_NOT_EXISTS(459, "User does not exist"),
 
     // Check image document errors
     DOCUMENT_NUMBER_MISMATCH(460, "Document number does not match the one extracted from the image"),

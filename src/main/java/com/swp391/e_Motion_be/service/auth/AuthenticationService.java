@@ -49,6 +49,11 @@ public class AuthenticationService {
         }else if(oldUser != null && !oldUser.isEnabled()){
             return oldUser;
         }
+        if(userRepository.existsByEmail(input.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        } else if(userRepository.existsByPhone(input.getPhone())) {
+            throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
+        }
         User user = userMapper.toUser(input);
         user.setRole(Role.ROLE_USER);
         user.setPassword(passwordEncoder.encode(input.getUserPassword()));
