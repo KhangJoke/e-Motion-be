@@ -53,11 +53,12 @@ API: http://localhost:8080
 
 Swagger UI: http://localhost:8080/swagger-ui/index.html
 
-## Database
+## Database Local
 
 MySQL 8
 
 Dùng Code First (Hibernate) → khi chạy lần đầu, các bảng sẽ tự sinh trong database e-Motion.
+
 
 ## Config (application.properties)
 
