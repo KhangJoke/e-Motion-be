@@ -77,6 +77,7 @@ public enum ErrorCode {
     // Reservation errors
     RESERVATION_ENDTIME_INVALID(480, "Reservation end time must be in the future"),
     RESERVATION_NOT_FOUND(481, "Reservation not found"),
+    RESERVATION_TIME_INVALID(482, "Reservation time must be in the future"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(485, "Deposit not found"),

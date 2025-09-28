@@ -19,6 +19,8 @@ public class CreateReservationRequest {
     private Long vehicleId;
     @NotNull(message = "Station ID must not be blank")
     private Long stationId;
+    @NotNull(message = "Reservation start time must not be blank")
+    private LocalDateTime startTime;
     @NotNull(message = "Reservation end time must not be blank")
     private LocalDateTime endTime;
 }

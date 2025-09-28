@@ -24,6 +24,8 @@ public class Reservation {
     @Column(name="created_at",nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
+    @Column(name="reserved_start_time",nullable = false)
+    private LocalDateTime startTime;
     @Column(name="reserved_end_time",nullable = false)
     private LocalDateTime endTime;
 
@@ -36,8 +38,9 @@ public class Reservation {
     @ManyToOne(fetch = FetchType.LAZY)
     private Station station;
 
-    public Reservation(String code, LocalDateTime endTime, User user, Vehicle vehicle, Station station) {
+    public Reservation(String code, LocalDateTime endTime, User user, Vehicle vehicle, Station station, LocalDateTime startTime) {
         this.code = code;
+        this.startTime = startTime;
         this.endTime = endTime;
         this.createdAt = LocalDateTime.now();
         this.user = user;
@@ -49,18 +52,6 @@ public class Reservation {
     public Reservation(){
         this.createdAt = LocalDateTime.now();
         this.status = ReservationStatus.PENDING;
-    }
-
-    @Override
-    public String toString() {
-        return "Reservation{" +
-                "id=" + id +
-                ", code='" + code + '\'' +
-                ", endTime=" + endTime +
-                ", userId=" + (user != null ? user.getId() : null) +
-                ", vehicleId=" + (vehicle != null ? vehicle.getId() : null) +
-                ", stationId=" + (station != null ? station.getId() : null) +
-                '}';
     }
 
 }
