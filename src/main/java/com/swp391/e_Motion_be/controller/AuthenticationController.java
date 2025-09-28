@@ -71,7 +71,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<String>> refreshToken(@CookieValue(name="refresh_token", required = false) String refreshToken,
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@CookieValue(name="refresh_token", required = false) String refreshToken,
                                                             HttpServletResponse response) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             throw new AppException(ErrorCode.SENDED_TOKEN_NOT_FOUND);
@@ -90,7 +90,8 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         String newAccessToken = jwtService.generateToken(newRefreshToken.getUser());
-        ApiResponse<String> apiResponse = new ApiResponse<>(200, "Token refreshed successfully", newAccessToken);
+        LoginResponse loginResponse = new LoginResponse(newAccessToken, jwtService.extractExpiration(newAccessToken).getTime());
+        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "Token refreshed successfully", loginResponse);
 
         return ResponseEntity.ok(apiResponse);
     }
