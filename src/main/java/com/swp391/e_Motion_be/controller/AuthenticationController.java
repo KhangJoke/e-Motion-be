@@ -78,8 +78,8 @@ public class AuthenticationController {
         }
         // Rotate refresh token
         RefreshToken oldRefreshToken = refreshTokenService.findByToken(refreshToken);
-        RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken.getToken())
+        String newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/auth/refresh")
@@ -89,7 +89,7 @@ public class AuthenticationController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        String newAccessToken = jwtService.generateToken(newRefreshToken.getUser());
+        String newAccessToken = jwtService.generateToken(oldRefreshToken.getUser());
         LoginResponse loginResponse = new LoginResponse(newAccessToken, jwtService.extractExpiration(newAccessToken).getTime());
         ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "Token refreshed successfully", loginResponse);
 

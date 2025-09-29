@@ -74,8 +74,6 @@ public class AuthenticationService {
         RefreshToken token = refreshTokenService.findByToken(refreshToken);
         if (token != null) {
             refreshTokenService.revokeToken(token);
-        }else{
-            throw new AppException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
     }
 
