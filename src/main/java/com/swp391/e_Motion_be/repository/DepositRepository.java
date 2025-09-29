@@ -8,6 +8,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DepositRepository extends JpaRepository<Deposit, Long> {
-    List<Deposit> findByUser_Email(String email);
-    Optional<Deposit> findByUser_EmailAndTypeAndStatus(String email, DepositType type, DepositStatus status);
+
 }

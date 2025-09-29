@@ -18,12 +18,22 @@ public class Deposit {
     @Column(name = "deposit_status")
     @Enumerated(EnumType.STRING)
     DepositStatus status;
-    @Column(name = "deposit_amoount")
-    long amount;
+    @Column(name = "deposit_amount")
+    long depositAmount;
+    @Column(name = "release_amount")
+    long releaseAmount;
     @Column(name = "create_at", updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     LocalDateTime createAt;
+    @Column(name = "release_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    LocalDateTime releaseAt;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
     Reservation reservation;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rental_id")
+    Rental rental;
 }

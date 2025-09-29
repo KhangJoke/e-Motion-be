@@ -26,8 +26,4 @@ public class DepositUpdateRequest {
     DepositStatus newStatus;
     @NotNull(message = "User Email is required")
     String email;
-    @NotNull(message = "Type must not be blank")
-    @Pattern(regexp = "^(RESERVATION|DEPOSIT)$", message = "Type must be one of the following: RESERVATION, DEPOSIT")
-    @Enumerated(EnumType.STRING)
-    DepositType type;
 }

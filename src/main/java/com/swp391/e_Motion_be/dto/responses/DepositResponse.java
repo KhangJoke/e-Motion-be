@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 public class DepositResponse {
     @Enumerated(EnumType.STRING)
     DepositStatus status;
-    long amount;
+    long depositAmount;
+    long releaseAmount;
     LocalDateTime createdAt;
+    LocalDateTime releaseAt;
 }

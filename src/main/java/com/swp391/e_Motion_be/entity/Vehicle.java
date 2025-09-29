@@ -57,6 +57,11 @@ public class Vehicle {
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Reservation> reservations;
 
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Rental> rentals;
+
+
+
     public Vehicle(String name, VehicleType vehicleType, VehicleStatus vehicleStatus, double consumptionRate, double batteryLevel, double batteryCapacity, String plateNumber, LocalDateTime lastMaintenance, Station station) {
         this.name = name;
         this.vehicleType = vehicleType;

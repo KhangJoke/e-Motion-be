@@ -35,4 +35,7 @@ public class Station {
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Reservation> reservations;
+
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Rental> rentals;
 }

@@ -59,7 +59,7 @@ public class User implements UserDetails {
     private List<RefreshToken> refreshTokens;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Deposit> deposits;
+    private List<Rental> rentals;
 
     public User() {
         this.createAt = LocalDateTime.now();

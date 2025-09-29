@@ -21,33 +21,10 @@ public class DepositService {
 
     private final DepositRepository depositRepository;
     private final DepositMapper depositMapper;
-    private final UserRepository userRepository;
 
     public List<DepositResponse> getAllDeposits() {
         return depositRepository.findAll().stream()
                 .map(depositMapper:: toDespositResponse)
                 .toList();
-    }
-
-    public DepositResponse createDeposit(DepositCreateRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-        Deposit deposit = depositMapper.toDespositEntity(request);
-        deposit.setUser(user);
-        depositRepository.save(deposit);
-        return depositMapper.toDespositResponse(deposit);
-    }
-
-    public List<DepositResponse> getDepositsByUserEmail(String email){
-        return depositRepository.findByUser_Email(email).stream()
-                .map(depositMapper:: toDespositResponse)
-                .toList();
-    }
-
-    public DepositResponse updateDeposit(DepositUpdateRequest request){
-        Deposit deposit = depositRepository.findByUser_EmailAndTypeAndStatus(request.getEmail(), request.getType(), request.getOldStatus())
-                .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
-        deposit.setStatus(request.getNewStatus());
-        return depositMapper.toDespositResponse((depositRepository.save(deposit)));
     }
 }

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name ="reservations")
@@ -40,6 +41,9 @@ public class Reservation {
 
     @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     private Deposit deposit;
+
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Rental> rentals;
 
     public Reservation(String code, LocalDateTime endTime, User user, Vehicle vehicle, Station station, LocalDateTime startTime) {
         this.code = code;
