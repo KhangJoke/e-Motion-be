@@ -56,7 +56,7 @@ public class RefreshTokenService {
         refreshTokenRepository.saveAll(tokens);
     }
 
-    public RefreshToken rotateRefreshToken(RefreshToken old) {
+    public String rotateRefreshToken(RefreshToken old) {
         String newToken = generateRawRefreshToken();
         String hashedNewToken = sha256Hash(newToken);
 
@@ -72,7 +72,7 @@ public class RefreshTokenService {
         refreshTokenRepository.save(old);
         refreshTokenRepository.save(newRefreshToken);
 
-        return newRefreshToken;
+        return newToken;
     }
 
     public String generateRawRefreshToken() {
