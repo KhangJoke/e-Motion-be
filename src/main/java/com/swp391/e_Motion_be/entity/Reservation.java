@@ -38,6 +38,9 @@ public class Reservation {
     @ManyToOne(fetch = FetchType.LAZY)
     private Station station;
 
+    @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Deposit deposit;
+
     public Reservation(String code, LocalDateTime endTime, User user, Vehicle vehicle, Station station, LocalDateTime startTime) {
         this.code = code;
         this.startTime = startTime;

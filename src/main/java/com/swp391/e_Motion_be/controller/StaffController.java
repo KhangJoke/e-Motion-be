@@ -4,7 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.staff.StaffCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.staff.StaffUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.StaffResponse;
-import com.swp391.e_Motion_be.service.staff.StaffService;
+import com.swp391.e_Motion_be.service.StaffService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

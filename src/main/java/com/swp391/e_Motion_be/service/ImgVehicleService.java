@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.ImgVehicle;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleUpdateRequest;
@@ -10,7 +10,6 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ImgVehicleMapper;
 import com.swp391.e_Motion_be.repository.ImgVehicleRepository;
 import com.swp391.e_Motion_be.repository.VehicleRepository;
-import com.swp391.e_Motion_be.service.cloudinary.CloudinaryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

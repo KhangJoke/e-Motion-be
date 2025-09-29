@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.vehicle;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;

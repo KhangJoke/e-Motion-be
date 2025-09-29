@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.vehicleLog;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;

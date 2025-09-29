@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.cloudinary;
+package com.swp391.e_Motion_be.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

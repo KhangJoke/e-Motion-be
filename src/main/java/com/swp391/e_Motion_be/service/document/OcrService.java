@@ -2,7 +2,7 @@ package com.swp391.e_Motion_be.service.document;
 
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.service.cloudinary.CloudinaryService;
+import com.swp391.e_Motion_be.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;

@@ -10,7 +10,7 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.DocumentMapper;
 import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
-import com.swp391.e_Motion_be.service.cloudinary.CloudinaryService;
+import com.swp391.e_Motion_be.service.CloudinaryService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

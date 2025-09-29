@@ -5,7 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRe
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
-import com.swp391.e_Motion_be.service.reservation.ReservationService;
+import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 

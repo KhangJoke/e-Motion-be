@@ -1,12 +1,9 @@
-package com.swp391.e_Motion_be.service.deposit;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositUpdateRequest;
-import com.swp391.e_Motion_be.dto.requests.document.DocumentUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
-import com.swp391.e_Motion_be.dto.responses.DocumentResponse;
 import com.swp391.e_Motion_be.entity.Deposit;
-import com.swp391.e_Motion_be.entity.Document;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
@@ -17,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

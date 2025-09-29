@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.reservation;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;

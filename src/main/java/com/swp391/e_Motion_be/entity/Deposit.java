@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.entity;
 
 import com.swp391.e_Motion_be.enums.DepositStatus;
-import com.swp391.e_Motion_be.enums.DepositType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -19,15 +18,12 @@ public class Deposit {
     @Column(name = "deposit_status")
     @Enumerated(EnumType.STRING)
     DepositStatus status;
-    @Column(name = "deposit_type")
-    @Enumerated(EnumType.STRING)
-    DepositType type;
     @Column(name = "deposit_amoount")
     long amount;
     @Column(name = "create_at", updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     LocalDateTime createAt;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    User user;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id")
+    Reservation reservation;
 }

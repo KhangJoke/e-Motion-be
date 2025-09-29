@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.deposit;
 
 import com.swp391.e_Motion_be.enums.DepositStatus;
-import com.swp391.e_Motion_be.enums.DepositType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;

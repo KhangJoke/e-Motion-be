@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.staff;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.staff.StaffCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.staff.StaffUpdateRequest;

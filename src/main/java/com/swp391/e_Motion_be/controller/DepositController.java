@@ -2,11 +2,9 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositUpdateRequest;
-import com.swp391.e_Motion_be.dto.requests.document.DocumentUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
-import com.swp391.e_Motion_be.dto.responses.DocumentResponse;
-import com.swp391.e_Motion_be.service.deposit.DepositService;
+import com.swp391.e_Motion_be.service.DepositService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
