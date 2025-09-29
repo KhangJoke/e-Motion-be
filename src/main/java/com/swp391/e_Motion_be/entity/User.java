@@ -23,7 +23,7 @@ public class User implements UserDetails {
     private long id;
     @Column(name = "full_name", nullable = false)
     private String fullName;
-    @Column(name = "phone", nullable = false)
+    @Column(name = "phone", nullable = false, unique = true)
     private String phone;
     @Column(nullable = false, unique = true)
     private String email;
@@ -54,6 +54,9 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Reservation> reservations;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Deposit> deposits;

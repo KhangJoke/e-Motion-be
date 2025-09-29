@@ -49,6 +49,10 @@ public class ReservationService {
             throw new AppException(ErrorCode.RESERVATION_ENDTIME_INVALID);
         }
         Reservation reservation = reservationMapper.toReservationEntity(request);
+        if(reservation.getStartTime().isBefore(LocalDateTime.now()) ||
+                reservation.getEndTime().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
+        }
         reservation.setUser(user);
         reservation.setVehicle(vehicle);
         reservation.setStation(station);

@@ -2,10 +2,8 @@ package com.swp391.e_Motion_be.config;
 
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.service.auth.InvalidatedTokenService;
 import com.swp391.e_Motion_be.service.auth.JwtService;
 import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,8 +28,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     private final JwtService jwtService;
-
-    private final InvalidatedTokenService invalidatedTokenService;
 
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -58,17 +54,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
 
                 if(jwtService.isTokenValid(jwt, userDetails)){
-                    if(!invalidatedTokenService.isTokenInvalidated(jwtService.extractInvalidatedToken(jwt))){
-                        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities()
-                        );
+                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()
+                    );
 
-                        token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                        SecurityContextHolder.getContext().setAuthentication(token);
-                    }else {
-                        throw new AppException(ErrorCode.NOT_LOGIN_YET);
-                    }
+                    SecurityContextHolder.getContext().setAuthentication(token);
                 }else {
                     throw new AppException(ErrorCode.INVALID_TOKEN);
                 }
@@ -76,11 +68,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-        } catch (SignatureException e) {
-            handlerExceptionResolver.resolveException(
-                    request, response, null,
-                    new AppException(ErrorCode.INVALID_TOKEN)
-            );
         } catch (Exception e) {
             handlerExceptionResolver.resolveException(request, response, null, e);
         }

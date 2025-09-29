@@ -53,11 +53,12 @@ API: http://localhost:8080
 
 Swagger UI: http://localhost:8080/swagger-ui/index.html
 
-## Database
+## Database Local
 
 MySQL 8
 
 Dùng Code First (Hibernate) → khi chạy lần đầu, các bảng sẽ tự sinh trong database e-Motion.
+
 
 ## Config (application.properties)
 
@@ -116,7 +117,7 @@ This document provides detailed information about the API endpoints for the e-Mo
 ### 2. Log in
 
 - **Endpoint:** `POST /api/auth/login`
-- **Description:** Authenticates a user and returns a JWT token.
+- **Description:** Đăng nhập, trả về access token và set refresh token trong cookie.
 - **Request Body:**
 
   ```json
@@ -138,10 +139,46 @@ This document provides detailed information about the API endpoints for the e-Mo
     }
   }
   ```
-### 3. Logout
+
+- **Cookie (Set-Cookie):**
+
+  ```text
+    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=604800"
+  ```
+
+### 3. Refresh Token
+
+- **Endpoint:** `POST /api/auth/refresh`
+- **Description:** Lấy refresh token từ cookie → phát hành access token mới và refresh token mới.
+- **Request Body:**
+
+  ```text
+  Không cần body, chỉ cần cookie refresh_token
+  ```
+
+- **Success Response (200):**
+
+  ```json
+  {
+    "status": 200,
+    "message": "Token refreshed successfully",
+    "data": {
+      "token": "new-access-token",
+      "expiresIn": 1678886400000
+    }
+  }
+  ```
+
+- **Cookie (Set-Cookie):**
+
+  ```text
+    "Set-Cookie": "refresh_token=new-refresh-token; HttpOnly; Secure; Path=/api/auth/refresh; Max-Age=604800"
+  ```  
+
+### 4. Logout
 
 - **Endpoint:** `POST /api/auth/logout`
-- **Description:** Blacklist user's token and returns a message.
+- **Description:** Xóa refresh token trong cookie.
 - **Request Body:**
 
   ```json
@@ -159,8 +196,13 @@ This document provides detailed information about the API endpoints for the e-Mo
     "data": null
   }
   ```
+- **Cookie (Set-Cookie):**
 
-### 4. Verify user account
+  ```text
+    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=604800"
+  ```
+  
+### 5. Verify user account
 
 - **Endpoint:** `POST /api/auth/verify`
 - **Description:** Verifies a user's email address using the verification code.
@@ -183,7 +225,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 5. Resend verification code
+### 6. Resend verification code
 
 - **Endpoint:** `POST /api/auth/resend`
 - **Description:** Resends the verification code to the user's email.
@@ -199,7 +241,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 6. Send verification code for password update
+### 7. Send verification code for password update
 
 - **Endpoint:** `POST /api/auth/forgotPassword/sendVerify/{email}`
 - **Description:** Sends a verification code to the user's email to initiate a password update.
@@ -215,7 +257,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 7. Verify forgot password request
+### 8. Verify forgot password request
 
 - **Endpoint:** `POST /api/auth/forgotPassword/verify`
 - **Description:** Verifies the code for a forgot password request.
@@ -238,7 +280,7 @@ This document provides detailed information about the API endpoints for the e-Mo
   }
   ```
 
-### 8. Update password after forgetting
+### 9. Update password after forgetting
 
 - **Endpoint:** `POST /api/auth/forgotPassword/update`
 - **Description:** Updates the user's password after a successful verification.

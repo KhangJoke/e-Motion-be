@@ -1,18 +1,27 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.auth.LogoutRequest;
-import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.RegisterUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.VerifyUserDto;
+import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.LoginResponse;
+import com.swp391.e_Motion_be.entity.RefreshToken;
 import com.swp391.e_Motion_be.entity.User;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.service.auth.AuthenticationService;
 import com.swp391.e_Motion_be.service.auth.JwtService;
+import com.swp391.e_Motion_be.service.auth.RefreshTokenService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,10 +29,12 @@ public class AuthenticationController {
 
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
+    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService, RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.authenticationService = authenticationService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @PostMapping("/register")
@@ -37,24 +48,72 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginUserDto loginUserDto) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginUserDto loginUserDto,
+                                                            HttpServletResponse response,
+                                                            HttpServletRequest request) {
         User loginUser = authenticationService.authenticate(loginUserDto);
-        String token = jwtService.generateToken(loginUser);
-        LoginResponse loginResponse = new LoginResponse(token, jwtService.extractExpiration(token).getTime());
-        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setStatus(200);
-        apiResponse.setMessage("User logged in successfully");
-        apiResponse.setData(loginResponse);
+        String accessToken = jwtService.generateToken(loginUser);
+        LoginResponse loginResponse = new LoginResponse(accessToken, jwtService.extractExpiration(accessToken).getTime());
+        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "User logged in successfully", loginResponse);
+
+        // Create and store refresh token in HttpOnly cookie
+        String refreshToken = refreshTokenService.CreateAndStore(loginUser);
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/auth/refresh")
+                .maxAge(Duration.ofDays(7))
+                .sameSite("None")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@CookieValue(name="refresh_token", required = false) String refreshToken,
+                                                            HttpServletResponse response) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new AppException(ErrorCode.SENDED_TOKEN_NOT_FOUND);
+        }
+        // Rotate refresh token
+        RefreshToken oldRefreshToken = refreshTokenService.findByToken(refreshToken);
+        RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken.getToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/auth/refresh")
+                .maxAge(Duration.ofDays(7))
+                .sameSite("None")
+                .domain("localhost")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        String newAccessToken = jwtService.generateToken(newRefreshToken.getUser());
+        LoginResponse loginResponse = new LoginResponse(newAccessToken, jwtService.extractExpiration(newAccessToken).getTime());
+        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "Token refreshed successfully", loginResponse);
+
         return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest logoutRequest) {
-        authenticationService.logout(logoutRequest);
-        ApiResponse<Void> apiResponse = new ApiResponse<>();
-        apiResponse.setStatus(204);
-        apiResponse.setMessage("User logout successfully");
-        apiResponse.setData(null);
+    public ResponseEntity<ApiResponse<Void>> logout(@CookieValue(name="refresh_token", required=false) String refreshToken,
+                                                    HttpServletResponse response)
+    {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new AppException(ErrorCode.SENDED_TOKEN_NOT_FOUND);
+        }
+        authenticationService.logout(refreshToken);
+        ApiResponse<Void> apiResponse = new ApiResponse<>( 204, "User logged out successfully", null);
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/auth/refresh")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 

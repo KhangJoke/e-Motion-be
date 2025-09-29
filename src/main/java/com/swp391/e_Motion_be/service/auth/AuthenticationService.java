@@ -1,10 +1,10 @@
 package com.swp391.e_Motion_be.service.auth;
 
 import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
-import com.swp391.e_Motion_be.dto.requests.auth.LogoutRequest;
 import com.swp391.e_Motion_be.dto.requests.auth.RegisterUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.VerifyUserDto;
 import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
+import com.swp391.e_Motion_be.entity.RefreshToken;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
@@ -35,20 +35,24 @@ public class AuthenticationService {
 
     private final EmailService emailService;
 
-    private final InvalidatedTokenService invalidatedTokenService;
+    private final RefreshTokenService refreshTokenService;
 
     private final JwtService jwtService;
 
     private final UserMapper userMapper;
 
     public User signup(RegisterUserDto input) {
-        User oldUser = userRepository.findByEmail(input.getEmail()).orElseThrow(
-                () -> new AppException(ErrorCode.USER_NOT_EXISTS)
-        );
+        User oldUser = userRepository.findByEmail(input.getEmail()).orElse(null);
+
         if(oldUser != null && oldUser.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_ALREADY_VERIFIED);
         }else if(oldUser != null && !oldUser.isEnabled()){
             return oldUser;
+        }
+        if(userRepository.existsByEmail(input.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        } else if(userRepository.existsByPhone(input.getPhone())) {
+            throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
         }
         User user = userMapper.toUser(input);
         user.setRole(Role.ROLE_USER);
@@ -61,22 +65,17 @@ public class AuthenticationService {
         return userRepository.save(user);
     }
 
-    public void logout(LogoutRequest logoutRequest) {
+    public void logout(String refreshToken) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = "";
-        try{
-            email = ((User) authentication.getPrincipal()).getEmail();
-        }catch(ClassCastException e){
+        if(authentication == null || !authentication.isAuthenticated()) {
             throw new AppException(ErrorCode.NOT_LOGIN_YET);
         }
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        String token = logoutRequest.getToken();
-        if(jwtService.isTokenValid(token, user)) {
-            invalidatedTokenService.addInvalidatedToken(jwtService.extractInvalidatedToken(token));
-        } else {
-            throw new AppException(ErrorCode.INVALID_TOKEN);
+        RefreshToken token = refreshTokenService.findByToken(refreshToken);
+        if (token != null) {
+            refreshTokenService.revokeToken(token);
+        }else{
+            throw new AppException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
     }
 
