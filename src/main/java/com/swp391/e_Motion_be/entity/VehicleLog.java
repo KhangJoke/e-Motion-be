@@ -26,6 +26,9 @@ public class VehicleLog {
     @Column(name="description", nullable=false)
     private String description;
 
+    @Column(name="fee", nullable = false)
+    private Double fee;
+
     @Column(name="create_at", nullable=false)
     private LocalDateTime createdAt;
 

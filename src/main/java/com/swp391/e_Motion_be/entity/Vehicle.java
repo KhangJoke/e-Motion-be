@@ -32,6 +32,15 @@ public class Vehicle {
     @Column(name="vehicle_status",nullable = false)
     private VehicleStatus vehicleStatus;
 
+    @Column(name="seats",nullable = false)
+    private int seats;
+
+    @Column(name="price_per_hour", nullable = false)
+    private double pricePerHour;
+
+    @Column(name="price_per_day", nullable = false)
+    private double pricePerDay;
+
     @Column(name="consumption_rate",nullable = false)
     private double consumptionRate;
 

@@ -17,6 +17,9 @@ public class VehicleResponse {
     private String name;
     private VehicleType vehicleType;
     private VehicleStatus vehicleStatus;
+    private int seats;
+    private Double pricePerHour;
+    private Double pricePerDay;
     private Double consumptionRate;
     private Double batteryLevel;
     private Double batteryCapacity;

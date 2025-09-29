@@ -23,6 +23,18 @@ public class VehicleCreationRequest {
     @NotNull(message = "Vehicle status is required")
     private VehicleStatus vehicleStatus;
 
+    @NotNull(message = "Seats is required")
+    @Positive(message = "Seats must be positive")
+    private int seats;
+
+    @NotNull(message = "Price per hour is required")
+    @Positive(message = "Price per hour must be positive")
+    private Double pricePerHour;
+
+    @NotNull(message = "Price per day is required")
+    @Positive(message = "Price per day must be positive")
+    private Double pricePerDay;
+
     @NotNull(message = "The consumption rate is required")
     @Positive(message = "Consumption rate must be positive")
     private Double consumptionRate;
