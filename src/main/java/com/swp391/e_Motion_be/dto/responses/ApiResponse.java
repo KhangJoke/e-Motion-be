@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.dto.responses;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

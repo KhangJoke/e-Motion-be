@@ -38,7 +38,7 @@ public class StaffService {
         user.setRole(Role.ROLE_STAFF);
         userRepository.save(user);
 
-        Staff staff = staffMapper.staffToEntity(request);
+        Staff staff = staffMapper.toStaffEntity(request);
         staff.setUser(user);
         staff.setStation(station);
         staffRepository.save(staff);

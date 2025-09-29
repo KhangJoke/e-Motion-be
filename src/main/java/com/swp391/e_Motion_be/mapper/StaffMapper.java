@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 public interface StaffMapper {
     @Mapping(source = "request.userId", target = "user.id")
     @Mapping(source = "request.stationId", target = "station.id")
-    Staff staffToEntity(StaffCreationRequest request);
+    Staff toStaffEntity(StaffCreationRequest request);
 
 
     @Mapping(source = "station.id", target = "stationId")
