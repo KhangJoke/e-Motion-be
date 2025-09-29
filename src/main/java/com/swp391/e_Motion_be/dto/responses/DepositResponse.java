@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.swp391.e_Motion_be.enums.DepositStatus;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,11 +16,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DepositResponse {
     @Enumerated(EnumType.STRING)
     DepositStatus status;
-    long depositAmount;
-    long releaseAmount;
+    long amount;
     LocalDateTime createdAt;
-    LocalDateTime releaseAt;
+    String reservationCode;
+    Long rentalId;
+
 }

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,20 +16,16 @@ import java.time.LocalDateTime;
 public class Deposit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "deposit_id")
     Long id;
     @Column(name = "deposit_status")
     @Enumerated(EnumType.STRING)
     DepositStatus status;
     @Column(name = "deposit_amount")
-    long depositAmount;
-    @Column(name = "release_amount")
-    long releaseAmount;
+    long amount;
     @Column(name = "create_at", updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    LocalDateTime createAt;
-    @Column(name = "release_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    LocalDateTime releaseAt;
+    @CreationTimestamp
+    LocalDateTime createdAt;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")

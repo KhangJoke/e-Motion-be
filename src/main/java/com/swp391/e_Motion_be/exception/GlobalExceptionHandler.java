@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,9 +37,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<String>> handleBadRequestException(MethodArgumentNotValidException e){
         ApiResponse<String> apiResponse = new ApiResponse<>();
-        String message = e.getFieldErrors().stream()
-                .map(err -> err.getField() + ": " + err.getDefaultMessage())
-                .collect(Collectors.joining("; "));
+        String message = Stream.concat(
+                e.getBindingResult().getFieldErrors().stream()
+                        .map(err -> err.getField() + ": " + err.getDefaultMessage()),
+                e.getBindingResult().getGlobalErrors().stream()
+                        .map(err -> err.getObjectName() + ": " + err.getDefaultMessage())
+        ).collect(Collectors.joining("; "));
         apiResponse.setStatus(400);
         apiResponse.setMessage(message);
         return ResponseEntity.badRequest().body(apiResponse);

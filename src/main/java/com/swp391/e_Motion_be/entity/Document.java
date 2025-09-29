@@ -15,8 +15,9 @@ import lombok.experimental.FieldDefaults;
 public class Document {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    long id;
-    @Column(name = "img_url")
+    @Column(name = "doc_id")
+    Long id;
+    @Column(name = "doc_img_url")
     String imgUrl;
     @Enumerated(EnumType.STRING)
     @Column(name = "doc_type")

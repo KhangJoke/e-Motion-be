@@ -18,6 +18,7 @@ public class Rental {
     @Column(name="rental_id")
     Long id;
     @Column(name="rental_status")
+    @Enumerated(EnumType.STRING)
     RentalStatus status;
     @Column(name="start_time")
     LocalDateTime startTime;
