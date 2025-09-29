@@ -6,16 +6,13 @@ import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.entity.Deposit;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.Reservation;
-import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.DepositMapper;
 import com.swp391.e_Motion_be.repository.DepositRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.ReservationRepository;
-import com.swp391.e_Motion_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
