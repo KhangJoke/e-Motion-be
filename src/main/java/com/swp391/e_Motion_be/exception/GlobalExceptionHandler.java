@@ -27,9 +27,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handlingRuntimeException(AppException ex){
         ApiResponse<String> apiResponse = new ApiResponse<>();
         ErrorCode errorCode = ex.getErrorCode();
-        apiResponse.setStatus(errorCode.getCode());
+        apiResponse.setStatus(errorCode.getStatusCode().value());
         apiResponse.setMessage(errorCode.getMessage());
-        return ResponseEntity.badRequest().body(apiResponse);
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
     // Exception bắt bằng MethodArgumentNotValidException
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
         String message = e.getFieldErrors().stream()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .collect(Collectors.joining("; "));
-        apiResponse.setStatus(2003);
+        apiResponse.setStatus(400);
         apiResponse.setMessage(message);
         return ResponseEntity.badRequest().body(apiResponse);
     }

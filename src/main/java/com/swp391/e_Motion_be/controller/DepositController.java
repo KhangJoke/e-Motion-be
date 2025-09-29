@@ -17,12 +17,12 @@ public class DepositController {
     private final DepositService depositService;
 
 //    @GetMapping
-////    ApiResponse<List<DepositResponse>> getDeposit(){
-////        ApiResponse<List<DepositResponse>> apiResponse = new ApiResponse<>();
-////        apiResponse.setMessage("Get deposit successfully");
-////        apiResponse.setData(depositService.getAllDeposits());
-////        return apiResponse;
-////    }
+//    ApiResponse<List<DepositResponse>> getAllDeposits(){
+//        ApiResponse<List<DepositResponse>> apiResponse = new ApiResponse<>();
+//        apiResponse.setMessage("Get deposit successfully");
+//        apiResponse.setData(depositService.getAllDeposits());
+//        return apiResponse;
+//    }
 
 //    @PostMapping
 //    ApiResponse<DepositResponse> createDeposit(@RequestBody DepositCreateRequest request){
