@@ -47,8 +47,10 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS(455, "Email already exists"),
 
     //Login errors
-    TOKEN_EXPIRED(456, "Token has been expired. Please login again."),
-    INVALID_TOKEN(457, "Invalid token. Please login again."),
+    INVALID_TOKEN(499, "Token is invalid or expired. Please login again."),
+    EXPIRED_TOKEN(401, "Token is expired. Please login again."),
+    SIGNATURE_NOT_MATCH(456, "Signature not match"),
+    EXTRACT_USERNAME_FAILED(457, "Extract username from token failed"),
     NOT_LOGIN_YET(458, "You are not logged in. Please login to continue."),
     USER_NOT_EXISTS(459, "User does not exist"),
 

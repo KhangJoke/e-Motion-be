@@ -4,7 +4,6 @@ import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.service.auth.JwtService;
 import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,11 +68,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-        } catch (SignatureException e) {
-            handlerExceptionResolver.resolveException(
-                    request, response, null,
-                    new AppException(ErrorCode.INVALID_TOKEN)
-            );
         } catch (Exception e) {
             handlerExceptionResolver.resolveException(request, response, null, e);
         }
