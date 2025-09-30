@@ -24,6 +24,9 @@ public class Vehicle {
     @Column(name="vehicle_name",nullable = false)
     private String name;
 
+    @Column(name="description",nullable = false)
+    private String description;
+
     @Enumerated(EnumType.STRING)
     @Column(name="vehicle_type",nullable = false)
     private VehicleType vehicleType;

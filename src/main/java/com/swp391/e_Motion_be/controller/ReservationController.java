@@ -1,32 +1,53 @@
 package com.swp391.e_Motion_be.controller;
 
+import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.service.DepositService;
+import com.swp391.e_Motion_be.service.PaymentService;
 import com.swp391.e_Motion_be.service.ReservationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservations")
+@RequiredArgsConstructor
 public class ReservationController {
 
     private final ReservationService reservationService;
-
-    public ReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService;
-    }
+    private final DepositService depositService;
+    private final PaymentService paymentService;
 
     @PostMapping
-    public ApiResponse<ReservationResponse> createReservation(@RequestBody @Valid CreateReservationRequest request) {
+    public ApiResponse<Map<String, Object>> createReservation(HttpServletRequest httpReq, @RequestBody @Valid CreateReservationRequest request) throws Exception {
+        // Create Reservation
         ReservationResponse reservationResponse = reservationService.createReservation(request);
-        ApiResponse<ReservationResponse> response = new ApiResponse<>();
-        response.setData(reservationResponse);
+        // Create Reservation Deposit
+        DepositCreateRequest depositCreateRequest = new DepositCreateRequest(DepositStatus.PENDING, 500000, reservationResponse.getCode(), null);
+        DepositResponse depositResponse = depositService.createDeposit(depositCreateRequest);
+        //Create Payment VnPay Url
+        CreatePaymentUrlRequest paymentUrlRequest = new CreatePaymentUrlRequest(depositResponse.getAmount(), "Reservation Deposit", reservationResponse.getUserEmail(), depositResponse.getId(), null);
+        String url = paymentService.createPaymentUrl(paymentUrlRequest, httpReq.getRemoteAddr());
+        //Create ApiResponse
+        Map<String, Object> data = new HashMap<>();
+        data.put("VnPayUrl", url);
+        data.put("Reservation",reservationResponse);
+        data.put("Deposit",depositResponse);
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        response.setData(data);
         response.setMessage("Reservation created successfully");
         response.setStatus(201);
 

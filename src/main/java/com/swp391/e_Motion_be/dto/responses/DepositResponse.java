@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DepositResponse {
+    long id;
     @Enumerated(EnumType.STRING)
     DepositStatus status;
     long amount;

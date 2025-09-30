@@ -12,8 +12,8 @@ public interface StaffMapper {
     @Mapping(source = "request.stationId", target = "station.id")
     Staff toStaffEntity(StaffCreationRequest request);
 
-
-    @Mapping(source = "station.id", target = "stationId")
-    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.email", target = "email")
+    @Mapping(source = "station.name", target = "stationName")
+    @Mapping(source = "user.fullName", target = "fullName")
     StaffResponse toStaffResponse(Staff staff);
 }

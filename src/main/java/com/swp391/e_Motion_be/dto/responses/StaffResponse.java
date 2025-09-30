@@ -4,7 +4,9 @@ import lombok.Data;
 
 @Data
 public class StaffResponse {
-    private Long staffId;
-    private Long stationId;
-    private Long userId;
+
+    private String email;
+    private String stationName;
+    private String fullName;
+
 }

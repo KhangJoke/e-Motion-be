@@ -60,10 +60,11 @@ public class AuthenticationController {
         String refreshToken = refreshTokenService.CreateAndStore(loginUser);
         ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
-                .secure(true)
-                .path("/auth/refresh")
+                .secure(false)
+                .path("/")
                 .maxAge(Duration.ofDays(7))
-                .sameSite("None")
+                .sameSite("Lax")
+                .domain("localhost")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
@@ -81,10 +82,10 @@ public class AuthenticationController {
         String newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
         ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
                 .httpOnly(true)
-                .secure(true)
-                .path("/auth/refresh")
+                .secure(false)
+                .path("/")
                 .maxAge(Duration.ofDays(7))
-                .sameSite("None")
+                .sameSite("Lax")
                 .domain("localhost")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -107,10 +108,10 @@ public class AuthenticationController {
         ApiResponse<Void> apiResponse = new ApiResponse<>( 204, "User logged out successfully", null);
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
-                .secure(true)
-                .path("/auth/refresh")
+                .secure(false)
+                .path("/")
                 .maxAge(0)
-                .sameSite("None")
+                .sameSite("Lax")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
