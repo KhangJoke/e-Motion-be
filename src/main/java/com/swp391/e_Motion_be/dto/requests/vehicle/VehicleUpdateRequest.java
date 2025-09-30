@@ -18,6 +18,9 @@ public class VehicleUpdateRequest {
     @NotBlank(message = "Vehicle name is required")
     private String name;
 
+    @NotNull(message = "Description is required")
+    private String description;
+
     @NotNull(message = "Vehicle type is required")
     private VehicleType vehicleType;
 

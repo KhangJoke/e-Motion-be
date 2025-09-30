@@ -34,6 +34,9 @@ public enum ErrorCode {
     // Img Vehicle
     IMG_VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND,"Img vehicle not found"),
 
+    //Rating
+    RATING_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "Rating id not found"),
+
     // Verify errors
     VERIFY_EXPIRED(HttpStatus.BAD_REQUEST, "Verification code expired"),
     VERIFY_CODE_NOT_MATCH(HttpStatus.BAD_REQUEST, "Verification code does not match"),

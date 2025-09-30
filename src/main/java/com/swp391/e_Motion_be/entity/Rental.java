@@ -52,4 +52,7 @@ public class Rental {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id")
     Staff staff;
+
+    @OneToOne(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
+    Rating rating;
 }
