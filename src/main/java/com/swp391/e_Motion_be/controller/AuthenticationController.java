@@ -60,10 +60,11 @@ public class AuthenticationController {
         String refreshToken = refreshTokenService.CreateAndStore(loginUser);
         ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
-                .secure(true)
-                .path("/auth/refresh")
+                .secure(false)
+                .path("/")
                 .maxAge(Duration.ofDays(7))
-                .sameSite("None")
+                .sameSite("Lax")
+                .domain("localhost")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
@@ -82,7 +83,7 @@ public class AuthenticationController {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
                 .httpOnly(true)
                 .secure(false)
-                .path("/auth/refresh")
+                .path("/")
                 .maxAge(Duration.ofDays(7))
                 .sameSite("Lax")
                 .domain("localhost")
@@ -108,7 +109,7 @@ public class AuthenticationController {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(false)
-                .path("/auth/refresh")
+                .path("/")
                 .maxAge(0)
                 .sameSite("Lax")
                 .build();

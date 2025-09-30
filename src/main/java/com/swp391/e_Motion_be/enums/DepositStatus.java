@@ -1,5 +1,5 @@
 package com.swp391.e_Motion_be.enums;
 
 public enum DepositStatus {
-    HOLD, RELEASED, FORFEITED
+    PENDING, HOLD, RELEASED, FORFEITED
 }

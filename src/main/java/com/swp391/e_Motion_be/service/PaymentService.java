@@ -1,24 +1,18 @@
 package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.config.VNPayConfig;
-import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
-import com.swp391.e_Motion_be.entity.Deposit;
-import com.swp391.e_Motion_be.entity.Payment;
-import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.PaymentMethod;
-import com.swp391.e_Motion_be.enums.PaymentStatus;
-import com.swp391.e_Motion_be.enums.PaymentType;
+import com.swp391.e_Motion_be.entity.*;
+import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.PaymentMapper;
-import com.swp391.e_Motion_be.repository.PaymentRepository;
-import com.swp391.e_Motion_be.repository.UserRepository;
+import com.swp391.e_Motion_be.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -31,6 +25,9 @@ public class PaymentService {
 
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
+    private final DepositRepository depositRepository;
+    private final ReservationRepository reservationRepository;
+    private final RentalRepository rentalRepository;
     private final VNPayConfig vnPayConfig;
     private final PaymentMapper paymentMapper;
 
@@ -119,8 +116,27 @@ public class PaymentService {
         String payDate = request.getParameter("vnp_PayDate");
 
         Payment payment = paymentRepository.findByTxnRef(vnp_TxnRef)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
 
+        Deposit deposit = null;
+        Rental rental = null;
+        Reservation reservation = null;
+
+        if (payment.getDeposit() != null) {
+            deposit = depositRepository.findById(payment.getDeposit().getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+            if (payment.getType() == PaymentType.RESERVATION) {
+                reservation = reservationRepository.findByCode(deposit.getReservation().getCode())
+                        .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+            }
+        }
+
+        if (payment.getRental() != null) {
+            rental = rentalRepository.findById(payment.getRental().getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+        }
+
+        // Update các field trả về từ VNPay
         payment.setResponseCode(responseCode);
         payment.setTransactionNo(transactionNo);
         payment.setBankCode(bankCode);
@@ -128,14 +144,29 @@ public class PaymentService {
 
         if ("00".equals(responseCode)) {
             payment.setStatus(PaymentStatus.SUCCESS);
+
+            if (deposit != null && payment.getType() == PaymentType.RESERVATION) {
+                deposit.setStatus(DepositStatus.HOLD);
+                reservation.setStatus(ReservationStatus.CONFIRM);
+                depositRepository.save(deposit);
+                reservationRepository.save(reservation);
+
+            } else if (deposit != null && rental != null && payment.getType() == PaymentType.RENTAL) {
+                deposit.setStatus(DepositStatus.HOLD);
+                rental.setStatus(RentalStatus.CONFIRM);
+                depositRepository.save(deposit);
+                rentalRepository.save(rental);
+
+            }
+            // TH3: không làm gì thêm, chỉ update status = SUCCESS
         } else {
             payment.setStatus(PaymentStatus.FAILED);
         }
 
         paymentRepository.save(payment);
-
         return payment.getStatus().name();
     }
+
 
     public PaymentResponse createPayment(PaymentRequest request) {
         Rental rental = new Rental();
@@ -163,11 +194,43 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
 
+        // update basic fields
         payment.setAmount(request.getAmount());
         payment.setMethod(request.getMethod());
         payment.setType(request.getType());
         payment.setStatus(request.getStatus());
         payment.setDescription(request.getDescription());
+
+        // xử lý theo 3 case
+        if (PaymentStatus.SUCCESS.equals(payment.getStatus())) {
+            if (payment.getType() == PaymentType.RESERVATION && payment.getDeposit() != null) {
+                Deposit deposit = depositRepository.findById(payment.getDeposit().getId())
+                        .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+                Reservation reservation = reservationRepository.findByCode(deposit.getReservation().getCode())
+                        .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+                deposit.setStatus(DepositStatus.HOLD);
+                reservation.setStatus(ReservationStatus.CONFIRM);
+
+                depositRepository.save(deposit);
+                reservationRepository.save(reservation);
+
+            } else if (payment.getType() == PaymentType.RENTAL && payment.getDeposit() != null && payment.getRental() != null) {
+                Deposit deposit = depositRepository.findById(payment.getDeposit().getId())
+                        .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+                Rental rental = rentalRepository.getRentalById(payment.getRental().getId())
+                        .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+                deposit.setStatus(DepositStatus.HOLD);
+                rental.setStatus(RentalStatus.CONFIRM);
+
+                depositRepository.save(deposit);
+                rentalRepository.save(rental);
+
+            } else {
+                // case 3: Other payment, không cần động đến deposit/rental
+            }
+        }
 
         return paymentMapper.toPaymentResponse(paymentRepository.save(payment));
     }
