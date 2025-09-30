@@ -79,6 +79,7 @@ public enum ErrorCode {
     // Staff errors
     STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "Staff not found"),
     USER_ALREADY_ASSIGNED_AS_STAFF(HttpStatus.CONFLICT, "User is already assigned as staff"),
+    USER_NOT_A_STAFF(476, "User is not assigned as staff"),
 
     // Reservation errors
     RESERVATION_ENDTIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation end time must be in the future"),
@@ -92,11 +93,23 @@ public enum ErrorCode {
     SENDED_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "The sent refresh token was not found"),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh token not found"),
 
+    //Refresh token errors
+    SENDED_TOKEN_NOT_FOUND (490, "The sent refresh token was not found"),
+    REFRESH_TOKEN_NOT_FOUND (491, "Refresh token not found"),
+
+    // Rental errors
+    RENTAL_NOT_FOUND(495, "Rental not found"),
+
+    // RentalCheckList errors
+    CHECKLIST_NOT_FOUND(500, "Rental checklist not found"),
+    CHECKLIST_UNAUTHORIZED(501, "You are not authorized to modify this checklist"),
+
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
 
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found");
+
     private final HttpStatus statusCode;
     private final String message;
 }

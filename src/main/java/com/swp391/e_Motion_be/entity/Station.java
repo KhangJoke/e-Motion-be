@@ -18,13 +18,13 @@ public class Station {
     @Column(name = "station_id")
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "address", nullable = false)
+    @Column(name = "address")
     private String address;
 
-    @Column(name = "station_status", nullable = false)
+    @Column(name = "station_status")
     private boolean stationStatus;
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

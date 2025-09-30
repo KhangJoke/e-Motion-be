@@ -27,9 +27,10 @@ public class StaffService {
     private final StaffMapper staffMapper;
 
     public StaffResponse createStaff(StaffCreationRequest request){
-        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        Station station = stationRepository.findById(request.getStationId()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        Station station = stationRepository.findByName(request.getStationName()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
 
         if(staffRepository.existsByUser(user)){
             throw new AppException(ErrorCode.USER_ALREADY_ASSIGNED_AS_STAFF);
@@ -45,31 +46,36 @@ public class StaffService {
         return staffMapper.toStaffResponse(staff);
     }
 
-    public StaffResponse updateStaffById(Long id, StaffUpdateRequest request){
-        Staff staff = staffRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-        staff.setStation(stationRepository.findById(request.getStationId()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND)));
+    public StaffResponse updateStaff(StaffUpdateRequest request){
+        Staff staff = staffRepository.findByUser_Email(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+
+        Station newStation = stationRepository.findByName(request.getNewStationName())
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        staff.setStation(newStation);
         staffRepository.save(staff);
 
         return staffMapper.toStaffResponse(staff);
     }
 
-    public void deleteStaffById(Long id){
-        Staff staff = staffRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-        User user = staff.getUser();
-        if(user != null){
-            user.setRole(Role.ROLE_USER);
-            userRepository.save(user);
-        }
+    public void deleteStaff(String email) {
+        Staff staff = staffRepository.findByUser_Email(email)
+                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
+        User user = staff.getUser();
         staffRepository.delete(staff);
+        user.setRole(Role.ROLE_USER);
+        userRepository.save(user);
     }
 
     public List<StaffResponse> getAllStaffs(){
         return staffRepository.findAll().stream().map(staffMapper::toStaffResponse).toList();
     }
 
-    public StaffResponse getStaffById(Long id){
-        Staff staff = staffRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+    public StaffResponse getStaffByUserEmail(String email){
+        Staff staff = staffRepository.findByUser_Email(email)
+                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+
         return staffMapper.toStaffResponse(staff);
     }
 }

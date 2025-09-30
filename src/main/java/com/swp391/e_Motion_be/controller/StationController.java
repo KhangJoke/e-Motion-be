@@ -49,18 +49,18 @@ public class StationController {
         return response;
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<StationResponse> updateStation(@PathVariable Long id,
+    @PutMapping("/{name}")
+    public ApiResponse<StationResponse> updateStation(@PathVariable String name,
                                                       @RequestBody StationUpdateRequest request) {
         ApiResponse<StationResponse> response = new ApiResponse<>();
-        response.setData(stationService.updateStation(id, request));
+        response.setData(stationService.updateStation(name, request));
         response.setMessage("Update station successfully");
         return response;
     }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<String> deleteStation(@PathVariable Long id) {
-        stationService.deleteStation(id);
+    @DeleteMapping("/{name}")
+    public ApiResponse<String> deleteStation(@PathVariable String name) {
+        stationService.deleteStation(name);
         ApiResponse<String> response = new ApiResponse<>();
         response.setMessage("Delete station successfully");
         return response;

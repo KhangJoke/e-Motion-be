@@ -28,14 +28,14 @@ public class StationService {
         return stationMapper.toStationResponse(savedStation);
     }
 
-    public StationResponse updateStation(Long id, StationUpdateRequest request) {
-        Station station = stationRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+    public StationResponse updateStation(String name, StationUpdateRequest request) {
+        Station station = stationRepository.findByName(name).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
         stationMapper.updateStation(request, station);
         return stationMapper.toStationResponse(stationRepository.save(station));
     }
 
-    public void deleteStation(Long id) {
-        Station existing = stationRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+    public void deleteStation(String name) {
+        Station existing = stationRepository.findByName(name).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
         stationRepository.delete(existing);
     }
 
@@ -46,7 +46,7 @@ public class StationService {
     }
 
     public StationResponse getStationByName(String name) {
-        return stationMapper.toStationResponse(stationRepository.findByName(name));
+        return stationMapper.toStationResponse(stationRepository.findByName(name).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND)));
     }
 
     public List<StationResponse> getStationsByAddress(String address) {
