@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -27,7 +28,7 @@ public class Rental {
     @Column(name="rent_fee")
     long rentFee;
     @Column(name = "create_at", updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     LocalDateTime createAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
