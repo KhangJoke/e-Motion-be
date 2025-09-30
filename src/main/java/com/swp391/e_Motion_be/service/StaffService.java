@@ -30,7 +30,7 @@ public class StaffService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        Station station = stationRepository.findByName(request.getStationName()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        Station station = stationRepository.findByNameIgnoreCase(request.getStationName()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
 
         if(staffRepository.existsByUser(user)){
             throw new AppException(ErrorCode.USER_ALREADY_ASSIGNED_AS_STAFF);
@@ -50,7 +50,7 @@ public class StaffService {
         Staff staff = staffRepository.findByUser_Email(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
-        Station newStation = stationRepository.findByName(request.getNewStationName())
+        Station newStation = stationRepository.findByNameIgnoreCase(request.getNewStationName())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
         staff.setStation(newStation);
         staffRepository.save(staff);

@@ -8,8 +8,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface StaffMapper {
-    @Mapping(source = "request.userId", target = "user.id")
-    @Mapping(source = "request.stationId", target = "station.id")
     Staff toStaffEntity(StaffCreationRequest request);
 
     @Mapping(source = "user.email", target = "email")
