@@ -34,6 +34,9 @@ public enum ErrorCode {
     // Img Vehicle
     IMG_VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND,"Img vehicle not found"),
 
+    //Rating
+    RATING_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "Rating id not found"),
+
     // Verify errors
     VERIFY_EXPIRED(HttpStatus.BAD_REQUEST, "Verification code expired"),
     VERIFY_CODE_NOT_MATCH(HttpStatus.BAD_REQUEST, "Verification code does not match"),
@@ -88,6 +91,9 @@ public enum ErrorCode {
     // Refresh token errors
     SENDED_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "The sent refresh token was not found"),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh token not found"),
+
+    // Rental errors
+    RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
 
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found");

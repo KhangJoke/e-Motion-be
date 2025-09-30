@@ -19,6 +19,7 @@ public class Rental {
     @Column(name="rental_id")
     Long id;
     @Column(name="rental_status")
+    @Enumerated(EnumType.STRING)
     RentalStatus status;
     @Column(name="start_time")
     LocalDateTime startTime;
@@ -52,6 +53,9 @@ public class Rental {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id")
     Staff staff;
+
+    @OneToOne(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
+    Rating rating;
 
     @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     List<Payment> payments;

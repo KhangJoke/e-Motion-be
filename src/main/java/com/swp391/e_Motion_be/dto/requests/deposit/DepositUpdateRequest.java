@@ -1,10 +1,8 @@
 package com.swp391.e_Motion_be.dto.requests.deposit;
 
 import com.swp391.e_Motion_be.enums.DepositStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import com.swp391.e_Motion_be.validator.OneOfReservationOrRental;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,15 +13,10 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@OneOfReservationOrRental
 public class DepositUpdateRequest {
-    @NotNull(message = "New status must not be blank")
-    @Pattern(regexp = "^(HOLD|RELEASED|FORFEITED)$", message = "Status must be one of the following: HOLD, RELEASED, FORFEITED")
-    @Enumerated(EnumType.STRING)
-    DepositStatus oldStatus;
-    @NotNull(message = "New status must not be blank")
-    @Pattern(regexp = "^(HOLD|RELEASED|FORFEITED)$", message = "Status must be one of the following: HOLD, RELEASED, FORFEITED")
-    @Enumerated(EnumType.STRING)
-    DepositStatus newStatus;
-    @NotNull(message = "User Email is required")
-    String email;
+    @NotNull(message = "status must not be blank")
+    DepositStatus status;
+    String reservationCode;
+    Long rentalId;
 }

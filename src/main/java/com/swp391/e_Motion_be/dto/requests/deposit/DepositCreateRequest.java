@@ -1,6 +1,9 @@
 package com.swp391.e_Motion_be.dto.requests.deposit;
 
 import com.swp391.e_Motion_be.enums.DepositStatus;
+import com.swp391.e_Motion_be.validator.OneOfReservationOrRental;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
@@ -11,11 +14,11 @@ import lombok.experimental.FieldDefaults;
 @Data
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@OneOfReservationOrRental
 public class DepositCreateRequest {
     @NotNull(message = "New status must not be blank")
-    @Pattern(regexp = "^(HOLD|RELEASED|FORFEITED)$", message = "Status must be one of the following: HOLD, RELEASED, FORFEITED")
     DepositStatus status;
-    long depositAmount;
+    long amount;
     String reservationCode;
     Long rentalId;
 }

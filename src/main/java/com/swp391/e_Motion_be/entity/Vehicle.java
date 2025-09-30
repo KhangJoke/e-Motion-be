@@ -24,6 +24,9 @@ public class Vehicle {
     @Column(name="vehicle_name",nullable = false)
     private String name;
 
+    @Column(name="description",nullable = false)
+    private String description;
+
     @Enumerated(EnumType.STRING)
     @Column(name="vehicle_type",nullable = false)
     private VehicleType vehicleType;
@@ -31,6 +34,15 @@ public class Vehicle {
     @Enumerated(EnumType.STRING) //save enum data thay vi number
     @Column(name="vehicle_status",nullable = false)
     private VehicleStatus vehicleStatus;
+
+    @Column(name="seats",nullable = false)
+    private int seats;
+
+    @Column(name="price_per_hour", nullable = false)
+    private double pricePerHour;
+
+    @Column(name="price_per_day", nullable = false)
+    private double pricePerDay;
 
     @Column(name="consumption_rate",nullable = false)
     private double consumptionRate;
