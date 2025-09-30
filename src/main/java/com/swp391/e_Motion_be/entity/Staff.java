@@ -20,11 +20,11 @@ public class Staff {
     private Long staffId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "station_id", nullable = false)
+    @JoinColumn(name = "station_id")
     private Station station;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

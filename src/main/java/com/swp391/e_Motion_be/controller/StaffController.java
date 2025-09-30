@@ -24,11 +24,11 @@ public class StaffController {
         return response;
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<StaffResponse> getStaffById(@PathVariable Long id) {
+    @GetMapping("/{email}")
+    public ApiResponse<StaffResponse> getStaffByUserEmail(@PathVariable String email) {
         ApiResponse<StaffResponse> response = new ApiResponse<>();
-        response.setData(staffService.getStaffById(id));
-        response.setMessage("Get staff by id successfully");
+        response.setData(staffService.getStaffByUserEmail(email));
+        response.setMessage("Get staff by user email successfully");
         return response;
     }
 
@@ -40,19 +40,19 @@ public class StaffController {
         return response;
     }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteStaffById(@PathVariable Long id){
-        staffService.deleteStaffById(id);
+    @DeleteMapping("/{email}")
+    public ApiResponse<Void> deleteStaff(@PathVariable String email){
+        staffService.deleteStaff(email);
         ApiResponse<Void> response = new ApiResponse<>();
-        response.setMessage("Delete staff by id successfully");
+        response.setMessage("Delete staff by email successfully");
         return response;
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<StaffResponse> updateStaffById(@PathVariable Long id,
+    @PutMapping("/{email}")
+    public ApiResponse<StaffResponse> updateStaffById(@PathVariable String email,
                                                       @RequestBody StaffUpdateRequest request){
         ApiResponse<StaffResponse> response = new ApiResponse<>();
-        response.setData(staffService.updateStaffById(id ,request));
+        response.setData(staffService.updateStaff(request));
         response.setMessage("Update staff by id successfully");
         return response;
     }
