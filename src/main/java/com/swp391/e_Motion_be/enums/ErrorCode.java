@@ -85,6 +85,8 @@ public enum ErrorCode {
     RESERVATION_ENDTIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation end time must be in the future"),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Reservation not found"),
     RESERVATION_TIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation time must be in the future"),
+    RESERVATION_EXPIRED(HttpStatus.BAD_REQUEST, "Reservation has expired"),
+    RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Reservation has already been cancelled"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),
