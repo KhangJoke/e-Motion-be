@@ -18,6 +18,5 @@ public class UpdateReservationStatusRequest {
     @Pattern(regexp = "^[0-9]{6}$", message = "Reservation code must be 6 digits")
     private String reservationCode;
     @NotNull(message = "New status must not be blank")
-    @Pattern(regexp = "^(PENDING|EXPIRED|CANCELLED|COMPLETED)$", message = "Status must be one of the following: PENDING, EXPIRED, CANCELLED, COMPLETED")
     private ReservationStatus newStatus;
 }

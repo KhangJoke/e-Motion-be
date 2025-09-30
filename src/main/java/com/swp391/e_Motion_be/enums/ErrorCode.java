@@ -87,8 +87,10 @@ public enum ErrorCode {
 
     // Refresh token errors
     SENDED_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "The sent refresh token was not found"),
-    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh token not found");
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh token not found"),
 
+    // Payment errors
+    PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found");
     private final HttpStatus statusCode;
     private final String message;
 }

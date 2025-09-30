@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "deposits")
@@ -36,4 +38,7 @@ public class Deposit {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rental_id")
     Rental rental;
+
+    @OneToMany(mappedBy = "deposit", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    List<Payment> payments;
 }
