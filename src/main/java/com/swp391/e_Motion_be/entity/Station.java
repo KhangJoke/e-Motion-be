@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.entity;
 
 import com.swp391.e_Motion_be.enums.StationCity;
+import com.swp391.e_Motion_be.enums.StationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,18 +20,17 @@ public class Station {
     @Column(name = "station_id")
     private Long id;
 
-    @Column(name = "name")
     private String name;
 
-    @Column(name = "address")
     private String address;
 
     @Column(name = "station_status")
-    private boolean stationStatus;
+    @Enumerated(EnumType.STRING)
+    private StationStatus stationStatus;
 
     @Column(name = "station_city")
     @Enumerated(EnumType.STRING)
-    private StationCity stationCity;
+    private StationCity city;
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Staff> staffs;

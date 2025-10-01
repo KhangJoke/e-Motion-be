@@ -65,7 +65,7 @@ public class StationService {
     }
 
     public List<StationResponse> getStationsByCity(StationCity city) {
-        return stationRepository.findByStationCity(city).stream()
+        return stationRepository.findByCity(city).stream()
                 .map(stationMapper::toStationResponse)
                 .toList();
     }

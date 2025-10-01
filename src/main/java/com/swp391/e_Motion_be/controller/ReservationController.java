@@ -148,4 +148,13 @@ public class ReservationController {
         response.setStatus(200);
         return response;
     }
+
+    @PutMapping("/{code}/cancel")
+    public ApiResponse<ReservationResponse> cancelReservation(@PathVariable String code) {
+        ApiResponse<ReservationResponse> response = new ApiResponse<>();
+        response.setData(reservationService.cancelReservation(code));
+        response.setMessage("Cancelled reservation successfully");
+        response.setStatus(200);
+        return response;
+    }
 }

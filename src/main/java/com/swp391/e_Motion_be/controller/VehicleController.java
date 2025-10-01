@@ -1,25 +1,24 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VehicleResponse;
-import com.swp391.e_Motion_be.enums.VehicleStatus;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/vehicles")
+@RequiredArgsConstructor
 public class VehicleController {
 
     private final VehicleService vehicleService;
-
-    public VehicleController(VehicleService vehicleService) {
-        this.vehicleService = vehicleService;
-    }
 
     // Get all vehicles
     @GetMapping
@@ -65,10 +64,16 @@ public class VehicleController {
     }
 
     // Search vehicles by name
-    @GetMapping("/search")
-    public ApiResponse<List<VehicleResponse>> searchVehicles(@RequestParam String name) {
+    @GetMapping("/search-name")
+    public ApiResponse<List<VehicleResponse>> searchVehiclesByName(@RequestParam String name) {
         return new ApiResponse<>(200, "success", vehicleService.searchVehiclesByName(name));
     }
 
-
+    // Search bằng thanh tìm kiếm
+    @GetMapping("/search")
+    public ApiResponse<List<VehicleResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
+        ApiResponse<List<VehicleResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.searchVehicles(request));
+        return response;
+    }
 }

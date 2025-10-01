@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.dto.requests.station;
 
 import com.swp391.e_Motion_be.enums.StationCity;
+import com.swp391.e_Motion_be.enums.StationStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -23,5 +24,6 @@ public class StationUpdateRequest {
     @NotNull(message = "City must not be null")
     private StationCity stationCity;
 
-    private boolean stationStatus;
+    @NotNull(message = "Status must not be null")
+    private StationStatus stationStatus;
 }

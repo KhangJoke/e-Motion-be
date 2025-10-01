@@ -221,4 +221,25 @@ public class ReservationService {
         }
     }
 
+
+    public ReservationResponse cancelReservation(String code) {
+        Reservation reservation = reservationRepository.findByCode(code)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        //Nếu đã hết hạn thì không cho huỷ
+        if (reservation.getEndTime().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.RESERVATION_EXPIRED);
+        }
+
+        //Nếu đã huỷ rồi thì không cho huỷ
+        if(reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new AppException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
+        }
+
+        //nếu chưa hết hạn reservation và chưa huỷ thì mới cho huỷ
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
+
+        return reservationMapper.toReservationResponse(reservation);
+    }
 }
