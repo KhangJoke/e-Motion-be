@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
 import com.swp391.e_Motion_be.enums.StationCity;
-import com.swp391.e_Motion_be.validator.validateFindVehicleRequest.ValidVehicleFindRequest;
+import com.swp391.e_Motion_be.validator.validateFindVehicleRequest.ValidTimeRequest;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@ValidVehicleFindRequest
+@ValidTimeRequest
 public class VehicleFindRequest {
     @NotNull(message = "City must not be null")
     StationCity city;

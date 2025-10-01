@@ -2,7 +2,10 @@ package com.swp391.e_Motion_be.entity;
 
 import com.swp391.e_Motion_be.enums.Role;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,8 +18,9 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class User implements UserDetails {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -34,9 +38,9 @@ public class User implements UserDetails {
     private Role role;
     @Column(nullable = false, name = "enabled")
     private boolean enabled;
-    @Column(name = "create_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime createAt;
+    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
     @Column(name= "verification_code")
     private String verificationCode;
     @Column(name= "verification_code_expires_at")
@@ -66,18 +70,6 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Rating> ratings;
-
-    public User() {
-        this.createAt = LocalDateTime.now();
-    }
-
-    public User(String fullName, String email, String password, Role role) {
-        this.fullName = fullName;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.createAt = LocalDateTime.now();
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

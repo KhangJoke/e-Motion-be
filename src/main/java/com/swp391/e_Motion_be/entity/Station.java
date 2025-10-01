@@ -28,7 +28,7 @@ public class Station {
 
     @Column(name = "station_status")
     @Enumerated(EnumType.STRING)
-    private StationStatus stationStatus;
+    private StationStatus status;
 
     @Column(name = "station_city")
     @Enumerated(EnumType.STRING)

@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payment_id")
     private long id;
     @Column(name = "total_amount", nullable = false)
     private long amount;
@@ -33,7 +34,7 @@ public class Payment {
     @Column(name = "payment_status", nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
-    @Column(name = "create_at", nullable = false)
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
 

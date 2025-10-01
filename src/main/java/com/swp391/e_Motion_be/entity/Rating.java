@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "ratings")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,10 +16,9 @@ public class Rating {
     @Column(name="rating_id")
     private Long id;
 
-    @Column(name ="comment")
     private String comment;
 
-    @Column(name="score",nullable = false)
+    @Column(nullable = false)
     private int score;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -28,11 +28,4 @@ public class Rating {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "rental_id")
     private Rental rental;
-
-    public Rating(String comment, int score, User user, Rental rental) {
-        this.comment = comment;
-        this.score = score;
-        this.user = user;
-        this.rental = rental;
-    }
 }
