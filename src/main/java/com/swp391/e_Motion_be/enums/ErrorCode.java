@@ -103,7 +103,10 @@ public enum ErrorCode {
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
 
     // Payment errors
-    PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found");
+    PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),
+
+    //Cloudinary errors
+    DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed");
 
     private final HttpStatus statusCode;
     private final String message;

@@ -2,6 +2,8 @@ package com.swp391.e_Motion_be.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -17,8 +19,7 @@ public class CloudinaryService {
         try {
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
         } catch (IOException e) {
-            // log lỗi nhưng không throw để tránh crash
-            e.printStackTrace();
+            throw new AppException(ErrorCode.DELETE_IMG_FAIL);
         }
     }
 

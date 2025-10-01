@@ -1,8 +1,8 @@
 package com.swp391.e_Motion_be.dto.requests.payment;
 
-import com.swp391.e_Motion_be.enums.PaymentMethod;
-import com.swp391.e_Motion_be.enums.PaymentStatus;
-import com.swp391.e_Motion_be.enums.PaymentType;
+import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
+import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
+import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

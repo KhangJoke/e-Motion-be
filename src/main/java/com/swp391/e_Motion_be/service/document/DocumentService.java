@@ -29,7 +29,6 @@ public class DocumentService {
     OcrService ocrService;
     CloudinaryService cloudinaryService;
 
-
     public DocumentResponse createDocument(DocumentCreationRequest request) {
         String extractedCccd = ocrService.extractCccdFromUrl(request.getImgUrl());
         // 1. Verify OCR
