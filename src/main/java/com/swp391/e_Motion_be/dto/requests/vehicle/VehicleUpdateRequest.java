@@ -30,6 +30,9 @@ public class VehicleUpdateRequest {
     @Positive(message = "Seats must be positive")
     private int seats;
 
+    @NotNull(message = "Depsoit fee status is required")
+    private double depositFee;
+
     @NotNull(message = "Price per hour is required")
     @Positive(message = "Price per hour must be positive")
     private Double pricePerHour;

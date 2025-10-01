@@ -44,6 +44,10 @@ public class Vehicle {
     @Column(name="price_per_day", nullable = false)
     private double pricePerDay;
 
+
+    @Column(name = "deposit_fee", nullable = false)
+    private double depositFee;
+
     @Column(name="consumption_rate",nullable = false)
     private double consumptionRate;
 
