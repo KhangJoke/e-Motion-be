@@ -85,6 +85,7 @@ public enum ErrorCode {
     RESERVATION_ENDTIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation end time must be in the future"),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Reservation not found"),
     RESERVATION_TIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation time must be in the future"),
+    RESERVATION_TIME_INVALID_TO_CANCEL(HttpStatus.BAD_REQUEST, "You may cancel your reservation up to 5 days before your trip"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),
@@ -101,8 +102,9 @@ public enum ErrorCode {
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
 
     // Payment errors
-    PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found");
-
+    PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),
+    DEPOSIT_PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "The deposit payment was not found"),
+    REFUND_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The refund response was not found");
     private final HttpStatus statusCode;
     private final String message;
 }
