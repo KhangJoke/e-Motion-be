@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
-import com.swp391.e_Motion_be.enums.VehicleStatus;
-import com.swp391.e_Motion_be.enums.VehicleType;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

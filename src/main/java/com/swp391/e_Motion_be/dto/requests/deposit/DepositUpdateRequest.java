@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.dto.requests.deposit;
 
 import com.swp391.e_Motion_be.enums.DepositStatus;
-import com.swp391.e_Motion_be.validator.OneOfReservationOrRental;
+import com.swp391.e_Motion_be.validator.validateReservationOrRentalId.OneOfReservationOrRental;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

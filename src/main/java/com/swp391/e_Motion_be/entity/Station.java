@@ -23,14 +23,12 @@ public class Station {
 
     private String address;
 
-    private StationCity city;
-
     @Column(name = "station_status")
     private boolean stationStatus;
 
     @Column(name = "station_city")
     @Enumerated(EnumType.STRING)
-    private StationCity stationCity;
+    private StationCity city;
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Staff> staffs;

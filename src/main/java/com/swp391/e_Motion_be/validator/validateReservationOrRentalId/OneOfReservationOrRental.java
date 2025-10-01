@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.validator;
+package com.swp391.e_Motion_be.validator.validateReservationOrRentalId;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

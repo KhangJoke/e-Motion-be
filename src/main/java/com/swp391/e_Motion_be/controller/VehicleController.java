@@ -5,13 +5,12 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VehicleResponse;
-import com.swp391.e_Motion_be.enums.VehicleStatus;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -72,11 +71,9 @@ public class VehicleController {
 
     // Search bằng thanh tìm kiếm
     @GetMapping("/search")
-    public ApiResponse<List<VehicleResponse>> searchVehicles(@RequestBody VehicleFindRequest request){
+    public ApiResponse<List<VehicleResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
         ApiResponse<List<VehicleResponse>> response = new ApiResponse<>();
-        response.setStatus(vehicleService.searchVehicles(request));
+        response.setData(vehicleService.searchVehicles(request));
         return response;
     }
-
-
 }
