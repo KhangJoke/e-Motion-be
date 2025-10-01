@@ -106,7 +106,11 @@ public enum ErrorCode {
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),
     DEPOSIT_PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "The deposit payment was not found"),
-    REFUND_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The refund response was not found");
+    REFUND_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The refund response was not found"),
+
+    //Cloudinary errors
+    DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed");
+
     private final HttpStatus statusCode;
     private final String message;
 }

@@ -1,9 +1,9 @@
 package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Payment;
-import com.swp391.e_Motion_be.enums.PaymentMethod;
-import com.swp391.e_Motion_be.enums.PaymentStatus;
-import com.swp391.e_Motion_be.enums.PaymentType;
+import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
+import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
+import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
