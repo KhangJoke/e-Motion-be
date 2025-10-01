@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleLogResponse {
-    private VehicleLogType vehicleLogType;
+    private String vehicleLogType;
     private String description;
     private Double fee;
     private LocalDateTime createdAt;

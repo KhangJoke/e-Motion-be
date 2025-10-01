@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ReservationResponse {
     private String code;
-    private ReservationStatus status;
+    private String status;
     private LocalDateTime createdAt;
     private LocalDateTime endTime;
     private String userEmail;

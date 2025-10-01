@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public class RentalCheckListResponse {
     private Long id;
-    private CheckType checkType;
+    private String checkType;
     private String imgUrl;
     private Long kilometers;
     private double currentBattery;

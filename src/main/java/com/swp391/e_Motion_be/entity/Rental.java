@@ -21,16 +21,16 @@ public class Rental {
     Long id;
     @Column(name="rental_status")
     @Enumerated(EnumType.STRING)
-    RentalStatus status;
+    RentalStatus status = RentalStatus.ONGOING;
     @Column(name="start_time")
     LocalDateTime startTime;
     @Column(name="end_time")
     LocalDateTime endTime;
     @Column(name="rent_fee")
-    long rentFee;
-    @Column(name = "create_at", updatable = false)
+    double rentFee;
+    @Column(name = "created_at", updatable = false)
     @CreationTimestamp
-    LocalDateTime createAt;
+    LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

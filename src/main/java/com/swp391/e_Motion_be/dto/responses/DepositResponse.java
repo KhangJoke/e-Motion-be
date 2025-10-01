@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 public class DepositResponse {
     long id;
     @Enumerated(EnumType.STRING)
-    DepositStatus status;
+    String status;
     long amount;
     LocalDateTime createdAt;
     String reservationCode;

@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,7 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
     @Column(name="created_at",nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     private LocalDateTime createdAt;
     @Column(name="reserved_start_time",nullable = false)
     private LocalDateTime startTime;

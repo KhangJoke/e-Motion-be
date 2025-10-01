@@ -60,7 +60,6 @@ public class AuthenticationService {
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
-        user.setCreateAt(LocalDateTime.now());
         sendVerificationEmail(user);
         return userRepository.save(user);
     }

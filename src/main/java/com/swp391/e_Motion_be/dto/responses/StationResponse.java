@@ -9,6 +9,6 @@ public class StationResponse {
 
     private String name;
     private String address;
-    private StationCity stationCity;
-    private StationStatus stationStatus;
+    private String stationCity;
+    private String stationStatus;
 }

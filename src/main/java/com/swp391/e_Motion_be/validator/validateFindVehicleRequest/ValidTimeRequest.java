@@ -7,9 +7,9 @@ import java.lang.annotation.*;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = VehicleFindRequestValidator.class)
+@Constraint(validatedBy = ValidTimeRequestValidator.class)
 @Documented
-public @interface ValidVehicleFindRequest {
+public @interface ValidTimeRequest {
     String message() default "Invalid time range: startTime must be before endTime";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

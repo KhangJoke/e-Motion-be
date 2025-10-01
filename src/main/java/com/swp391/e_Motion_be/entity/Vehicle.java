@@ -29,11 +29,11 @@ public class Vehicle {
 
     @Enumerated(EnumType.STRING)
     @Column(name="vehicle_type",nullable = false)
-    private VehicleType vehicleType;
+    private VehicleType type;
 
     @Enumerated(EnumType.STRING) //save enum data thay vi number
     @Column(name="vehicle_status",nullable = false)
-    private VehicleStatus vehicleStatus;
+    private VehicleStatus status;
 
     @Column(nullable = false)
     private int seats;

@@ -82,7 +82,7 @@ public class RentalCheckListService {
         }
 
 
-        checkList.setCheckType(request.getCheckType());
+        checkList.setType(request.getCheckType());
         checkList.setImgUrl(request.getImgUrl());
         checkList.setKilometers(request.getKilometers());
         checkList.setCurrentBattery(request.getCurrentBattery());

@@ -23,7 +23,7 @@ public class Deposit {
     DepositStatus status;
     @Column(name = "deposit_amount")
     long amount;
-    @Column(name = "create_at", updatable = false)
+    @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     LocalDateTime createdAt;
 

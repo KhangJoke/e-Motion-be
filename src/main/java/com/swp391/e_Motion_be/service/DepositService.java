@@ -49,9 +49,11 @@ public class DepositService {
     public DepositResponse updateDepositStatus(DepositUpdateRequest request){
         Deposit deposit;
         if(request.getReservationCode() != null){
-            deposit = depositRepository.findByReservation_Code(request.getReservationCode());
+            deposit = depositRepository.findByReservation_Code(request.getReservationCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
         }else{
-            deposit = depositRepository.findByRental_Id(request.getRentalId());
+            deposit = depositRepository.findByRental_Id(request.getRentalId())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
         }
         if(deposit == null){
             throw new AppException(ErrorCode.DEPOSIT_NOT_FOUND);
