@@ -99,8 +99,8 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/status")
-    public ApiResponse<List<ReservationResponse>> getReservationsByStatus(@RequestParam ReservationStatus status) {
+    @GetMapping("/status/{status}")
+    public ApiResponse<List<ReservationResponse>> getReservationsByStatus(@PathVariable ReservationStatus status) {
         List<ReservationResponse> data = reservationService.getReservationsByStatus(status);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(data);
@@ -109,8 +109,8 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/email")
-    public ApiResponse<List<ReservationResponse>> getReservationsByUserEmail(@RequestParam String email) {
+    @GetMapping("/email/{email}")
+    public ApiResponse<List<ReservationResponse>> getReservationsByUserEmail(@PathVariable String email) {
         List<ReservationResponse> data = reservationService.getReservationsByUserEmail(email);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(data);
@@ -119,8 +119,8 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/station")
-    public ApiResponse<List<ReservationResponse>> getReservationsByStationName(@RequestParam String stationName) {
+    @GetMapping("/station/{stationName}")
+    public ApiResponse<List<ReservationResponse>> getReservationsByStationName(@PathVariable String stationName) {
         List<ReservationResponse> data = reservationService.getReservationsByStationName(stationName);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(data);
@@ -129,8 +129,8 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/vehicle")
-    public ApiResponse<List<ReservationResponse>> getReservationsByVehicleId(@RequestParam Long vehicleId) {
+    @GetMapping("/vehicle/{vehicleId}")
+    public ApiResponse<List<ReservationResponse>> getReservationsByVehicleId(@PathVariable Long vehicleId) {
         List<ReservationResponse> data = reservationService.getReservationsByVehicleId(vehicleId);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(data);
@@ -139,8 +139,8 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/time")
-    public ApiResponse<List<ReservationResponse>> getExpiredReservations(@RequestParam LocalDateTime time) {
+    @GetMapping("/time/{time}")
+    public ApiResponse<List<ReservationResponse>> getExpiredReservations(@PathVariable LocalDateTime time) {
         List<ReservationResponse> data = reservationService.getValidReservations(time);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(data);
@@ -149,7 +149,7 @@ public class ReservationController {
         return response;
     }
 
-    @PutMapping("/{code}/cancel")
+    @PostMapping("/{code}/cancel")
     public ApiResponse<Boolean> cancelReservation(@PathVariable String code) throws Exception {
         ApiResponse<Boolean> response = new ApiResponse<>();
         response.setData(reservationService.cancelReservation(code));

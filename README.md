@@ -29,7 +29,8 @@
 
 - **JDK 17+**
 - **Maven 3.9.11+**
-- **MySQL** (đang chạy sẵn trên máy, port `1433`)
+- **MySQL 8** (đang chạy sẵn trên máy, port `1433`)
+- **Redis 7** (port `6379`)
 
 ---
 
@@ -59,6 +60,12 @@ MySQL 8
 
 Dùng Code First (Hibernate) → khi chạy lần đầu, các bảng sẽ tự sinh trong database e-Motion.
 
+Redis 7
+
+Dùng Docker chạy
+```json
+docker run -d --name e-motion-redis -p 6379:6379 redis:7
+```
 
 ## Config (application.properties)
 
@@ -178,15 +185,21 @@ This document provides detailed information about the API endpoints for the e-Mo
 ### 4. Logout
 
 - **Endpoint:** `POST /api/auth/logout`
-- **Description:** Xóa refresh token trong cookie.
+- **Description:** Đăng xuất user, xóa refresh token trong cookie và vô hiệu hóa access token hiện tại.
+- **Request Header:**
+
+    ```json
+    Authorization: Bearer <access_token>
+    ```
 - **Request Body:**
+  - Không cần
 
-  ```json
-  {
-    "token": "jwt.token.string"
-  }
+
+- **Cookie (Set-Cookie) Request:**
+
+  ```text
+    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=604800"
   ```
-
 - **Success Response (200):**
 
   ```json
@@ -196,10 +209,10 @@ This document provides detailed information about the API endpoints for the e-Mo
     "data": null
   }
   ```
-- **Cookie (Set-Cookie):**
+- **Cookie (Set-Cookie) Response:**
 
   ```text
-    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=604800"
+    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=0"
   ```
   
 ### 5. Verify user account

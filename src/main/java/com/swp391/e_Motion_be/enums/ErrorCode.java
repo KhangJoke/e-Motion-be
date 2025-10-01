@@ -58,6 +58,9 @@ public enum ErrorCode {
     NOT_LOGIN_YET(HttpStatus.UNAUTHORIZED, "You are not logged in. Please login to continue."),
     USER_NOT_EXISTS(HttpStatus.NOT_FOUND, "User does not exist"),
 
+    // Logout errors
+    USER_HAS_BEEN_LOGOUT(HttpStatus.UNAUTHORIZED, "Your Account has been logout. Please login to continue."),
+
     // Check image document errors
     DOCUMENT_NUMBER_MISMATCH(HttpStatus.BAD_REQUEST, "Document number mismatch with image"),
     DOCUMENT_IMAGE_USED(HttpStatus.CONFLICT, "This image has already been used for another document"),

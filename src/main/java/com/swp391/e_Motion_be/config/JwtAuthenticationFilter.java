@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.config;
 
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.repository.RedisTokenRepository;
 import com.swp391.e_Motion_be.service.auth.JwtService;
 import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
@@ -31,6 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final CustomUserDetailsService customUserDetailsService;
 
+    private final RedisTokenRepository redisTokenRepository;
+
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
                                     @NotNull HttpServletResponse response,
@@ -46,6 +49,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try{
             final String jwt = authorizationHeader.substring(7);
+            if(redisTokenRepository.findByJwtId(jwtService.extractJwtId(jwt))!=null){
+                throw new AppException(ErrorCode.USER_HAS_BEEN_LOGOUT);
+            }
+
             final String userEmail = jwtService.extractUsername(jwt);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

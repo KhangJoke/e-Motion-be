@@ -26,6 +26,9 @@ public class VehicleCreationRequest {
     @NotNull(message = "Vehicle status is required")
     private VehicleStatus vehicleStatus;
 
+    @NotNull(message = "Depsoit fee status is required")
+    private double depositFee;
+
     @NotNull(message = "Seats is required")
     @Positive(message = "Seats must be positive")
     private int seats;

@@ -99,12 +99,14 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@CookieValue(name="refresh_token", required=false) String refreshToken,
+                                                    @RequestHeader("Authorization") String authHeader,
                                                     HttpServletResponse response)
     {
-        if (refreshToken == null || refreshToken.isEmpty()) {
+        String accessToken = authHeader.replace("Bearer ", "");
+        if (refreshToken == null || refreshToken.isEmpty() || accessToken.isEmpty()) {
             throw new AppException(ErrorCode.SENDED_TOKEN_NOT_FOUND);
         }
-        authenticationService.logout(refreshToken);
+        authenticationService.logout(refreshToken, accessToken);
         ApiResponse<Void> apiResponse = new ApiResponse<>( 204, "User logged out successfully", null);
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)

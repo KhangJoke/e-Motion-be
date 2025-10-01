@@ -4,15 +4,18 @@ import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.RegisterUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.VerifyUserDto;
 import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
+import com.swp391.e_Motion_be.entity.RedisToken;
 import com.swp391.e_Motion_be.entity.RefreshToken;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
+import com.swp391.e_Motion_be.repository.RedisTokenRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,25 +24,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final AuthenticationManager authenticationManager;
-
     private final EmailService emailService;
-
     private final RefreshTokenService refreshTokenService;
-
     private final JwtService jwtService;
-
     private final UserMapper userMapper;
+    private final RedisTokenRepository redisTokenRepository;
 
     public User signup(RegisterUserDto input) {
         User oldUser = userRepository.findByEmail(input.getEmail()).orElse(null);
@@ -64,7 +64,7 @@ public class AuthenticationService {
         return userRepository.save(user);
     }
 
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication == null || !authentication.isAuthenticated()) {
             throw new AppException(ErrorCode.NOT_LOGIN_YET);
@@ -74,6 +74,18 @@ public class AuthenticationService {
         if (token != null) {
             refreshTokenService.revokeToken(token);
         }
+
+        if(jwtService.extractExpiration(accessToken).before(new Date())) {
+            return;
+        }
+
+        RedisToken redisToken = RedisToken.builder()
+                .jwtId(jwtService.extractJwtId(accessToken))
+                .expiredTime(jwtService.extractExpiration(accessToken).getTime() - new Date().getTime())
+                .build();
+
+        redisTokenRepository.save(redisToken);
+        log.info("Logout success");
     }
 
     public User authenticate(LoginUserDto input) {
