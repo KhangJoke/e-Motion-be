@@ -23,6 +23,9 @@ public class VNPayConfig {
     @Value("${vnpay.return-url}")
     private String vnp_ReturnUrl;
 
+    @Value("${vnpay.api-url}")
+    private String vnp_ApiUrl;
+
     public String getVnp_TmnCode() {
         return vnp_TmnCode;
     }
@@ -35,9 +38,9 @@ public class VNPayConfig {
         return vnp_PayUrl;
     }
 
-    public String getVnp_ReturnUrl() {
-        return vnp_ReturnUrl;
-    }
+    public String getVnp_ReturnUrl() {return vnp_ReturnUrl;}
+
+    public String getVnp_ApiUrl() {return vnp_ApiUrl;}
 
     public String generateTxnRef() {
         Random random = new Random();

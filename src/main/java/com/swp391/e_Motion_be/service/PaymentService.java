@@ -3,7 +3,9 @@ package com.swp391.e_Motion_be.service;
 import com.swp391.e_Motion_be.config.VNPayConfig;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
+import com.swp391.e_Motion_be.dto.responses.RefundResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
@@ -14,7 +16,11 @@ import com.swp391.e_Motion_be.mapper.PaymentMapper;
 import com.swp391.e_Motion_be.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -170,6 +176,74 @@ public class PaymentService {
         return payment.getStatus().name();
     }
 
+    public PaymentResponse refundPayment(RefundRequest request) throws Exception {
+        String vnp_RequestId = String.valueOf(System.currentTimeMillis()); // ID request duy nhất
+        String vnp_Version = "2.1.0";
+        String vnp_Command = "refund";
+        String vnp_CreateBy = "system"; // Người thực hiện refund
+        String vnp_TransactionType = request.isFullRefund()? "03" : "02"; // 02 = partial, 03 = full refund
+
+        // ---- Build params ----
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("vnp_RequestId", vnp_RequestId);
+        params.put("vnp_Version", vnp_Version);
+        params.put("vnp_Command", vnp_Command);
+        params.put("vnp_TmnCode", vnPayConfig.getVnp_TmnCode());
+        params.put("vnp_TransactionType", vnp_TransactionType);
+        params.put("vnp_TxnRef", request.getTxnRef());
+        params.put("vnp_Amount", String.valueOf(request.getAmount() * 100)); // VNPay yêu cầu VNĐ x 100
+        params.put("vnp_OrderInfo", "Hoan tien giao dich " + request.getTxnRef());
+        params.put("vnp_TransactionNo", ""); // Có thể để trống
+        params.put("vnp_TransactionDate", request.getTransactionDate()); // Giao dịch gốc
+        params.put("vnp_CreateBy", vnp_CreateBy);
+        params.put("vnp_CreateDate", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+
+        // ---- Build data để ký hash ----
+        StringBuilder data = new StringBuilder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (!data.isEmpty()) {
+                data.append("&");
+            }
+            data.append(entry.getKey()).append("=").append(entry.getValue());
+        }
+
+        // ---- Sinh SecureHash ----
+        String vnp_SecureHash = vnPayConfig.hmacSHA512(vnPayConfig.getVnp_HashSecret(), data.toString());
+        params.put("vnp_SecureHash", vnp_SecureHash);
+
+        // ---- Gửi request sang VNPay ----
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(params, headers);
+        RefundResponse response = restTemplate.postForEntity(vnPayConfig.getVnp_ApiUrl(), entity, RefundResponse.class).getBody();
+        if(response==null) {
+            throw new AppException(ErrorCode.REFUND_RESPONSE_NOT_FOUND);
+        }
+        // ---- Trả về JSON kết quả ----
+        Payment depositPayment = paymentRepository.findByTxnRef(response.getTxnRef())
+                .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_PAYMENT_NOT_FOUND));
+
+        Payment refundDepositPayment = Payment.builder()
+                .amount(Long.parseLong(response.getAmount()))
+                .method(PaymentMethod.VNPAY)
+                .status(PaymentStatus.SUCCESS)
+                .type(PaymentType.REFUND)
+                .txnRef(response.getTxnRef())
+                .description("Hoan tien giao dich " + request.getTxnRef())
+                .responseCode(response.getResponseCode())
+                .transactionNo(response.getTransactionNo())
+                .bankCode(depositPayment.getBankCode())
+                .payDate(LocalDateTime.parse(response.getCreateDate()))
+                .user(depositPayment.getUser())
+                .rental(depositPayment.getRental())
+                .deposit(depositPayment.getDeposit())
+                .build();
+        paymentRepository.save(refundDepositPayment);
+
+        return paymentMapper.toPaymentResponse(refundDepositPayment);
+    }
 
     public PaymentResponse createPayment(PaymentRequest request) {
         Rental rental = new Rental();
