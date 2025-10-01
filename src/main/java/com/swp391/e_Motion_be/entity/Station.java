@@ -20,8 +20,10 @@ public class Station {
     @Column(name = "station_id")
     private Long id;
 
+    @Column(name = "station_name")
     private String name;
 
+    @Column(name = "station_address")
     private String address;
 
     @Column(name = "station_status")

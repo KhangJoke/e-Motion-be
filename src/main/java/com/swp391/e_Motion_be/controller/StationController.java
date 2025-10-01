@@ -27,7 +27,7 @@ public class StationController {
     }
 
     @GetMapping
-   public ApiResponse<List<StationResponse>> getAllStations() {
+    public ApiResponse<List<StationResponse>> getAllStations() {
         ApiResponse<List<StationResponse>> response = new ApiResponse<>();
         response.setData(stationService.findAllStations());
         response.setMessage("Get all stations successfully");

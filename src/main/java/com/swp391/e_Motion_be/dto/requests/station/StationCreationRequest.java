@@ -22,7 +22,7 @@ public class StationCreationRequest {
     private String address;
 
     @NotNull(message = "City must not be null")
-    private StationCity stationCity;
+    private StationCity city;
 
     @NotNull(message = "Status must not be null")
     private StationStatus stationStatus;
