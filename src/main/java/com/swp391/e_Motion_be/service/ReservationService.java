@@ -38,6 +38,7 @@ public class ReservationService {
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
     private final EmailService emailService;
+    private final DepositRepository depositRepository;
 
     public ReservationResponse createReservation(CreateReservationRequest request) {
         User user = userRepository.findByEmail(request.getUserEmail())
@@ -105,13 +106,20 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
 
+        //Nếu đã hết hạn thì không cho huỷ (Truoc 5 ngay)
         if(reservation.getStartTime().isBefore(LocalDateTime.now().plusDays(5))) {
             throw new AppException(ErrorCode.RESERVATION_TIME_INVALID_TO_CANCEL);
+        }
+
+        //Nếu đã huỷ rồi thì không cho huỷ
+        if(reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new AppException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
         }
 
         if(reservation.getDeposit()!=null) {
             Deposit deposit = reservation.getDeposit();
             deposit.setStatus(DepositStatus.RELEASED);
+            depositRepository.save(deposit);
             Payment depositPayment = paymentRepository.findByDepositIdAndType(deposit.getId(), PaymentType.RESERVATION)
                     .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_PAYMENT_NOT_FOUND));
 
@@ -221,25 +229,4 @@ public class ReservationService {
         }
     }
 
-
-    public ReservationResponse cancelReservation(String code) {
-        Reservation reservation = reservationRepository.findByCode(code)
-                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-
-        //Nếu đã hết hạn thì không cho huỷ
-        if (reservation.getEndTime().isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.RESERVATION_EXPIRED);
-        }
-
-        //Nếu đã huỷ rồi thì không cho huỷ
-        if(reservation.getStatus() == ReservationStatus.CANCELLED) {
-            throw new AppException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
-        }
-
-        //nếu chưa hết hạn reservation và chưa huỷ thì mới cho huỷ
-        reservation.setStatus(ReservationStatus.CANCELLED);
-        reservationRepository.save(reservation);
-
-        return reservationMapper.toReservationResponse(reservation);
-    }
 }

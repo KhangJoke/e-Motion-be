@@ -150,8 +150,8 @@ public class ReservationController {
     }
 
     @PutMapping("/{code}/cancel")
-    public ApiResponse<ReservationResponse> cancelReservation(@PathVariable String code) {
-        ApiResponse<ReservationResponse> response = new ApiResponse<>();
+    public ApiResponse<Boolean> cancelReservation(@PathVariable String code) throws Exception {
+        ApiResponse<Boolean> response = new ApiResponse<>();
         response.setData(reservationService.cancelReservation(code));
         response.setMessage("Cancelled reservation successfully");
         response.setStatus(200);
