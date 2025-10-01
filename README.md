@@ -178,15 +178,21 @@ This document provides detailed information about the API endpoints for the e-Mo
 ### 4. Logout
 
 - **Endpoint:** `POST /api/auth/logout`
-- **Description:** Xóa refresh token trong cookie.
+- **Description:** Đăng xuất user, xóa refresh token trong cookie và vô hiệu hóa access token hiện tại.
+- **Request Header:**
+
+    ```json
+    Authorization: Bearer <access_token>
+    ```
 - **Request Body:**
+  - Không cần
 
-  ```json
-  {
-    "token": "jwt.token.string"
-  }
+
+- **Cookie (Set-Cookie) Request:**
+
+  ```text
+    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=604800"
   ```
-
 - **Success Response (200):**
 
   ```json
@@ -196,10 +202,10 @@ This document provides detailed information about the API endpoints for the e-Mo
     "data": null
   }
   ```
-- **Cookie (Set-Cookie):**
+- **Cookie (Set-Cookie) Response:**
 
   ```text
-    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=604800"
+    "Set-Cookie": "refreshToken=jwt.refresh.token.string; HttpOnly; Path=/; Max-Age=0"
   ```
   
 ### 5. Verify user account
