@@ -8,7 +8,7 @@ import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.PaymentType;
+import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.PaymentMapper;
