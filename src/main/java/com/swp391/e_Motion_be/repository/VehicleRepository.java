@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.enums.StationCity;
 import com.swp391.e_Motion_be.enums.VehicleStatus;
 import com.swp391.e_Motion_be.enums.VehicleType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByVehicleType(VehicleType vehicleType);
     Optional<Vehicle> findByPlateNumber(String plateNumber);
     List<Vehicle> findByNameContainingIgnoreCase(String name);
+    List<Vehicle> findByStation_CityAndVehicleStatus(StationCity city, VehicleStatus vehicleStatus);
 }

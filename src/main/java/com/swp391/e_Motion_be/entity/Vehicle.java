@@ -24,7 +24,7 @@ public class Vehicle {
     @Column(name="vehicle_name",nullable = false)
     private String name;
 
-    @Column(name="description",nullable = false)
+    @Column(nullable = false)
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -35,7 +35,7 @@ public class Vehicle {
     @Column(name="vehicle_status",nullable = false)
     private VehicleStatus vehicleStatus;
 
-    @Column(name="seats",nullable = false)
+    @Column(nullable = false)
     private int seats;
 
     @Column(name="price_per_hour", nullable = false)
@@ -71,18 +71,4 @@ public class Vehicle {
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Rental> rentals;
-
-
-
-    public Vehicle(String name, VehicleType vehicleType, VehicleStatus vehicleStatus, double consumptionRate, double batteryLevel, double batteryCapacity, String plateNumber, LocalDateTime lastMaintenance, Station station) {
-        this.name = name;
-        this.vehicleType = vehicleType;
-        this.vehicleStatus = vehicleStatus;
-        this.consumptionRate = consumptionRate;
-        this.batteryLevel = batteryLevel;
-        this.batteryCapacity = batteryCapacity;
-        this.plateNumber = plateNumber;
-        this.lastMaintenance = lastMaintenance;
-        this.station = station;
-    }
 }

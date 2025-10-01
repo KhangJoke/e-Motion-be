@@ -483,8 +483,8 @@ This document provides detailed information about the API endpoints for the e-Mo
     "message": null,
     "data": {
       "imgUrl": "http://example.com/new_doc.jpg",
-      "docType": "PASSPORT",
-      "docNumber": "C1234567",
+      "docType": "CCCD",
+      "docNumber": "123456789",
       "email": "user@example.com"
     }
   }
