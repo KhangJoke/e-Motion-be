@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.station.StationCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.StationResponse;
+import com.swp391.e_Motion_be.enums.StationCity;
 import com.swp391.e_Motion_be.service.StationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +47,14 @@ public class StationController {
         ApiResponse<List<StationResponse>> response = new ApiResponse<>();
         response.setData(stationService.getStationsByAddress(address));
         response.setMessage("Get stations by address successfully");
+        return response;
+    }
+
+    @GetMapping("/city/{city}")
+    public ApiResponse<List<StationResponse>> getStationsByCity(@PathVariable("city") StationCity stationCity) {
+        ApiResponse<List<StationResponse>> response = new ApiResponse<>();
+        response.setData(stationService.getStationsByCity(stationCity));
+        response.setMessage("Get stations by city successfully");
         return response;
     }
 

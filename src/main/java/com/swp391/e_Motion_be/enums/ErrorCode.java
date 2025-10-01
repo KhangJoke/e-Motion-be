@@ -79,12 +79,14 @@ public enum ErrorCode {
     // Staff errors
     STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "Staff not found"),
     USER_ALREADY_ASSIGNED_AS_STAFF(HttpStatus.CONFLICT, "User is already assigned as staff"),
-    USER_NOT_A_STAFF(476, "User is not assigned as staff"),
+    USER_NOT_A_STAFF(HttpStatus.BAD_REQUEST, "User is not assigned as staff"),
 
     // Reservation errors
     RESERVATION_ENDTIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation end time must be in the future"),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Reservation not found"),
     RESERVATION_TIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation time must be in the future"),
+    RESERVATION_EXPIRED(HttpStatus.BAD_REQUEST, "Reservation has expired"),
+    RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Reservation has already been cancelled"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),
@@ -93,16 +95,9 @@ public enum ErrorCode {
     SENDED_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "The sent refresh token was not found"),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh token not found"),
 
-    //Refresh token errors
-    SENDED_TOKEN_NOT_FOUND (490, "The sent refresh token was not found"),
-    REFRESH_TOKEN_NOT_FOUND (491, "Refresh token not found"),
-
-    // Rental errors
-    RENTAL_NOT_FOUND(495, "Rental not found"),
-
     // RentalCheckList errors
-    CHECKLIST_NOT_FOUND(500, "Rental checklist not found"),
-    CHECKLIST_UNAUTHORIZED(501, "You are not authorized to modify this checklist"),
+    CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental checklist not found"),
+    CHECKLIST_UNAUTHORIZED(HttpStatus.FORBIDDEN, "You are not authorized to modify this checklist"),
 
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
