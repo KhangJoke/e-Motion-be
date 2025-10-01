@@ -29,7 +29,8 @@
 
 - **JDK 17+**
 - **Maven 3.9.11+**
-- **MySQL** (đang chạy sẵn trên máy, port `1433`)
+- **MySQL 8** (đang chạy sẵn trên máy, port `1433`)
+- **Redis 7** (port `6379`)
 
 ---
 
@@ -59,6 +60,12 @@ MySQL 8
 
 Dùng Code First (Hibernate) → khi chạy lần đầu, các bảng sẽ tự sinh trong database e-Motion.
 
+Redis 7
+
+Dùng Docker chạy
+```json
+docker run -d --name e-motion-redis -p 6379:6379 redis:7
+```
 
 ## Config (application.properties)
 
