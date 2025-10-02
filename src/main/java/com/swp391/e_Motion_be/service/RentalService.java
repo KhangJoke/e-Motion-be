@@ -106,19 +106,23 @@ public class RentalService {
 
         String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
                 + "<div style=\"background-color: #f9f9f9; padding: 20px;\">"
-                + "<h2 style=\"color: #e67e22;\">Rental Expiry Reminder ⏰</h2>"
+                + "<h2 style=\"color: #e67e22; text-align: center;\">Rental Expiry Reminder</h2>"
                 + "<p style=\"font-size: 16px; color: #555;\">"
                 + "Dear " + rental.getUser().getFullName() + ",</p>"
                 + "<p style=\"font-size: 15px; color: #444;\">"
                 + "Your rental for vehicle <strong>" + rental.getVehicle().getName() + "</strong> "
                 + "will expire soon.</p>"
                 + "<div style=\"background-color: #ffffff; padding: 15px; border-radius: 8px; "
-                + "border: 1px solid #ddd; margin: 20px 0; text-align: center;\">"
+                + "border: 1px solid #ddd; margin: 20px 0;\">"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Renter: " + rental.getUser().getFullName() + "</p>"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Station: " + rental.getStation().getName() + "</p>"
                 + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
                 + "Rental End Time: " + endTimeFormatted + "</p>"
                 + "</div>"
                 + "<p style=\"font-size: 14px; color: #666;\">"
-                + "👉 Please return the vehicle on time to avoid additional charges."
+                + "Please return the vehicle on time to avoid additional charges."
                 + "</p>"
                 + "<p style=\"font-size: 13px; color: #999; margin-top: 30px;\">"
                 + "If you have already returned the vehicle, please ignore this email."
@@ -133,6 +137,7 @@ public class RentalService {
         }
     }
 
+    @Transactional
     public List<RentalResponse> notifyExpiringRentals() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
