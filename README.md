@@ -619,3 +619,185 @@ This document provides detailed information about the API endpoints for the e-Mo
     "data": null
   }
   ```
+
+
+## Vehicle API (/api/vehicles)
+
+## Base URL: http://localhost:8080/api/vehicles
+
+## All responses are wrapped in:
+
+{
+"status": 200,
+"message": "success",
+"data": { ... }
+}
+
+## 1. Get All Vehicles
+Endpoint: GET /api/vehicles
+
+Description: Retrieve a list of all vehicles.
+
+Success Response:
+
+```json
+{
+    "status": 200,
+    "message": "success",
+    "data": [
+        {
+        "id": 1,
+        "name": "Tesla Model X",
+        "type": "ELECTRIC",
+        "status": "AVAILABLE",
+        "category": "SUV",
+        "seats": 5,
+        "pricePerDay": 150.0,
+        "consumptionRate": 20.0,
+        "batteryCapacity": 100.0,
+        "stationId": 2,
+        "city": "Hanoi"
+        }
+    ]
+}
+```
+## 2. Find Vehicle by ID
+
+Endpoint: GET /api/vehicles/id/{id}
+
+Description: Retrieve a vehicle by its ID.
+
+Path Parameter:http://localhost:8080/api/vehicles/id/1
+
+```json
+{
+  "status": 200,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "name": "BYD M6 2024",
+    "description": "BYD M6 2024 là mẫu MPV hiện đại dành cho khách hàng yêu thích sự thoải mái và công nghệ tiên tiến. Không gian rộng rãi 7 chỗ, cửa trượt điện tiện lợi và điều hòa tự động mang đến trải nghiệm như xe gia đình cao cấp. Xe vận hành êm ái, tiết kiệm nhiên liệu, phù hợp cho cả đi phố lẫn hành trình dài. Hệ thống giải trí thông minh, màn hình cảm ứng lớn và kết nối đa phương tiện giúp mọi chuyến đi thêm phần thú vị. Thiết kế mạnh mẽ, sang trọng phù hợp với khách hàng chú trọng cả tiện nghi lẫn hình ảnh.",
+    "type": "CAR",
+    "category": "MPV",
+    "status": "AVAILABLE",
+    "seats": 6,
+    "pricePerHour": 54000.0,
+    "pricePerDay": 1300000.0,
+    "depositFee": 3000000.0,
+    "consumptionRate": 6.3,
+    "batteryLevel": 0.85,
+    "batteryCapacity": 75.0,
+    "plateNumber": "51H-2025",
+    "lastMaintenance": "2025-09-20T10:00:00",
+    "stationId": 1
+  }
+}
+```
+
+Success Response: Vehicle object (same as above).
+
+## 3. Find Vehicle by Plate Number
+
+Endpoint: GET /api/vehicles/plate/{plateNumber}
+
+Description: Retrieve a vehicle by its plate number.
+
+Path Parameter: http://localhost:8080/api/vehicles/plate/59A-77777
+
+```json
+{
+    "status": 200,
+    "message": "success",
+    "data": {
+        "id": 12,
+        "name": "VINFAST VF8 2023",
+        "description": "Khám phá đỉnh cao trải nghiệm tự lái với VinFast VF8 2024 – VF8 mang lại cảm giác êm ái, sang trọng và hiện đại với thiết kế tinh tế và công nghệ an toàn tiên tiến.",
+        "type": "CAR",
+        "category": "SUV",
+        "status": "AVAILABLE",
+        "seats": 5,
+        "pricePerHour": 165000.0,
+        "pricePerDay": 1300000.0,
+        "depositFee": 3000000.0,
+        "consumptionRate": 19.5,
+        "batteryLevel": 1.0,
+        "batteryCapacity": 82.0,
+        "plateNumber": "59A-77777",
+        "lastMaintenance": "2025-09-25T10:00:00",
+        "stationId": 4
+    }
+}
+```
+
+## 4. Create a New Vehicle
+
+Endpoint: POST /api/vehicles
+
+Description: Add a new vehicle.
+
+Request Body:http://localhost:8080/api/vehicles
+
+```json
+{
+  "name": "VINFAST VF8 2023",
+  "description": "Khám phá đỉnh cao trải nghiệm tự lái với VinFast VF8 2024 – VF8 mang lại cảm giác êm ái, sang trọng và hiện đại với thiết kế tinh tế và công nghệ an toàn tiên tiến.",
+  "vehicleType": "CAR",
+  "vehicleStatus": "AVAILABLE",
+  "category": "SEDAN",
+  "seats": 5,
+  "pricePerHour": 165000,
+  "pricePerDay": 1300000,
+  "depositFee": 3000000,
+  "consumptionRate": 19.5,
+  "batteryLevel": 1.0,
+  "batteryCapacity": 82.0,
+  "plateNumber": "59A-77777",
+  "lastMaintenance": "2025-09-25T10:00:00",
+  "stationId": 4
+}
+
+```
+
+Success Response: Newly created Vehicle object.
+
+## 5.Update Vehicle by ID
+
+Endpoint: PUT /api/vehicles/{id}
+
+Description: Update a vehicle by its ID.
+
+Path Parameter:http://localhost:8080/api/vehicles/1
+
+id (Long) – Vehicle ID
+
+Request Body: Same as create vehicle (can update only required fields).
+
+Success Response: Updated Vehicle object.
+
+```json
+{
+"status": 200,
+"message": "Vehicle updated successfully",
+"data": null
+}
+```
+
+## 6.Delete Vehicle by ID
+
+Endpoint: DELETE /api/vehicles/{id}
+
+Description: Delete a vehicle by its ID.
+
+Path Parameter:http://localhost:8080/api/vehicles/5
+
+id (Long) – Vehicle ID
+
+Success Response:
+
+```json
+{
+"status": 200,
+"message": "Vehicle deleted successfully",
+"data": null
+}
+```
