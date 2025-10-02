@@ -21,7 +21,7 @@ public class Rental {
     Long id;
     @Column(name="rental_status")
     @Enumerated(EnumType.STRING)
-    RentalStatus status = RentalStatus.ONGOING;
+    RentalStatus status = RentalStatus.PENDING;
     @Column(name="start_time")
     LocalDateTime startTime;
     @Column(name="end_time")

@@ -296,7 +296,7 @@ public class PaymentService {
             } else if (payment.getType() == PaymentType.RENTAL && payment.getDeposit() != null && payment.getRental() != null) {
                 Deposit deposit = depositRepository.findById(payment.getDeposit().getId())
                         .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
-                Rental rental = rentalRepository.getRentalById(payment.getRental().getId())
+                Rental rental = rentalRepository.findById(payment.getRental().getId())
                         .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
                 deposit.setStatus(DepositStatus.HOLD);

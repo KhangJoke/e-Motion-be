@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Vehicle;
-import com.swp391.e_Motion_be.enums.StationCity;
+import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
 import org.springframework.data.jpa.repository.JpaRepository;

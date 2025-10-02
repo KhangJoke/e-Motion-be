@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
@@ -47,8 +48,13 @@ public class RentalService {
         return rentalMapper.toRentalResponse(rentalRepository.save(rental));
     }
 
-    @Transactional
     public RentalResponse createRental(RentalCreateRequest request){
+        boolean hasConflict = rentalRepository.findByVehicle_IdAndStatusNotIn(request.getVehicleId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED))
+                .stream().anyMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                && r.getEndTime().isAfter(request.getStartTime()));
+        if(hasConflict){
+            throw new AppException(ErrorCode.RENTAL_HAS_CONFLICT);
+        }
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         Station station = stationRepository.findById(request.getStationId())

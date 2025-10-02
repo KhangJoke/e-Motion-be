@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.staff.StaffUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.service.StaffService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ public class StaffController {
     private final StaffService staffService;
 
     @PostMapping
-    public ApiResponse<StaffResponse> createStaff(@RequestBody StaffCreationRequest request){
+    public ApiResponse<StaffResponse> createStaff(@RequestBody @Valid StaffCreationRequest request){
         ApiResponse<StaffResponse> response = new ApiResponse<>();
         response.setData(staffService.createStaff(request));
         response.setMessage("Create staff successfully");
@@ -50,7 +51,7 @@ public class StaffController {
 
     @PutMapping("/{email}")
     public ApiResponse<StaffResponse> updateStaffById(@PathVariable String email,
-                                                      @RequestBody StaffUpdateRequest request){
+                                                      @RequestBody @Valid StaffUpdateRequest request){
         ApiResponse<StaffResponse> response = new ApiResponse<>();
         response.setData(staffService.updateStaff(request));
         response.setMessage("Update staff by id successfully");
