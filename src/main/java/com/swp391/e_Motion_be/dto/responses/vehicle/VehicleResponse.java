@@ -14,10 +14,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class VehicleResponse {
 
+    private Long id;
     private String name;
     private String description;
-    private String vehicleType;
-    private String vehicleStatus;
+    private String type;
+    private String status;
     private int seats;
     private Double pricePerHour;
     private Double pricePerDay;
