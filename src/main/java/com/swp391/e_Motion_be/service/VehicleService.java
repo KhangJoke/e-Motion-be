@@ -3,7 +3,8 @@ package com.swp391.e_Motion_be.service;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.VehicleResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleResponseForList;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -42,10 +43,10 @@ public class VehicleService {
     }
 
     // Find all
-    public List<VehicleResponse> findAllVehicle() {
+    public List<VehicleResponseForList> findAllVehicle() {
         return vehicleRepository.findAll()
                 .stream()
-                .map(vehicleMapper::toVehicleResponse)
+                .map(vehicleMapper::toVehicleResponseForList)
                 .toList();
     }
 

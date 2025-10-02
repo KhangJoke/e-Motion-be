@@ -4,7 +4,8 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.VehicleResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleResponseForList;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ public class VehicleController {
 
     // Get all vehicles
     @GetMapping
-    public ApiResponse<List<VehicleResponse>> getAllVehicles() {
+    public ApiResponse<List<VehicleResponseForList>> getAllVehicles() {
         return new ApiResponse<>(200, "success", vehicleService.findAllVehicle());
     }
 
