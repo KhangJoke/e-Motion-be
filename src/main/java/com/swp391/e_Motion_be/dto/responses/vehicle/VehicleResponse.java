@@ -28,4 +28,6 @@ public class VehicleResponse {
     private String plateNumber;
     private LocalDateTime lastMaintenance;
     private Long stationId;
+    private String city;
+    private String address;
 }

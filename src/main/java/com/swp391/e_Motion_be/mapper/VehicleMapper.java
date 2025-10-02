@@ -21,6 +21,8 @@ public interface VehicleMapper {
     @Mapping(source = "type", target = "type")
     @Mapping(source = "status", target = "status")
     @Mapping(source = "category", target = "category")
+    @Mapping(source = "station.address", target = "address")
+    @Mapping(source = "station.city", target = "city") // map Station -> city
     VehicleResponse toVehicleResponse(Vehicle vehicle);
 
     @Mapping(source = "station.id", target = "stationId")
