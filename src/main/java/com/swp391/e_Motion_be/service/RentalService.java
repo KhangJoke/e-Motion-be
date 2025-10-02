@@ -205,7 +205,11 @@ public class RentalService {
                 now
         );
 
-        overdueRentals.forEach(this::sendRentalOverdueEmail);
+        overdueRentals.forEach(rental -> {
+            sendRentalOverdueEmail(rental);
+            rental.setOverdueNotified(true);
+            rentalRepository.save(rental);
+        });
 
         return overdueRentals.stream()
                 .map(rentalMapper::toRentalResponse)
