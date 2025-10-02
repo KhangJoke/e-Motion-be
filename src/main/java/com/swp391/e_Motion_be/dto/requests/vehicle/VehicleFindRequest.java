@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
-import com.swp391.e_Motion_be.enums.StationCity;
-import com.swp391.e_Motion_be.validator.validateFindVehicleRequest.ValidTimeRequest;
+import com.swp391.e_Motion_be.enums.station.StationCity;
+import com.swp391.e_Motion_be.validator.validateTimeVehicleRequest.ValidTimeRequest;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;

@@ -105,6 +105,7 @@ public enum ErrorCode {
 
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
+    RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "This vehicle has rental in this range time, please choose other time"),
 
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),

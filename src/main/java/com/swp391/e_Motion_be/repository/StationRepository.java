@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Station;
-import com.swp391.e_Motion_be.enums.StationCity;
+import com.swp391.e_Motion_be.enums.station.StationCity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

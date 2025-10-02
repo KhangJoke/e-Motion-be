@@ -76,11 +76,19 @@ public class JwtService {
     }
 
     public Date extractExpiration(String token) {
-        return extractClaim(token, claims -> claims.getExpiration());
+        try{
+            return extractClaim(token, claims -> claims.getExpiration());
+        }catch(Exception e){
+            throw  new AppException(ErrorCode.EXPIRED_TOKEN);
+        }
     }
 
     public String extractJwtId(String token) {
-        return extractClaim(token, claims -> claims.getId());
+        try{
+            return extractClaim(token, claims -> claims.getId());
+        }catch(Exception e){
+            throw  new AppException(ErrorCode.EXPIRED_TOKEN);
+        }
     }
 
     // Parse token → Claims

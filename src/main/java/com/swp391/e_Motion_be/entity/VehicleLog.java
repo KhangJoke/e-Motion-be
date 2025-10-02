@@ -24,7 +24,7 @@ public class VehicleLog {
     @Column(name="log_type", nullable=false)
     private VehicleLogType type;
 
-    @Column(name="description", nullable=false)
+    @Column(nullable=false)
     private String description;
 
     @Column(nullable = false)

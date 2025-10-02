@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.entity;
 
-import com.swp391.e_Motion_be.enums.StationCity;
-import com.swp391.e_Motion_be.enums.StationStatus;
+import com.swp391.e_Motion_be.enums.station.StationCity;
+import com.swp391.e_Motion_be.enums.station.StationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

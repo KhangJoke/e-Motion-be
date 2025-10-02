@@ -5,7 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.StationResponse;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.StationCity;
+import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.StationMapper;
 import com.swp391.e_Motion_be.repository.StationRepository;

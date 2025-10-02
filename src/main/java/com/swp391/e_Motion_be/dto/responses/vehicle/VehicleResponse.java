@@ -21,7 +21,7 @@ public class VehicleResponse {
     private int seats;
     private Double pricePerHour;
     private Double pricePerDay;
-    private double depositFee;
+    private Double depositFee;
     private Double consumptionRate;
     private Double batteryLevel;
     private Double batteryCapacity;
