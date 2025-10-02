@@ -39,6 +39,15 @@ public class SwaggerConfig {
                 // API public → bỏ security
                 pathItem.readOperations().forEach(op -> op.setSecurity(List.of()));
             }
+
+            if (path.startsWith("/api/vehicles")) {
+                pathItem.readOperationsMap().forEach((httpMethod, operation) -> {
+                    if (httpMethod.name().equalsIgnoreCase("GET")) {
+                        operation.setSecurity(List.of()); // bỏ yêu cầu Bearer token
+                    }
+                });
+            }
         });
+
     }
 }
