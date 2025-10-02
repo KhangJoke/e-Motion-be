@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     List<Document> findByUser_Email(String email);
-    boolean existsByDocNumber(String docNumber );
+    boolean existsByNumber(String docNumber );
 }

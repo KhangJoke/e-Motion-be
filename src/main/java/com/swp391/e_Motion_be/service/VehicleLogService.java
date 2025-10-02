@@ -56,7 +56,7 @@ public class VehicleLogService {
 
     // FIND BY USER ID
     public List<VehicleLogResponse> findVehicleLogByStaffId(Long staffId) {
-        List<VehicleLog> logs = vehicleLogRepository.findByStaff_StaffId(staffId);
+        List<VehicleLog> logs = vehicleLogRepository.findByStaff_Id(staffId);
 
         if (logs.isEmpty()) {
             throw new AppException(ErrorCode.VEHICLE_LOG_LIST_EMPTY);

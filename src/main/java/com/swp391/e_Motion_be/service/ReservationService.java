@@ -10,6 +10,7 @@ import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.PaymentMapper;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
@@ -91,7 +92,8 @@ public class ReservationService {
 
         reservation.setStatus(request.getNewStatus());
 
-        return reservationMapper.toReservationResponse(reservationRepository.save(reservation));
+        Reservation savedReservation = reservationRepository.save(reservation);
+        return reservationMapper.toReservationResponse(savedReservation);
     }
 
     public void deleteReservationByCode(String code) {

@@ -51,7 +51,7 @@ public class VehicleService {
 
     // Find by status
     public List<VehicleResponse> findVehicleByStatus(VehicleStatus status) {
-        return vehicleRepository.findByVehicleStatus(status)
+        return vehicleRepository.findByStatus(status)
                 .stream()
                 .map(vehicleMapper::toVehicleResponse)
                 .toList();
@@ -59,7 +59,7 @@ public class VehicleService {
 
     // Find by type
     public List<VehicleResponse> findVehicleByType(VehicleType type) {
-        return vehicleRepository.findByVehicleType(type)
+        return vehicleRepository.findByType(type)
                 .stream()
                 .map(vehicleMapper::toVehicleResponse)
                 .toList();
@@ -124,7 +124,7 @@ public class VehicleService {
 
     // Search bằng thanh tìm kiếm
     public List<VehicleResponse> searchVehicles(VehicleFindRequest request) {
-        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndVehicleStatus(request.getCity(), VehicleStatus.AVAILABLE);
+        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatus(request.getCity(), VehicleStatus.AVAILABLE);
         return vehicles.stream()
                 .filter(v -> v.getReservations().stream()
                         .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime())))

@@ -264,7 +264,8 @@ public class PaymentService {
                 .type(request.getType())
                 .status(request.getStatus())
                 .build();
-        return paymentMapper.toPaymentResponse(paymentRepository.save(payment));
+        Payment savedPayment = paymentRepository.save(payment);
+        return paymentMapper.toPaymentResponse(savedPayment);
     }
 
     public PaymentResponse updatePayment(PaymentRequest request, Long id) {
@@ -309,7 +310,8 @@ public class PaymentService {
             }
         }
 
-        return paymentMapper.toPaymentResponse(paymentRepository.save(payment));
+        Payment savedPayment = paymentRepository.save(payment);
+        return paymentMapper.toPaymentResponse(savedPayment);
     }
 
     public void deletePayment(Long id) {

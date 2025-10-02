@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface RentalRepository extends JpaRepository<Rental,Long> {
-    public Optional<Rental> getRentalById(Long id);
+    Optional<Rental> getRentalById(Long id);
 }

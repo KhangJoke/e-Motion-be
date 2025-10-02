@@ -10,7 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "rental_checklist")
+@Table(name = "rental_checklists")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,12 +22,11 @@ public class RentalCheckList {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "check_type")
-    private CheckType checkType;
+    private CheckType type;
 
     @Column(name = "pic_url")
     private String imgUrl;
 
-    @Column(name = "kilometers")
     private Long kilometers;
 
     @Column(name = "current_battery")

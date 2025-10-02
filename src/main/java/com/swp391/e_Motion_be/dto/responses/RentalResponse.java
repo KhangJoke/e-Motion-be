@@ -1,22 +1,27 @@
 package com.swp391.e_Motion_be.dto.responses;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.swp391.e_Motion_be.enums.DocType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class DocumentResponse {
+public class RentalResponse {
     long id;
-    String imgUrl;
-    DocType docType;
-    String docNumber;
-    String email;
+    String status;
+    LocalDateTime startTime;
+    LocalDateTime endTime;
+    double rentFee;
+    LocalDateTime createdAt;
+    long vehicleId;
+    Long reservationId;
+    long userId;
+    long stationId;
+    long staffId;
 }

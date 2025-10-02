@@ -24,16 +24,16 @@ public class Vehicle {
     @Column(name="vehicle_name",nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name="vehicle_type",nullable = false)
-    private VehicleType vehicleType;
+    private VehicleType type;
 
     @Enumerated(EnumType.STRING) //save enum data thay vi number
     @Column(name="vehicle_status",nullable = false)
-    private VehicleStatus vehicleStatus;
+    private VehicleStatus status;
 
     @Column(nullable = false)
     private int seats;

@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentResponse {
-    private Long id;
+    private Long paymentId;
     private Long amount;
-    private PaymentMethod method;
-    private PaymentType type;
-    private PaymentStatus status;
+    private String method;
+    private String type;
+    private String status;
     private LocalDateTime createdAt;
     private String txnRef;
     private String description;

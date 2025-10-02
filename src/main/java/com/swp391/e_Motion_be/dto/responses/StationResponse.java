@@ -8,7 +8,7 @@ import lombok.Data;
 public class StationResponse {
 
     private String name;
-    private String address; 
-    private StationCity city;
-    private StationStatus stationStatus;
+    private String address;
+    private String city;
+    private String stationStatus;
 }

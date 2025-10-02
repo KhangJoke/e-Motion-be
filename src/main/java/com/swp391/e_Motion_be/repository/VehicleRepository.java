@@ -12,9 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
-    List<Vehicle> findByVehicleStatus(VehicleStatus vehicleStatus);
-    List<Vehicle> findByVehicleType(VehicleType vehicleType);
+    List<Vehicle> findByStatus(VehicleStatus vehicleStatus);
+    List<Vehicle> findByType(VehicleType vehicleType);
     Optional<Vehicle> findByPlateNumber(String plateNumber);
     List<Vehicle> findByNameContainingIgnoreCase(String name);
-    List<Vehicle> findByStation_CityAndVehicleStatus(StationCity city, VehicleStatus vehicleStatus);
+    List<Vehicle> findByStation_CityAndStatus(StationCity city, VehicleStatus vehicleStatus);
 }

@@ -34,12 +34,12 @@ public class DocumentService {
         // 1. Verify OCR
         if(extractedCccd.equals(request.getDocNumber())){
             // 2. Check trùng số CCCD
-            if(documentRepository.existsByDocNumber(request.getDocNumber())){
+            if(documentRepository.existsByNumber(request.getDocNumber())){
                 throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
             }
         }else{
             // Nếu mismatch → check ảnh đã dùng chưa
-            if(documentRepository.existsByDocNumber(extractedCccd)){
+            if(documentRepository.existsByNumber(extractedCccd)){
                 throw new AppException(ErrorCode.DOCUMENT_IMAGE_USED);
             }else{
                 // Nếu chưa dùng → xóa ảnh trên Cloudinary

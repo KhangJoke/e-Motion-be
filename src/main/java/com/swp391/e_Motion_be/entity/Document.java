@@ -3,14 +3,12 @@ package com.swp391.e_Motion_be.entity;
 import com.swp391.e_Motion_be.enums.DocType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "documents")
-@Getter
-@Setter
+@Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Document {
     @Id
@@ -21,9 +19,9 @@ public class Document {
     String imgUrl;
     @Enumerated(EnumType.STRING)
     @Column(name = "doc_type")
-    DocType docType;
+    DocType type;
     @Column(name = "doc_number", unique = true)
-    String docNumber;
+    String number;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
