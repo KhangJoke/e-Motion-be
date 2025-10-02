@@ -38,10 +38,5 @@ public class RentalController {
         response.setData(rentalService.createRental(request));
         return response;
     }
-//    Post http://localhost:8080/api/rentals/notify-expiring
-//    @PostMapping("/notify-expiring")
-//    public List<RentalResponse> notifyExpiring() {
-//        return rentalService.notifyExpiringRentals();
-//    }
 
 }

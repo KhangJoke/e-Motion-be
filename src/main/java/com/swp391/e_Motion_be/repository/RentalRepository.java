@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface RentalRepository extends JpaRepository<Rental,Long> {
     Optional<Rental> getRentalById(Long id);
     List<Rental> findByStatusAndEndTimeBetween(RentalStatus status, LocalDateTime from, LocalDateTime to);
-
+    List<Rental> findByStatusAndEndTimeBefore(RentalStatus status, LocalDateTime time);
     List<Rental> findByVehicle_IdAndStatusNotIn(Long vehicleId, List<RentalStatus> status);
+
 }
