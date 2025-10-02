@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.dto.requests.station;
 
-import com.swp391.e_Motion_be.enums.StationCity;
-import com.swp391.e_Motion_be.enums.StationStatus;
+import com.swp391.e_Motion_be.enums.station.StationCity;
+import com.swp391.e_Motion_be.enums.station.StationStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

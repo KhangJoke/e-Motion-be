@@ -17,7 +17,7 @@ public interface RentalMapper {
     @Mapping(source = "station.id", target = "stationId")
     RentalResponse toRentalResponse(Rental rental);
     @Mapping(target = "id", ignore = true) //bỏ qua id vì rental có id riêng
-    @Mapping(target = "status", constant = "ONGOING") // set cứng
+    @Mapping(target = "status", constant = "PENDING") // set cứng
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "deposit", ignore = true)
     Rental fromReservationToRental(Reservation reservation);

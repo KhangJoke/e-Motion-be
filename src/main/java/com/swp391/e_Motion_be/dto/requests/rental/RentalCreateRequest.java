@@ -1,6 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.rental;
 
-import com.swp391.e_Motion_be.validator.validateFindVehicleRequest.ValidTimeRequest;
+import com.swp391.e_Motion_be.validator.validateTimeVehicleRequest.ValidTimeRequest;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -21,11 +21,11 @@ public class RentalCreateRequest {
     @NotNull(message = "End time is required")
     LocalDateTime endTime;
     @NotNull(message = "Vehicle ID is required")
-    long vehicleId;
+    Long vehicleId;
     @NotNull(message = "Station ID is required")
-    long stationId;
+    Long stationId;
     @NotNull(message = "User email is required")
     String email;
     @NotNull(message = "Staff ID is required")
-    private long staffId;
+    Long staffId;
 }

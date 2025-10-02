@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.validator.validateFindVehicleRequest;
+package com.swp391.e_Motion_be.validator.validateTimeVehicleRequest;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
