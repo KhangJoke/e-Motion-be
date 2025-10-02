@@ -22,7 +22,7 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")
-    private long id;
+    private long paymentId;
     @Column(name = "total_amount", nullable = false)
     private long amount;
     @Column(name = "payment_method", nullable = false)
