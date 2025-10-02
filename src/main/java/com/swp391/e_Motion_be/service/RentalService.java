@@ -50,8 +50,8 @@ public class RentalService {
 
     public RentalResponse createRental(RentalCreateRequest request){
         boolean hasConflict = rentalRepository.findByVehicle_IdAndStatusNotIn(request.getVehicleId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED))
-                .stream().anyMatch(r -> r.getStartTime().isBefore(request.getEndTime())
-                && r.getEndTime().isAfter(request.getStartTime()));
+                .stream().anyMatch(r -> r.getStartTime().minusHours(3).isBefore(request.getEndTime())
+                && r.getEndTime().plusHours(3).isAfter(request.getStartTime()));
         if(hasConflict){
             throw new AppException(ErrorCode.RENTAL_HAS_CONFLICT);
         }

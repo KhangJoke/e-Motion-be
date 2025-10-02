@@ -9,17 +9,24 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class VehicleResponseForList {
+public class VehicleDetailResponse {
 
     private Long id;
     private String name;
+    private String description;
     private String type;
-    private String status;
     private String category;
+    private String status;
     private int seats;
+    private Double pricePerHour;
     private Double pricePerDay;
+    private Double depositFee;
     private Double consumptionRate;
+    private Double batteryLevel;
     private Double batteryCapacity;
+    private String plateNumber;
+    private LocalDateTime lastMaintenance;
     private Long stationId;
     private String city;
+    private String address;
 }
