@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     // Generic errors
     UNEXPECTED_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected exception"),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),
 
     // Update password errors
     PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "New password and confirm new password do not match"),
@@ -90,9 +91,8 @@ public enum ErrorCode {
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Reservation not found"),
     RESERVATION_TIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation time must be in the future"),
     RESERVATION_TIME_INVALID_TO_CANCEL(HttpStatus.BAD_REQUEST, "You may cancel your reservation up to 5 days before your trip"),
-    RESERVATION_EXPIRED(HttpStatus.BAD_REQUEST, "Reservation has expired"),
     RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Reservation has already been cancelled"),
-    RESERVATION_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "Reservation has not available yet."),
+    VEHICLE_STATION_MISMATCH(HttpStatus.BAD_REQUEST, "Vehicle does not belong to the selected station"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),
@@ -115,13 +115,12 @@ public enum ErrorCode {
     REFUND_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The refund response was not found"),
     REFUND_RESPONSE_INVALID(HttpStatus.NOT_FOUND, "The refund response was invalid"),
     VNPAY_KEY_INVALID(HttpStatus.BAD_REQUEST, "The VnPay Key was invalid"),
-    PAYMENT_CREATE_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Create Failed"),
-    PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Handle Return Failed"),
     REFUND_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Refund Failed"),
-    REFUND_REQUEST_INVALID(HttpStatus.BAD_REQUEST, "The VnPay Refund request invalid"),
-    REFUND_REQUEST_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Refund request failed"),
     PAYMENT_CANNOT_BE_REFUNDED(HttpStatus.BAD_REQUEST, "The VnPay cannot be refunded"),
-    PAYDATE_PARSE_ERROR(HttpStatus.BAD_REQUEST, "The PayDate parse error"),
+    REFUND_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "The refund has already been processed"),
+    QUERY_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The query response was not found"),
+    QUERY_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Query Failed"),
+    PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "The payment is processing failed"),
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed");

@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
+import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
 import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -37,11 +38,12 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay-return")
-    public ApiResponse<PaymentResponse> paymentVnPayReturn(@RequestParam Map<String, String> params) throws Exception {
+    public ApiResponse<PaymentResponse> paymentVnPayReturn(@RequestParam Map<String, String> params) {
+        PaymentResponse paymentResponse = paymentService.handleReturn(params);
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
         response.setStatus(200);
-        response.setMessage("VnPay Return Successfully");
-        response.setData(paymentService.handleReturn(params));
+        response.setMessage(paymentResponse == null ? "Payment Failed" : "Payment Successful");
+        response.setData(paymentResponse);
         return response;
     }
 
@@ -121,6 +123,15 @@ public class PaymentController {
         response.setMessage("Get Payment By " + type + " Successfully");
         response.setStatus(200);
         response.setData(paymentService.getPaymentsByType(type));
+        return response;
+    }
+
+    @PostMapping("/query/{txnRef}")
+    public ApiResponse<TransactionResponse> queryTransaction(@PathVariable String txnRef,HttpServletRequest request) throws Exception {
+        ApiResponse<TransactionResponse>response = new ApiResponse<>();
+        response.setMessage("Query Transaction Successfully");
+        response.setStatus(200);
+        response.setData(paymentService.queryTransaction(txnRef, request));
         return response;
     }
 }

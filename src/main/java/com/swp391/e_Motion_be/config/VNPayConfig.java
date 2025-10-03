@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
@@ -30,28 +31,14 @@ public class VNPayConfig {
     @Value("${vnpay.api-url}")
     private String vnp_ApiUrl;
 
-    public String getVnp_TmnCode() {
-        return vnp_TmnCode;
-    }
-
-    public String getVnp_HashSecret() {
-        return vnp_HashSecret;
-    }
-
-    public String getVnp_PayUrl() {
-        return vnp_PayUrl;
-    }
-
-    public String getVnp_ReturnUrl() {return vnp_ReturnUrl;}
-
-    public String getVnp_ApiUrl() {return vnp_ApiUrl;}
-
+    // Generate unique transaction reference
     public String generateTxnRef() {
         Random random = new Random();
-        int code = random.nextInt(900000) + 100000; // 6 chữ số random
+        int code = random.nextInt(900000) + 100000;
         return "PAY" + System.currentTimeMillis() + code;
     }
 
+    // HMAC SHA512
     public String hmacSHA512(String key, String data) throws Exception {
         Mac hmac512 = Mac.getInstance("HmacSHA512");
         SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
@@ -60,7 +47,8 @@ public class VNPayConfig {
         return bytesToHex(bytes);
     }
 
-    public String bytesToHex(byte[] hash) {
+    // Convert byte array to hex string
+    private String bytesToHex(byte[] hash) {
         StringBuilder result = new StringBuilder();
         for (byte b : hash) {
             result.append(String.format("%02x", b));
@@ -68,46 +56,52 @@ public class VNPayConfig {
         return result.toString();
     }
 
-    public boolean validateSignature(Map<String, String> params, String vnp_SecureHash) {
-        if (vnp_SecureHash == null || vnp_SecureHash.isEmpty()) {
+    // Validate signature
+    public boolean validateSignature(Map<String, String> params, String receivedHash) {
+        if (receivedHash == null || receivedHash.isEmpty()) {
             log.warn("Received hash is null or empty");
             return false;
         }
 
         try {
-            params.remove("vnp_SecureHash");
-            params.remove("vnp_SecureHashType");
+            // Create a copy to avoid modifying original params
+            Map<String, String> paramsCopy = new HashMap<>(params);
 
-            List<String> fieldNames = new ArrayList<>(params.keySet());
+            // Remove security fields from the copy
+            paramsCopy.remove("vnp_SecureHash");
+            paramsCopy.remove("vnp_SecureHashType");
+
+            // Sort parameters alphabetically
+            List<String> fieldNames = new ArrayList<>(paramsCopy.keySet());
             Collections.sort(fieldNames);
 
+            // Build hash data string with sorted parameters
             StringBuilder hashData = new StringBuilder();
+            boolean isFirst = true;
 
-            for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext();) {
-                String fieldName = itr.next();
-                String fieldValue = params.get(fieldName);
+            for (String fieldName : fieldNames) {
+                String fieldValue = paramsCopy.get(fieldName);
 
-                if (fieldValue != null && fieldValue.length() > 0) {
-                    hashData.append(fieldName).append('=')
-                            .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                    if (itr.hasNext()) {
+                if (fieldValue != null && !fieldValue.isEmpty()) {
+                    if (!isFirst) {
                         hashData.append('&');
                     }
+                    hashData.append(fieldName)
+                            .append('=')
+                            .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                    isFirst = false;
                 }
             }
 
-            String calculatedHash = hmacSHA512(vnp_SecureHash, hashData.toString());
-            boolean isValid = calculatedHash.equalsIgnoreCase(vnp_SecureHash);
+            // Calculate hash using vnp_HashSecret as the HMAC key
+            String calculatedHash = hmacSHA512(vnp_HashSecret, hashData.toString());
 
-            if (!isValid) {
-                log.warn("Signature validation failed");
-            }
+            // Compare calculated hash with received hash (case-insensitive)
+            return calculatedHash.equalsIgnoreCase(receivedHash);
 
-            return isValid;
         } catch (Exception e) {
             log.error("Error validating signature: {}", e.getMessage(), e);
             return false;
         }
     }
 }
-
