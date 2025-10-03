@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,4 +22,5 @@ public class VehicleListResponse {
     private Double batteryCapacity;
     private Long stationId;
     private String city;
+    private String isMain;
 }

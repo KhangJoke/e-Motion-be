@@ -16,8 +16,11 @@ public class ImgVehicle {
     @Column(name="img_id")
     private Long id;
 
-    @Column(name ="imr_url")
+    @Column(name ="img_url")
     private String url;       // Img url
+
+    @Column(name="main_img")
+    private boolean isMain;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

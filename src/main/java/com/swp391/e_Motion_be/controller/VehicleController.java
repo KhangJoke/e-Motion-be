@@ -28,13 +28,13 @@ public class VehicleController {
     }
 
     // Find by ID
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ApiResponse<VehicleDetailResponse> findById(@PathVariable Long id) {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleById(id));
     }
 
     // Find by PlateNumber
-    @GetMapping("/{plateNumber}")
+    @GetMapping("/plate/{plateNumber}")
     public ApiResponse<VehicleListResponse> findByPlateNumber(@PathVariable String plateNumber) {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleByPlateNumber(plateNumber));
     }
