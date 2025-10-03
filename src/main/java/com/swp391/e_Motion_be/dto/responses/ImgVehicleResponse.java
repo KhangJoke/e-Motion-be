@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 public class ImgVehicleResponse {
     private Long vehicleId;
     private String url;
+    private boolean isMain;
     private String publicId;
 }

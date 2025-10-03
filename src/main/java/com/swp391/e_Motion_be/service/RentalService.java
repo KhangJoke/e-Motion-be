@@ -10,12 +10,15 @@ import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.auth.EmailService;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -30,6 +33,7 @@ public class RentalService {
     private final UserRepository userRepository;
     private final DepositRepository depositRepository;
 
+    private final EmailService emailService;
     private final RentalMapper rentalMapper;
 
     public List<RentalResponse> getAllRentals(){
@@ -130,4 +134,127 @@ public class RentalService {
         }
         return fee;
     }
+
+    public void sendRentalExpiringEmail(Rental rental) {
+        String subject = "Your Rental is About to Expire";
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = rental.getEndTime() != null
+                ? rental.getEndTime().format(formatter)
+                : "Not specified";
+
+        String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
+                + "<div style=\"background-color: #f9f9f9; padding: 20px;\">"
+                + "<h2 style=\"color: #e67e22; text-align: center;\">Rental Expiry Reminder</h2>"
+                + "<p style=\"font-size: 16px; color: #555;\">"
+                + "Dear " + rental.getUser().getFullName() + ",</p>"
+                + "<p style=\"font-size: 15px; color: #444;\">"
+                + "Your rental for vehicle <strong>" + rental.getVehicle().getName() + "</strong> "
+                + "will expire soon.</p>"
+                + "<div style=\"background-color: #ffffff; padding: 15px; border-radius: 8px; "
+                + "border: 1px solid #ddd; margin: 20px 0;\">"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Renter: " + rental.getUser().getFullName() + "</p>"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Station: " + rental.getStation().getName() + "</p>"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Rental End Time: " + endTimeFormatted + "</p>"
+                + "</div>"
+                + "<p style=\"font-size: 14px; color: #666;\">"
+                + "Please return the vehicle on time to avoid additional charges."
+                + "</p>"
+                + "<p style=\"font-size: 13px; color: #999; margin-top: 30px;\">"
+                + "If you have already returned the vehicle, please ignore this email."
+                + "</p>"
+                + "</div>"
+                + "</html>";
+
+        try {
+            emailService.sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
+    @Transactional
+    public List<RentalResponse> notifyExpiringRentals() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
+
+        List<Rental> expiringRentals = rentalRepository.findByStatusAndEndTimeBetween(
+                RentalStatus.ONGOING,
+                now,
+                threshold
+        );
+
+        expiringRentals.forEach(this::sendRentalExpiringEmail);
+
+        return expiringRentals.stream()
+                .map(rentalMapper::toRentalResponse)
+                .toList();
+    }
+
+    public void sendRentalOverdueEmail(Rental rental) {
+        String subject = "Your Rental is Overdue";
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = rental.getEndTime() != null
+                ? rental.getEndTime().format(formatter)
+                : "Not specified";
+
+        String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
+                + "<div style=\"background-color: #f9f9f9; padding: 20px;\">"
+                + "<h2 style=\"color: #e67e22; text-align: center;\">Rental Overdue Reminder</h2>"
+                + "<p style=\"font-size: 16px; color: #555;\">"
+                + "Dear " + rental.getUser().getFullName() + ",</p>"
+                + "<p style=\"font-size: 15px; color: #444;\">"
+                + "Your rental for vehicle <strong>" + rental.getVehicle().getName() + "</strong> "
+                + "has already expired.</p>"
+                + "<div style=\"background-color: #ffffff; padding: 15px; border-radius: 8px; "
+                + "border: 1px solid #ddd; margin: 20px 0;\">"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Renter: " + rental.getUser().getFullName() + "</p>"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Station: " + rental.getStation().getName() + "</p>"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
+                + "Rental End Time: " + endTimeFormatted + "</p>"
+                + "</div>"
+                + "<p style=\"font-size: 14px; color: #666;\">"
+                + "Please return the vehicle immediately to avoid additional charges."
+                + "</p>"
+                + "<p style=\"font-size: 13px; color: #999; margin-top: 30px;\">"
+                + "If you have already returned the vehicle, please ignore this email."
+                + "</p>"
+                + "</div>"
+                + "</html>";
+
+        try {
+            emailService.sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
+    @Transactional
+    public List<RentalResponse> notifyOverdueRentals() {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Rental> overdueRentals = rentalRepository.findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(
+                RentalStatus.ONGOING,
+                now
+        );
+
+        overdueRentals.forEach(rental -> {
+            sendRentalOverdueEmail(rental);
+            rental.setOverdueNotified(true);
+            rentalRepository.save(rental);
+        });
+
+        return overdueRentals.stream()
+                .map(rentalMapper::toRentalResponse)
+                .toList();
+    }
+
+
+
 }
