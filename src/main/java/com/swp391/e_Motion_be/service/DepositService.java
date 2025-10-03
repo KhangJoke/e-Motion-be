@@ -34,8 +34,8 @@ public class DepositService {
 
     public DepositResponse createDeposit(DepositCreateRequest request) {
         Deposit deposit = depositMapper.toDepositEntity(request);
-        if(request.getReservationCode() != null){
-            Reservation reservation = reservationRepository.findByCode(request.getReservationCode())
+        if(request.getReservationId() != null){
+            Reservation reservation = reservationRepository.findById(request.getReservationId())
                     .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
             deposit.setReservation(reservation);
         }else{
@@ -48,8 +48,8 @@ public class DepositService {
 
     public DepositResponse updateDepositStatus(DepositUpdateRequest request){
         Deposit deposit;
-        if(request.getReservationCode() != null){
-            deposit = depositRepository.findByReservation_Code(request.getReservationCode())
+        if(request.getReservationId() != null){
+            deposit = depositRepository.findById(request.getReservationId())
                     .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
         }else{
             deposit = depositRepository.findByRental_Id(request.getRentalId())

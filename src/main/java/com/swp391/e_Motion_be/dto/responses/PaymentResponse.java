@@ -1,9 +1,7 @@
 package com.swp391.e_Motion_be.dto.responses;
 
-import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
-import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
-import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class PaymentResponse {
     private Long paymentId;
     private Long amount;

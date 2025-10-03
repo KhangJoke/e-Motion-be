@@ -9,7 +9,6 @@ import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

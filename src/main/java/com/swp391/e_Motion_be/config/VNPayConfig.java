@@ -1,14 +1,18 @@
 package com.swp391.e_Motion_be.config;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
+import java.util.*;
 
 @Component
+@Slf4j
+@Getter
 public class VNPayConfig {
 
     @Value("${vnpay.tmn-code}")
@@ -62,6 +66,48 @@ public class VNPayConfig {
             result.append(String.format("%02x", b));
         }
         return result.toString();
+    }
+
+    public boolean validateSignature(Map<String, String> params, String vnp_SecureHash) {
+        if (vnp_SecureHash == null || vnp_SecureHash.isEmpty()) {
+            log.warn("Received hash is null or empty");
+            return false;
+        }
+
+        try {
+            params.remove("vnp_SecureHash");
+            params.remove("vnp_SecureHashType");
+
+            List<String> fieldNames = new ArrayList<>(params.keySet());
+            Collections.sort(fieldNames);
+
+            StringBuilder hashData = new StringBuilder();
+
+            for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext();) {
+                String fieldName = itr.next();
+                String fieldValue = params.get(fieldName);
+
+                if (fieldValue != null && fieldValue.length() > 0) {
+                    hashData.append(fieldName).append('=')
+                            .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                    if (itr.hasNext()) {
+                        hashData.append('&');
+                    }
+                }
+            }
+
+            String calculatedHash = hmacSHA512(vnp_SecureHash, hashData.toString());
+            boolean isValid = calculatedHash.equalsIgnoreCase(vnp_SecureHash);
+
+            if (!isValid) {
+                log.warn("Signature validation failed");
+            }
+
+            return isValid;
+        } catch (Exception e) {
+            log.error("Error validating signature: {}", e.getMessage(), e);
+            return false;
+        }
     }
 }
 

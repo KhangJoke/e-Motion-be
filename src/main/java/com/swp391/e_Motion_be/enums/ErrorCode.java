@@ -22,6 +22,7 @@ public enum ErrorCode {
     // Vehicle errors
     VEHICLE_EXIST(HttpStatus.CONFLICT, "Vehicle already exists"),
     VEHICLE_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle does not exist"),
+    VEHICLE_NOT_AVAILABLE(HttpStatus.NOT_FOUND, "Vehicle is not available."),
 
     // Vehicle Log errors
     VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle Log does not exist"),
@@ -91,6 +92,7 @@ public enum ErrorCode {
     RESERVATION_TIME_INVALID_TO_CANCEL(HttpStatus.BAD_REQUEST, "You may cancel your reservation up to 5 days before your trip"),
     RESERVATION_EXPIRED(HttpStatus.BAD_REQUEST, "Reservation has expired"),
     RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Reservation has already been cancelled"),
+    RESERVATION_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "Reservation has not available yet."),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),
@@ -111,6 +113,15 @@ public enum ErrorCode {
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),
     DEPOSIT_PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "The deposit payment was not found"),
     REFUND_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The refund response was not found"),
+    REFUND_RESPONSE_INVALID(HttpStatus.NOT_FOUND, "The refund response was invalid"),
+    VNPAY_KEY_INVALID(HttpStatus.BAD_REQUEST, "The VnPay Key was invalid"),
+    PAYMENT_CREATE_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Create Failed"),
+    PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Handle Return Failed"),
+    REFUND_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Refund Failed"),
+    REFUND_REQUEST_INVALID(HttpStatus.BAD_REQUEST, "The VnPay Refund request invalid"),
+    REFUND_REQUEST_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Refund request failed"),
+    PAYMENT_CANNOT_BE_REFUNDED(HttpStatus.BAD_REQUEST, "The VnPay cannot be refunded"),
+    PAYDATE_PARSE_ERROR(HttpStatus.BAD_REQUEST, "The PayDate parse error"),
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed");

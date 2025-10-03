@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -36,8 +37,12 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay-return")
-    public String paymentVnPayReturn(HttpServletRequest request) {
-        return paymentService.handleReturn(request);
+    public ApiResponse<PaymentResponse> paymentVnPayReturn(@RequestParam Map<String, String> params) throws Exception {
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setStatus(200);
+        response.setMessage("VnPay Return Successfully");
+        response.setData(paymentService.handleReturn(params));
+        return response;
     }
 
     @PostMapping()

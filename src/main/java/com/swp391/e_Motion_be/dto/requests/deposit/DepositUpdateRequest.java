@@ -17,6 +17,6 @@ import lombok.experimental.FieldDefaults;
 public class DepositUpdateRequest {
     @NotNull(message = "status must not be blank")
     DepositStatus status;
-    String reservationCode;
+    Long reservationId;
     Long rentalId;
 }

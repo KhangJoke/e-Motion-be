@@ -17,8 +17,8 @@ public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="reservation_id")
-    private Long id;
-    @Column(name="reservation_code",nullable = false, unique = true)
+    private long id;
+    @Column(name="reservation_code", unique = true)
     private String code;
     @Column(name="reservation_status",nullable = false)
     @Enumerated(EnumType.STRING)

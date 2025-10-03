@@ -10,12 +10,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RefundRequest {
+    @NotBlank(message = "Ip Address must not be blank")
+    private String ipAddr;
     @NotBlank(message = "txnRef must not be blank")
     private String txnRef;
-    @NotBlank(message = "transactionDate must not be blank")
-    private String transactionDate;
-    @NotNull(message = "amount must not be blank")
-    private long amount;
     @NotNull(message = "Refund full or part must not be blank")
-    private boolean fullRefund; // true = refund toàn bộ, false = refund một phần
+    private boolean fullRefund;
 }

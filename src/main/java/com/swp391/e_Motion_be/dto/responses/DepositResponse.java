@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.swp391.e_Motion_be.enums.DepositStatus;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AccessLevel;
@@ -9,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDateTime;
 
 
@@ -23,7 +23,7 @@ public class DepositResponse {
     String status;
     long amount;
     LocalDateTime createdAt;
-    String reservationCode;
+    Long reservationId;
     Long rentalId;
 
 }

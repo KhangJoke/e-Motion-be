@@ -18,6 +18,6 @@ public class DepositCreateRequest {
     @NotNull(message = "New status must not be blank")
     DepositStatus status;
     long amount;
-    String reservationCode;
+    Long reservationId;
     Long rentalId;
 }

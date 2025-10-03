@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface DepositMapper {
     Deposit toDepositEntity(DepositCreateRequest request);
-    @Mapping(source = "reservation.code", target = "reservationCode")
+    @Mapping(source = "reservation.id", target = "reservationId")
     @Mapping(source = "rental.id", target = "rentalId")
     DepositResponse toDepositResponse(Deposit deposit);
 }
