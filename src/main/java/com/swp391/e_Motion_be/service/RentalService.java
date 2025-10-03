@@ -200,7 +200,7 @@ public class RentalService {
     public List<RentalResponse> notifyOverdueRentals() {
         LocalDateTime now = LocalDateTime.now();
 
-        List<Rental> overdueRentals = rentalRepository.findByStatusAndEndTimeBefore(
+        List<Rental> overdueRentals = rentalRepository.findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(
                 RentalStatus.ONGOING,
                 now
         );
