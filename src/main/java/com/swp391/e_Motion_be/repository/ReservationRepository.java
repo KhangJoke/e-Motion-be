@@ -2,7 +2,9 @@ package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Reservation;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -17,4 +19,7 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByStationName(String stationName);
     List<Reservation> findByVehicleId(Long vehicleId);
     List<Reservation> findByEndTimeBefore(LocalDateTime time);
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status IN (:statuses)")
+    List<Reservation> findByStatusWithUser(@Param("statuses") List<ReservationStatus> statuses);
+
 }
