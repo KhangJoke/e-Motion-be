@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -27,6 +28,7 @@ public class RentalService {
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
     private final UserRepository userRepository;
+    private final DepositRepository depositRepository;
 
     private final RentalMapper rentalMapper;
 
@@ -36,6 +38,7 @@ public class RentalService {
                 .toList();
     }
 
+    @Transactional
     public RentalResponse createRentalFromReservation(RentalCreateFromReservationRequest request){
         Reservation reservation = reservationRepository.findByCode(request.getReservationCode())
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
@@ -45,9 +48,17 @@ public class RentalService {
         rental.setReservation(reservation);
         rental.setStaff(staff);
         rental.setRentFee(calculateFee(rental));
-        return rentalMapper.toRentalResponse(rentalRepository.save(rental));
+        rentalRepository.save(rental);
+        // create Deposit
+        Deposit deposit = Deposit.builder()
+                .amount(rental.getRentFee())
+                .rental(rental)
+                .build();
+        depositRepository.save(deposit);
+        return rentalMapper.toRentalResponse(rental);
     }
 
+    @Transactional
     public RentalResponse createRental(RentalCreateRequest request){
         boolean hasConflict = rentalRepository.findByVehicle_IdAndStatusNotIn(request.getVehicleId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED))
                 .stream().anyMatch(r -> r.getStartTime().minusHours(3).isBefore(request.getEndTime())
@@ -63,26 +74,52 @@ public class RentalService {
                 .orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTS));
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-        Rental rental = rentalMapper.toRentalEntity(request);
-        rental.setVehicle(vehicle);
-        rental.setStation(station);
-        rental.setUser(user);
-        rental.setStaff(staff);
+        Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
+        // save rental
         rental.setRentFee(calculateFee(rental));
         rentalRepository.save(rental);
+        // create Deposit
+        Deposit deposit = Deposit.builder()
+                .amount(rental.getRentFee())
+                .rental(rental)
+                .build();
+        depositRepository.save(deposit);
         return rentalMapper.toRentalResponse(rental);
+    }
+
+    public List<RentalResponse> getRentalsByStatus(String status){
+        RentalStatus rentalStatus;
+        try{
+            rentalStatus = RentalStatus.valueOf(status.toUpperCase()); // parse string sang enum
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
+        }
+        return rentalRepository.findByStatus(rentalStatus).stream()
+                .map(rentalMapper::toRentalResponse)
+                .toList();
+    }
+
+    public RentalResponse updateRentalStatus(RentalUpdateRequest request){
+        RentalStatus rentalStatus;
+        try{
+            rentalStatus = RentalStatus.valueOf(request.getStatus().toUpperCase()); // parse string sang enum
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
+        }
+        Rental rental = rentalRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+        rental.setStatus(rentalStatus);
+        rentalRepository.save(rental);
+        return  rentalMapper.toRentalResponse(rental);
     }
 
     private double calculateFee(Rental rental) {
         LocalDateTime start = rental.getStartTime();
         LocalDateTime end = rental.getEndTime();
-
         long hours = Duration.between(start, end).toHours();
         long days = hours / 24;
         long remainHours = hours % 24;
-
         double fee = 0;
-
         // Tính theo ngày
         if (days > 0) {
             fee += days * rental.getVehicle().getPricePerDay();

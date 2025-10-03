@@ -24,7 +24,7 @@ public class Payment {
     @Column(name = "payment_id")
     private Long id;
     @Column(name = "total_amount", nullable = false)
-    private long amount;
+    private double amount;
     @Column(name = "payment_method", nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;

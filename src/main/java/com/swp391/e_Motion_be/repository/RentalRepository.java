@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface RentalRepository extends JpaRepository<Rental,Long> {
     List<Rental> findByVehicle_IdAndStatusNotIn(Long vehicleId, List<RentalStatus> status);
+    List<Rental> findByStatus(RentalStatus status);
 }
