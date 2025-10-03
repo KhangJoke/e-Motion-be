@@ -22,6 +22,7 @@ public enum ErrorCode {
     // Vehicle errors
     VEHICLE_EXIST(HttpStatus.CONFLICT, "Vehicle already exists"),
     VEHICLE_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle does not exist"),
+    VEHICLE_NOT_READY(HttpStatus.CONFLICT, "Vehicle is not ready to use"),
 
     // Vehicle Log errors
     VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle Log does not exist"),
@@ -78,6 +79,7 @@ public enum ErrorCode {
     // Station errors
     STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Station not found"),
     STATION_NAME_EXISTS(HttpStatus.CONFLICT, "Station name already exists"),
+    STATION_CITY_INVALID(HttpStatus.BAD_REQUEST, "Station city invalid"),
 
     // Staff errors
     STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "Staff not found"),
@@ -107,6 +109,7 @@ public enum ErrorCode {
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
     RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "This vehicle has rental in this range time, please choose other time"),
     INVALID_RENTAL_STATUS(HttpStatus.BAD_REQUEST, "Invalid Rental Status"),
+    USER_HAS_ONGOING_RENTAL(HttpStatus.CONFLICT, "User already rental vehicle"),
 
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),

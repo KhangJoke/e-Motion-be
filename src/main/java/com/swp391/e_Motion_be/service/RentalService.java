@@ -2,11 +2,12 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
@@ -14,6 +15,7 @@ import com.swp391.e_Motion_be.service.auth.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RentalService {
@@ -51,25 +54,12 @@ public class RentalService {
         Rental rental = rentalMapper.fromReservationToRental(reservation);
         rental.setReservation(reservation);
         rental.setStaff(staff);
-        rental.setRentFee(calculateFee(rental));
-        rentalRepository.save(rental);
-        // create Deposit
-        Deposit deposit = Deposit.builder()
-                .amount(rental.getRentFee())
-                .rental(rental)
-                .build();
-        depositRepository.save(deposit);
-        return rentalMapper.toRentalResponse(rental);
+        return createRentalCommon(rental, reservation.getUser().getId() ,reservation.getVehicle());
     }
 
     @Transactional
     public RentalResponse createRental(RentalCreateRequest request){
-        boolean hasConflict = rentalRepository.findByVehicle_IdAndStatusNotIn(request.getVehicleId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED))
-                .stream().anyMatch(r -> r.getStartTime().minusHours(3).isBefore(request.getEndTime())
-                && r.getEndTime().plusHours(3).isAfter(request.getStartTime()));
-        if(hasConflict){
-            throw new AppException(ErrorCode.RENTAL_HAS_CONFLICT);
-        }
+        // kiểm tra có tồn tại object ko
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         Station station = stationRepository.findById(request.getStationId())
@@ -78,7 +68,27 @@ public class RentalService {
                 .orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTS));
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+        // kiểm tra thời gian thuê có conflic với các đơn đang thuê ko
+        boolean hasConflict = rentalRepository.findByVehicle_IdAndStatusNotIn(request.getVehicleId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED))
+                .stream().anyMatch(r -> r.getStartTime().minusHours(3).isBefore(request.getEndTime())
+                && r.getEndTime().plusHours(3).isAfter(request.getStartTime()));
+        if(hasConflict){
+            throw new AppException(ErrorCode.RENTAL_HAS_CONFLICT);
+        }
         Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
+        return createRentalCommon(rental, user.getId(), vehicle);
+    }
+
+    private RentalResponse createRentalCommon(Rental rental, long userId, Vehicle vehicle){
+        // Kiểm tra user có đơn thuê nào chưa trả ko
+        boolean hasOngoingRental = rentalRepository.existsByUser_IdAndStatusNotIn(userId, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
+        if(hasOngoingRental){
+            throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
+        }
+        // Kiểm tra xe cho thuê có đang available ko
+        if(!vehicle.getStatus().equals(VehicleStatus.AVAILABLE)){
+            throw new AppException(ErrorCode.VEHICLE_NOT_READY);
+        }
         // save rental
         rental.setRentFee(calculateFee(rental));
         rentalRepository.save(rental);
@@ -88,6 +98,8 @@ public class RentalService {
                 .rental(rental)
                 .build();
         depositRepository.save(deposit);
+        // update status vehicle khi bắt đầu thuê
+        rental.getVehicle().setStatus(VehicleStatus.INUSE);
         return rentalMapper.toRentalResponse(rental);
     }
 
@@ -103,16 +115,19 @@ public class RentalService {
                 .toList();
     }
 
-    public RentalResponse updateRentalStatus(RentalUpdateRequest request){
-        RentalStatus rentalStatus;
-        try{
-            rentalStatus = RentalStatus.valueOf(request.getStatus().toUpperCase()); // parse string sang enum
-        } catch (IllegalArgumentException e) {
-            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
-        }
+    public RentalResponse updateRentalStatus(RentalUpdateStatusRequest request){
         Rental rental = rentalRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-        rental.setStatus(rentalStatus);
+        rental.setStatus(request.getStatus());
+        rentalRepository.save(rental);
+        return  rentalMapper.toRentalResponse(rental);
+    }
+
+    public RentalResponse returnRental(long id){
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+        rental.setStatus(RentalStatus.COMPLETED);
+        rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
         rentalRepository.save(rental);
         return  rentalMapper.toRentalResponse(rental);
     }
@@ -177,21 +192,15 @@ public class RentalService {
     }
 
     @Transactional
-    public List<RentalResponse> notifyExpiringRentals() {
+    public void notifyExpiringRentals() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
-
         List<Rental> expiringRentals = rentalRepository.findByStatusAndEndTimeBetween(
                 RentalStatus.ONGOING,
                 now,
                 threshold
         );
-
         expiringRentals.forEach(this::sendRentalExpiringEmail);
-
-        return expiringRentals.stream()
-                .map(rentalMapper::toRentalResponse)
-                .toList();
     }
 
     public void sendRentalOverdueEmail(Rental rental) {
@@ -236,25 +245,16 @@ public class RentalService {
     }
 
     @Transactional
-    public List<RentalResponse> notifyOverdueRentals() {
+    public void notifyOverdueRentals() {
         LocalDateTime now = LocalDateTime.now();
-
         List<Rental> overdueRentals = rentalRepository.findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(
                 RentalStatus.ONGOING,
                 now
         );
-
         overdueRentals.forEach(rental -> {
             sendRentalOverdueEmail(rental);
             rental.setOverdueNotified(true);
             rentalRepository.save(rental);
         });
-
-        return overdueRentals.stream()
-                .map(rentalMapper::toRentalResponse)
-                .toList();
     }
-
-
-
 }

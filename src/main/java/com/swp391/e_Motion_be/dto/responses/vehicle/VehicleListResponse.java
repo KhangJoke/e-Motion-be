@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
+import com.swp391.e_Motion_be.enums.station.StationCity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,6 @@ public class VehicleListResponse {
     private Double consumptionRate;
     private Double batteryCapacity;
     private Long stationId;
-    private String city;
+    private StationCity city;
     private String isMain;
 }

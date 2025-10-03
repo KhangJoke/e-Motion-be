@@ -1,27 +1,35 @@
 package com.swp391.e_Motion_be.exception;
 
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    //Exception
-//    @ExceptionHandler(value = Exception.class)
-//    ResponseEntity<ApiResponse<String>> handlingRuntimeException(){
-//        ApiResponse<String> apiResponse = new ApiResponse<>();
-//        apiResponse.setStatus(ErrorCode.UNEXPECTED_EXCEPTION.getCode());
-//        apiResponse.setMessage(ErrorCode.UNEXPECTED_EXCEPTION.getMessage());
-//        return ResponseEntity.badRequest().body(apiResponse);
-//    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
+        ApiResponse<Object> response = new ApiResponse<>();
+        response.setStatus(500);
+        response.setMessage("Internal Server Error: " + ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
 
     // Exception bắt bằng AppException
     @ExceptionHandler(value = AppException.class)
@@ -48,5 +56,32 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
+    // Lỗi input của field enum invalid, sai format date time
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<String>> handlingInvalidEnumValueException(HttpMessageNotReadableException ex){
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus(400);
 
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException invalidFormatException) {
+            if (invalidFormatException.getTargetType() == LocalDateTime.class) {
+                // Đây là lỗi parse LocalDateTime
+                String value = invalidFormatException.getValue().toString();
+                apiResponse.setMessage("Invalid datetime format: '" + value +
+                        "'. Please use format yyyy-MM-dd'T'HH:mm:ss");
+            } else {
+                // Lỗi enum hoặc type khác
+                String fullMessage = invalidFormatException.getOriginalMessage();
+                int colonIndex = fullMessage.indexOf(":");
+                if (colonIndex != -1 && colonIndex + 1 < fullMessage.length()) {
+                    fullMessage = fullMessage.substring(colonIndex + 1).trim();
+                }
+                apiResponse.setMessage("Invalid value: " + fullMessage);
+            }
+        } else {
+            apiResponse.setMessage("Invalid request body");
+        }
+
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
 }

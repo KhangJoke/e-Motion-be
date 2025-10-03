@@ -2,11 +2,10 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.service.RentalService;
-import io.swagger.v3.oas.annotations.Parameters;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -49,9 +48,16 @@ public class RentalController {
     }
 
     @PatchMapping("/status")
-    public ApiResponse<RentalResponse> updateRentalStatus(@RequestBody @Valid RentalUpdateRequest request){
+    public ApiResponse<RentalResponse> updateRentalStatus(@RequestBody @Valid RentalUpdateStatusRequest request){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.updateRentalStatus(request));
+        return response;
+    }
+
+    @PatchMapping("/return/{id}")
+    public ApiResponse<RentalResponse> returnRental(@PathVariable long id){
+        ApiResponse<RentalResponse> response = new ApiResponse<>();
+        response.setData(rentalService.returnRental(id));
         return response;
     }
 }
