@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
+import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
 import jakarta.validation.constraints.*;
@@ -21,10 +22,13 @@ public class VehicleCreationRequest {
     private String description;
 
     @NotNull(message = "Vehicle type is required")
-    private VehicleType vehicleType;
+    private VehicleType type;
 
+    @NotNull(message = "Category is required")
+    private VehicleCategory category;
+    
     @NotNull(message = "Vehicle status is required")
-    private VehicleStatus vehicleStatus;
+    private VehicleStatus status;
 
     @NotNull(message = "Depsoit fee status is required")
     private double depositFee;

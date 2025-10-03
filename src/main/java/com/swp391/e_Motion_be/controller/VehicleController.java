@@ -4,7 +4,8 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.VehicleResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
@@ -22,37 +23,31 @@ public class VehicleController {
 
     // Get all vehicles
     @GetMapping
-    public ApiResponse<List<VehicleResponse>> getAllVehicles() {
+    public ApiResponse<List<VehicleListResponse>> getAllVehicles() {
         return new ApiResponse<>(200, "success", vehicleService.findAllVehicle());
     }
 
     // Find by ID
-    @GetMapping("/{id}")
-    public ApiResponse<VehicleResponse> findById(@PathVariable Long id) {
+    @GetMapping("/id/{id}")
+    public ApiResponse<VehicleDetailResponse> findById(@PathVariable Long id) {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleById(id));
     }
 
     // Find by PlateNumber
-    @GetMapping("/{plateNumber}")
-    public ApiResponse<VehicleResponse> findByPlateNumber(@PathVariable String plateNumber) {
+    @GetMapping("/plate/{plateNumber}")
+    public ApiResponse<VehicleListResponse> findByPlateNumber(@PathVariable String plateNumber) {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleByPlateNumber(plateNumber));
-    }
-
-    // Find by status
-    @GetMapping("/status/{status}")
-    public ApiResponse<List<VehicleResponse>> findByStatus(@PathVariable VehicleStatus status) {
-        return new ApiResponse<>(200, "success", vehicleService.findVehicleByStatus(status));
     }
 
     // Create a new vehicle
     @PostMapping
-    public ApiResponse<VehicleResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
+    public ApiResponse<VehicleDetailResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
         return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
     }
 
     // Update vehicle by ID
     @PutMapping("/{id}")
-    public ApiResponse<VehicleResponse> updateVehicle(@PathVariable Long id, @RequestBody @Valid VehicleUpdateRequest request) {
+    public ApiResponse<VehicleDetailResponse> updateVehicle(@PathVariable Long id, @RequestBody @Valid VehicleUpdateRequest request) {
         return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle(id, request));
     }
 
@@ -63,16 +58,10 @@ public class VehicleController {
         return new ApiResponse<>(200, "Vehicle deleted successfully", null);
     }
 
-    // Search vehicles by name
-    @GetMapping("/search-name")
-    public ApiResponse<List<VehicleResponse>> searchVehiclesByName(@RequestParam String name) {
-        return new ApiResponse<>(200, "success", vehicleService.searchVehiclesByName(name));
-    }
-
     // Search bằng thanh tìm kiếm
     @GetMapping("/search")
-    public ApiResponse<List<VehicleResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
-        ApiResponse<List<VehicleResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<VehicleListResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.searchVehicles(request));
         return response;
     }

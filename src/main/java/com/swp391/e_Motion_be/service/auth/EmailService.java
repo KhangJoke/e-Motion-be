@@ -20,7 +20,7 @@ public class EmailService {
 
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
         helper.setTo(to);
         helper.setSubject(subject);

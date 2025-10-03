@@ -36,4 +36,7 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
             @Param("endTime") LocalDateTime endTime
     );
 
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status IN (:statuses)")
+    List<Reservation> findByStatusWithUser(@Param("statuses") List<ReservationStatus> statuses);
+
 }

@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
 import jakarta.persistence.*;
@@ -34,6 +35,10 @@ public class Vehicle {
     @Enumerated(EnumType.STRING) //save enum data thay vi number
     @Column(name="vehicle_status",nullable = false)
     private VehicleStatus status;
+
+    @Column(name = "vehicle_category")
+    @Enumerated(EnumType.STRING)
+    private VehicleCategory category;
 
     @Column(nullable = false)
     private int seats;
@@ -75,4 +80,7 @@ public class Vehicle {
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Rental> rentals;
+
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ImgVehicle> images;
 }

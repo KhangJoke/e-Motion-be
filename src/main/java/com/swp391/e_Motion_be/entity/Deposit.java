@@ -2,8 +2,7 @@ package com.swp391.e_Motion_be.entity;
 
 import com.swp391.e_Motion_be.enums.DepositStatus;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
@@ -13,6 +12,9 @@ import java.util.List;
 @Table(name = "deposits")
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Deposit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,9 +22,9 @@ public class Deposit {
     Long id;
     @Column(name = "deposit_status")
     @Enumerated(EnumType.STRING)
-    DepositStatus status;
+    DepositStatus status = DepositStatus.PENDING;
     @Column(name = "deposit_amount")
-    long amount;
+    double amount;
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     LocalDateTime createdAt;

@@ -3,7 +3,8 @@ package com.swp391.e_Motion_be.service;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.VehicleResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -28,53 +29,29 @@ public class VehicleService {
     private final StationRepository stationRepository;
 
     // Find by ID
-    public VehicleResponse findVehicleById(Long id) {
+    public VehicleDetailResponse findVehicleById(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        return vehicleMapper.toVehicleResponse(vehicle);
+        return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
 
     // Find by PlateNumber
-    public VehicleResponse findVehicleByPlateNumber(String plateNumber) {
+    public VehicleListResponse findVehicleByPlateNumber(String plateNumber) {
         Vehicle vehicle = vehicleRepository.findByPlateNumber(plateNumber)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        return vehicleMapper.toVehicleResponse(vehicle);
+        return vehicleMapper.toVehicleListResponse(vehicle);
     }
 
     // Find all
-    public List<VehicleResponse> findAllVehicle() {
+    public List<VehicleListResponse> findAllVehicle() {
         return vehicleRepository.findAll()
                 .stream()
-                .map(vehicleMapper::toVehicleResponse)
-                .toList();
-    }
-
-    // Find by status
-    public List<VehicleResponse> findVehicleByStatus(VehicleStatus status) {
-        return vehicleRepository.findByStatus(status)
-                .stream()
-                .map(vehicleMapper::toVehicleResponse)
-                .toList();
-    }
-
-    // Find by type
-    public List<VehicleResponse> findVehicleByType(VehicleType type) {
-        return vehicleRepository.findByType(type)
-                .stream()
-                .map(vehicleMapper::toVehicleResponse)
-                .toList();
-    }
-
-    // Find by name
-    public List<VehicleResponse> searchVehiclesByName(String name) {
-        return vehicleRepository.findByNameContainingIgnoreCase(name)
-                .stream()
-                .map(vehicleMapper::toVehicleResponse)
+                .map(vehicleMapper::toVehicleListResponse)
                 .toList();
     }
 
     // CREATE
-    public VehicleResponse createVehicle(VehicleCreationRequest request) {
+    public VehicleDetailResponse createVehicle(VehicleCreationRequest request) {
         //Check Station is FOUNd or NOT
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
@@ -87,12 +64,12 @@ public class VehicleService {
         vehicle.setStation(station);
         //SAVE
         vehicleRepository.save(vehicle);
-        return vehicleMapper.toVehicleResponse(vehicle);
+        return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
 
     // UPDATE
     @Transactional
-    public VehicleResponse updateVehicle(Long id, VehicleUpdateRequest request) {
+    public VehicleDetailResponse updateVehicle(Long id, VehicleUpdateRequest request) {
 
         Vehicle existing = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
@@ -111,7 +88,7 @@ public class VehicleService {
         }
 
         // No need to call save() — transaction will automatically flush changes
-        return vehicleMapper.toVehicleResponse(existing);
+        return vehicleMapper.toVehicleDetailResponse(existing);
     }
 
     //DELETE
@@ -123,14 +100,14 @@ public class VehicleService {
     }
 
     // Search bằng thanh tìm kiếm
-    public List<VehicleResponse> searchVehicles(VehicleFindRequest request) {
+    public List<VehicleListResponse> searchVehicles(VehicleFindRequest request) {
         List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatus(request.getCity(), VehicleStatus.AVAILABLE);
         return vehicles.stream()
                 .filter(v -> v.getReservations().stream()
                         .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime())))
                 .filter(v -> v.getRentals().stream()
                         .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime())))
-                .map(vehicleMapper::toVehicleResponse)
+                .map(vehicleMapper::toVehicleListResponse)
                 .toList();
     }
 }
