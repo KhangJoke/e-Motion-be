@@ -62,4 +62,7 @@ public class Rental {
 
     @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     List<Payment> payments;
+
+    @OneToOne(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
+    VehicleLog vehicleLog;
 }

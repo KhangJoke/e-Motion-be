@@ -1,18 +1,19 @@
 package com.swp391.e_Motion_be.dto.requests.VehicleLog;
 
-import com.swp391.e_Motion_be.enums.VehicleLogType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleLogUpdateRequest {
-    @NotNull(message = "VehicleLogType is required")
-    private VehicleLogType vehicleLogType;
+    @NotNull(message = "Repair cost list is require")
+    private Map<String, Double> repairCost;
 
     @NotNull(message = "Description is required")
     private String description;

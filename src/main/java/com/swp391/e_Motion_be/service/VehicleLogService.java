@@ -82,9 +82,6 @@ public class VehicleLogService {
         User user = userRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        if(request.getVehicleLogType() == null){
-            throw new AppException(ErrorCode.VEHICLE_LOG_TYPE_EMPTY);
-        }
 
         VehicleLog log = vehicleLogMapper.toEntity(request);
         log.setVehicle(vehicle);

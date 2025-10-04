@@ -1,13 +1,14 @@
 package com.swp391.e_Motion_be.entity;
 
-import com.swp391.e_Motion_be.enums.VehicleLogType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import com.swp391.e_Motion_be.dto.convert.MapToJsonConverter;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Entity
 @Table(name ="vehicle_logs")
@@ -20,15 +21,9 @@ public class VehicleLog {
     @Column(name ="log_id")
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name="log_type", nullable=false)
-    private VehicleLogType type;
-
-    @Column(nullable=false)
-    private String description;
-
-    @Column(nullable = false)
-    private Double fee;
+    @Column(name = "repair_cost", columnDefinition = "TEXT")
+    @Convert(converter = MapToJsonConverter.class)
+    private Map<String, Double> repairCost;
 
     @Column(name="created_at", nullable=false)
     @CreationTimestamp
@@ -41,4 +36,9 @@ public class VehicleLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id")
     private Staff staff;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name ="rental_id")
+    private Rental rental;
+
 }
