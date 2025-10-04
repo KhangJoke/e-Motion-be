@@ -66,27 +66,8 @@ public class EmailService {
             try {
                 LocalDateTime startTime = reservation.getStartTime();
                 ReservationStatus status = reservation.getStatus();
-
-                // Pending reservations flow
-                if (status == ReservationStatus.PENDING) {
-                    if (startTime.isBefore(now.plusDays(14)) && startTime.isAfter(now.plusDays(7))) {
-                        subject = "📝 Please Confirm Your Reservation";
-                        htmlMessage = buildReservationHtml(reservation, subject,
-                                "Your reservation is pending. Please confirm it within the next 7 days.");
-                        sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-                    } else if (startTime.isBefore(now.plusDays(7))) {
-                        subject = "❌ Your Reservation Has Expired";
-                        htmlMessage = buildReservationHtml(reservation, subject,
-                                "Your pending reservation has expired as you did not confirm in time.");
-                        sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-
-                        reservation.setStatus(ReservationStatus.EXPIRED);
-                        reservationRepository.save(reservation);
-                    }
-                }
-
                 // Confirmed reservations flow
-                else if (status == ReservationStatus.CONFIRM) {
+                if (status == ReservationStatus.CONFIRM) {
                     if (startTime.isBefore(now.plusDays(3)) && startTime.isAfter(now)) {
                         subject = "⏰ Your Reservation is Coming Up Soon!";
                         htmlMessage = buildReservationHtml(reservation, subject,
