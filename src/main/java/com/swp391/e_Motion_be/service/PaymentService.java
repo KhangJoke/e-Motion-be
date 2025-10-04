@@ -91,7 +91,7 @@ public class PaymentService {
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnPayConfig.getVnp_TmnCode());
-        vnp_Params.put("vnp_Amount", String.valueOf(Double.parseDouble(String.format("%.2f", request.getAmount())) * 100));
+        vnp_Params.put("vnp_Amount", String.valueOf((long) (Double.parseDouble(String.format("%.2f", request.getAmount())) * 100)));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
         vnp_Params.put("vnp_OrderInfo", request.getDescription());
@@ -307,7 +307,7 @@ public class PaymentService {
             String vnp_TransactionDate = originalPayment.getCreatedAt()
                     .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-            String refundAmount = String.format("%.2f", originalPayment.getAmount()); // Full refund
+            String refundAmount = String.valueOf((long) (Double.parseDouble(String.format("%.2f", request.getAmount())) * 100)); // Full refund
 
             Map<String, String> params = new LinkedHashMap<>();
             params.put("vnp_RequestId", vnp_RequestId);
