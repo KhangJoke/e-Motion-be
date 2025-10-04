@@ -307,7 +307,7 @@ public class PaymentService {
             String vnp_TransactionDate = originalPayment.getCreatedAt()
                     .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-            long refundAmount = originalPayment.getAmount(); // Full refund
+            long refundAmount = (long) originalPayment.getAmount(); // Full refund
 
             Map<String, String> params = new LinkedHashMap<>();
             params.put("vnp_RequestId", vnp_RequestId);
