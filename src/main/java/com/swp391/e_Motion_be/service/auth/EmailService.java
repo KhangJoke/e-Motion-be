@@ -35,7 +35,7 @@ public class EmailService {
         emailSender.send(mimeMessage);
     }
 
-    private void sendEmail(String to, String subject, String htmlMessage) {
+    public void sendEmail(String to, String subject, String htmlMessage) {
         try {
             sendVerificationEmail(to, subject, htmlMessage);
         } catch (MessagingException e) {
@@ -50,49 +50,10 @@ public class EmailService {
         sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
     }
 
-    @Scheduled(fixedRate = 86400000) // every day
-    public void notifyReservations() {
-        LocalDateTime now = LocalDateTime.now();
-
-        List<Reservation> reservations = reservationRepository.findByStatusWithUser(
-                List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM)
-        );
-        // or optimized query
-
-        String subject;
-        String htmlMessage;
-
-        for (Reservation reservation : reservations) {
-            try {
-                LocalDateTime startTime = reservation.getStartTime();
-                ReservationStatus status = reservation.getStatus();
-                // Confirmed reservations flow
-                if (status == ReservationStatus.CONFIRM) {
-                    if (startTime.isBefore(now.plusDays(3)) && startTime.isAfter(now)) {
-                        subject = "⏰ Your Reservation is Coming Up Soon!";
-                        htmlMessage = buildReservationHtml(reservation, subject,
-                                "Your confirmed reservation is approaching. Get ready!");
-                        sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-                    } else if (startTime.isBefore(now)) {
-                        subject = "⚠️ Your Reservation is Late/Expired!";
-                        htmlMessage = buildReservationHtml(reservation, subject,
-                                "Your reservation time has passed. Please contact support if needed.");
-                        sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-
-                        reservation.setStatus(ReservationStatus.EXPIRED);
-                        reservationRepository.save(reservation);
-                    }
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
 
     // format pickup time: e.g. "01 Oct 2025, 14:30"
-    private String buildReservationHtml(Reservation reservation, String header, String message) {
+    public String buildReservationHtml(Reservation reservation, String header, String message) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String pickupTime = reservation.getStartTime() != null
                 ? reservation.getStartTime().format(formatter)

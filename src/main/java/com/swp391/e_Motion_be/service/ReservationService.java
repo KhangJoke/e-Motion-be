@@ -16,6 +16,7 @@ import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.auth.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class ReservationService {
     private final DepositRepository depositRepository;
     private final RentalRepository rentalRepository;
     private final DepositService depositService;
+    private final EmailService emailService;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -300,5 +302,46 @@ public class ReservationService {
         return reservations.stream()
                 .map(reservationMapper::toReservationResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void notificationReservertion(){
+
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Reservation> reservations = reservationRepository.findByStatusWithUser(
+                List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM)
+        );
+        // or optimized query
+
+        String subject;
+        String htmlMessage;
+
+        for (Reservation reservation : reservations) {
+            try {
+                LocalDateTime startTime = reservation.getStartTime();
+                ReservationStatus status = reservation.getStatus();
+                // Confirmed reservations flow
+                if (status == ReservationStatus.CONFIRM) {
+                    if (startTime.isBefore(now.plusDays(3)) && startTime.isAfter(now)) {
+                        subject = "⏰ Your Reservation is Coming Up Soon!";
+                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
+                                "Your confirmed reservation is approaching. Get ready!");
+                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+                    } else if (startTime.isBefore(now)) {
+                        subject = "⚠️ Your Reservation is Late/Expired!";
+                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
+                                "Your reservation time has passed. Please contact support if needed.");
+                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+
+                        reservation.setStatus(ReservationStatus.EXPIRED);
+                        reservationRepository.save(reservation);
+                    }
+                }
+
+            } catch (Exception e) {
+                throw new  AppException(ErrorCode.RESERVATION_EMAIL);
+            }
+        }
     }
 }

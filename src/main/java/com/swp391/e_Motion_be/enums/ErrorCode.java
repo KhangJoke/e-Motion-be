@@ -127,7 +127,10 @@ public enum ErrorCode {
     PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "The payment is processing failed"),
 
     //Cloudinary errors
-    DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed");
+    DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed"),
+
+    //Reservation email
+    RESERVATION_EMAIL(HttpStatus.EXPECTATION_FAILED, "Fail sending email");
 
     private final HttpStatus statusCode;
     private final String message;
