@@ -24,10 +24,8 @@ public class RentalCheckList {
     @Column(name = "check_type")
     private CheckType type;
 
-    @Column(name = "pic_url")
-    private String imgUrl;
-
-    private Long kilometers;
+    @Column(name = "penalty_fee")
+    private double fee;
 
     @Column(name = "current_battery")
     private double currentBattery;

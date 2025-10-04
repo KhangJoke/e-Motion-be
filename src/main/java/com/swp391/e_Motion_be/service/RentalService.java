@@ -195,12 +195,16 @@ public class RentalService {
     public void notifyExpiringRentals() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
-        List<Rental> expiringRentals = rentalRepository.findByStatusAndEndTimeBetween(
+        List<Rental> expiringRentals = rentalRepository.findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(
                 RentalStatus.ONGOING,
                 now,
                 threshold
         );
-        expiringRentals.forEach(this::sendRentalExpiringEmail);
+        expiringRentals.forEach(rental -> {;
+            sendRentalExpiringEmail(rental);
+            rental.setExpiringNotified(true);
+            rentalRepository.save(rental);
+        });
     }
 
     public void sendRentalOverdueEmail(Rental rental) {
@@ -253,6 +257,7 @@ public class RentalService {
         );
         overdueRentals.forEach(rental -> {
             sendRentalOverdueEmail(rental);
+            rental.setStatus(RentalStatus.OVERDUE);
             rental.setOverdueNotified(true);
             rentalRepository.save(rental);
         });
