@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreatePaymentUrlRequest {
     @NotNull(message = "Amount must not be blank")
-    private Long amount;
+    private double amount;
     private String description;
     @NotBlank(message = "User Email must not be blank")
     private String userEmail;

@@ -21,9 +21,8 @@ public class DepositResponse {
     long id;
     @Enumerated(EnumType.STRING)
     String status;
-    long amount;
+    double amount;
     LocalDateTime createdAt;
     Long reservationId;
     Long rentalId;
-
 }
