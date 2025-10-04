@@ -19,6 +19,7 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByStationName(String stationName);
     List<Reservation> findByVehicleId(Long vehicleId);
     List<Reservation> findByEndTimeBefore(LocalDateTime time);
+    boolean existsByUser_EmailAndStatusNotIn(String email, List<ReservationStatus> statuses);
     @Query(value = """
         SELECT EXISTS (
             SELECT 1

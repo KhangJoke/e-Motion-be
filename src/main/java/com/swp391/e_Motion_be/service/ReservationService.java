@@ -11,6 +11,7 @@ import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
@@ -58,6 +59,12 @@ public class ReservationService {
 
         if (isUser && !currentUserEmail.equals(request.getUserEmail())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING));
+        if(hasOngoingRental || hasOngoingReservation) {
+            throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
         }
 
         // Validate time constraints first

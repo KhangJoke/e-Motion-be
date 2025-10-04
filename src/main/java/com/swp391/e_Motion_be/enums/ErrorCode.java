@@ -125,6 +125,8 @@ public enum ErrorCode {
     QUERY_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The query response was not found"),
     QUERY_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Query Failed"),
     PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "The payment is processing failed"),
+    RENTAL_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "The rental cannot be paid"),
+    DEPOSIT_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "The deposit cannot be paid"),
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed"),
