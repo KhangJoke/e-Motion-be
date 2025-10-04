@@ -91,7 +91,7 @@ public class PaymentService {
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnPayConfig.getVnp_TmnCode());
-        vnp_Params.put("vnp_Amount", String.valueOf(request.getAmount() * 100));
+        vnp_Params.put("vnp_Amount", String.valueOf(Double.parseDouble(String.format("%.2f", request.getAmount())) * 100));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
         vnp_Params.put("vnp_OrderInfo", request.getDescription());
@@ -307,7 +307,7 @@ public class PaymentService {
             String vnp_TransactionDate = originalPayment.getCreatedAt()
                     .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-            long refundAmount = (long) originalPayment.getAmount(); // Full refund
+            String refundAmount = String.format("%.2f", originalPayment.getAmount()); // Full refund
 
             Map<String, String> params = new LinkedHashMap<>();
             params.put("vnp_RequestId", vnp_RequestId);
@@ -316,7 +316,7 @@ public class PaymentService {
             params.put("vnp_TmnCode", vnPayConfig.getVnp_TmnCode());
             params.put("vnp_TransactionType", vnp_TransactionType);
             params.put("vnp_TxnRef", request.getTxnRef());
-            params.put("vnp_Amount", String.valueOf(refundAmount)); // VNPay uses smallest unit
+            params.put("vnp_Amount", refundAmount); // VNPay uses smallest unit
             params.put("vnp_OrderInfo", "Hoan tien giao dich");
             params.put("vnp_TransactionNo", originalPayment.getTransactionNo());
             params.put("vnp_TransactionDate", vnp_TransactionDate);
@@ -385,7 +385,7 @@ public class PaymentService {
             LocalDateTime refundDate = parseRefundDate(responseParams.get("vnp_PayDate"));
 
             Payment refundPayment = Payment.builder()
-                    .amount(refundAmount)
+                    .amount(Double.parseDouble(refundAmount))
                     .method(PaymentMethod.VNPAY)
                     .status(PaymentStatus.SUCCESS)
                     .type(PaymentType.REFUND)

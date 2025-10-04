@@ -17,5 +17,5 @@ public class RefundRequest {
     @NotNull(message = "Refund full or part must not be blank")
     private boolean fullRefund;
     @NotNull(message = "Amount must not be blank")
-    private long amount;
+    private double amount;
 }
