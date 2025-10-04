@@ -28,6 +28,8 @@ public class Rental {
     LocalDateTime endTime;
     @Column(name = "overdue_notified")
     private Boolean overdueNotified = false;
+    @Column(name = "expiring_notified")
+    private Boolean expiringNotified = false;
     @Column(name="rent_fee")
     double rentFee;
     @Column(name = "created_at", updatable = false)

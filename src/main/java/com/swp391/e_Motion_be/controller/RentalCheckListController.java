@@ -71,5 +71,31 @@ public class RentalCheckListController {
         response.setMessage("Delete rental checklist successfully");
         return response;
     }
+
+    @PostMapping("/{rentalId}/checkin")
+    public ApiResponse<RentalCheckListResponse> checkIn(
+            @PathVariable Long rentalId,
+            @RequestParam String staffEmail,
+            @RequestBody RentalCheckListCreateRequest request) {
+
+        request.setRentalId(rentalId);
+        ApiResponse<RentalCheckListResponse> response = new ApiResponse<>();
+        response.setData(rentalCheckListService.createCheckIn(request, staffEmail));
+        response.setMessage("Check-in successfully");
+        return response;
+    }
+
+    @PostMapping("/{rentalId}/checkout")
+    public ApiResponse<RentalCheckListResponse> checkOut(
+            @PathVariable Long rentalId,
+            @RequestParam String staffEmail,
+            @RequestBody RentalCheckListCreateRequest request) {
+
+        request.setRentalId(rentalId);
+        ApiResponse<RentalCheckListResponse> response = new ApiResponse<>();
+        response.setData(rentalCheckListService.createCheckOut(request, staffEmail));
+        response.setMessage("Check-out successfully and fee calculated");
+        return response;
+    }
 }
 

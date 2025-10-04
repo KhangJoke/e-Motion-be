@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RentalRepository extends JpaRepository<Rental,Long> {
-    List<Rental> findByStatusAndEndTimeBetween(RentalStatus status, LocalDateTime from, LocalDateTime to);
+    List<Rental> findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(RentalStatus status, LocalDateTime from, LocalDateTime to);
     List<Rental> findByVehicle_IdAndStatusNotIn(Long vehicleId, List<RentalStatus> status);
     List<Rental> findByStatus(RentalStatus status);
     List<Rental> findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(RentalStatus status, LocalDateTime time);
