@@ -50,7 +50,7 @@ public class EmailService {
         sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
     }
 
-    @Scheduled(fixedRate = 10000) // every day
+    @Scheduled(fixedRate = 86400000) // every day
     public void notifyReservations() {
         LocalDateTime now = LocalDateTime.now();
 
