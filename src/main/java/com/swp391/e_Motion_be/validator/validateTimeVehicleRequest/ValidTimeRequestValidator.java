@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.validator.validateTimeVehicleRequest;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
+import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -11,16 +12,15 @@ public class ValidTimeRequestValidator implements ConstraintValidator<ValidTimeR
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
         if (value == null) return true;
-
         if (value instanceof VehicleFindRequest request) {
             return validate(request.getStartTime(), request.getEndTime());
         }
-
         if (value instanceof RentalCreateRequest request) {
             return validate(request.getStartTime(), request.getEndTime());
         }
-
-        // Nếu class khác thì bỏ qua
+        if(value instanceof CreateReservationRequest request){
+            return validate(request.getStartTime(), request.getEndTime());
+        }
         return true;
     }
 

@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
 import com.swp391.e_Motion_be.enums.station.StationCity;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,7 @@ public class VehicleDetailResponse {
     private String description;
     private String type;
     private String category;
-    private String status;
+    private VehicleStatus status;
     private int seats;
     private Double pricePerHour;
     private Double pricePerDay;

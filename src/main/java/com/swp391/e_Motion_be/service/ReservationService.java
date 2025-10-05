@@ -58,15 +58,6 @@ public class ReservationService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Validate time constraints first
-        LocalDateTime now = LocalDateTime.now();
-        if (request.getStartTime().isBefore(now)) {
-            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
-        }
-        if (!request.getEndTime().isAfter(request.getStartTime())) {
-            throw new AppException(ErrorCode.RESERVATION_ENDTIME_INVALID);
-        }
-
         // Check vehicle availability - combine both checks for efficiency
         if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime())) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);

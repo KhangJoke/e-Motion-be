@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.auth;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.entity.Reservation;
 import com.swp391.e_Motion_be.enums.ErrorCode;

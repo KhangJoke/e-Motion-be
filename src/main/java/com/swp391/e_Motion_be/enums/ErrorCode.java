@@ -25,6 +25,7 @@ public enum ErrorCode {
     VEHICLE_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle does not exist"),
     VEHICLE_NOT_AVAILABLE(HttpStatus.NOT_FOUND, "Vehicle is not available."),
     VEHICLE_NOT_READY(HttpStatus.CONFLICT, "Vehicle is not ready to use"),
+    VEHICLE_STATUS_INVALID(HttpStatus.CONFLICT, "Vehicle status is invalid"),
 
     // Vehicle Log errors
     VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle Log does not exist"),

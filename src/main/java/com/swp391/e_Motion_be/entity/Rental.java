@@ -30,6 +30,7 @@ public class Rental {
     private Boolean overdueNotified = false;
     @Column(name="rent_fee")
     double rentFee;
+    // thêm phí phát sinh
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     LocalDateTime createdAt;

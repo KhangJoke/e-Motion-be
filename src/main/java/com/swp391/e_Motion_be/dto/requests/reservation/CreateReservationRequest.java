@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.reservation;
 
+import com.swp391.e_Motion_be.validator.validateTimeVehicleRequest.ValidTimeRequest;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ValidTimeRequest
 public class CreateReservationRequest {
     @NotBlank(message = "User email must not be blank")
     @Size(min=10, max=255, message = "Email must be between 10 and 255 characters")
@@ -19,8 +21,8 @@ public class CreateReservationRequest {
     private Long vehicleId;
     @NotNull(message = "Station ID must not be blank")
     private Long stationId;
-    @NotNull(message = "Reservation start time must not be blank")
+    @FutureOrPresent(message = "Reservation start time must be future")
     private LocalDateTime startTime;
-    @NotNull(message = "Reservation end time must not be blank")
+    @FutureOrPresent(message = "Reservation end time must not be future")
     private LocalDateTime endTime;
 }

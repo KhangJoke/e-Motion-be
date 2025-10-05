@@ -4,7 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateReques
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
-import com.swp391.e_Motion_be.service.rentalCheckList.RentalCheckListService;
+import com.swp391.e_Motion_be.service.RentalCheckListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

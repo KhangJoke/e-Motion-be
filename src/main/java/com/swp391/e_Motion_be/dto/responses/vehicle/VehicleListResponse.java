@@ -1,11 +1,10 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
 import com.swp391.e_Motion_be.enums.station.StationCity;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,7 +14,7 @@ public class VehicleListResponse {
     private Long id;
     private String name;
     private String type;
-    private String status;
+    private VehicleStatus status;
     private String category;
     private int seats;
     private Double pricePerDay;

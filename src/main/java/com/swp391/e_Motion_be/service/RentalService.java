@@ -1,17 +1,18 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
+import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
-import com.swp391.e_Motion_be.service.auth.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class RentalService {
 
     private final EmailService emailService;
     private final RentalMapper rentalMapper;
+    private final DepositService depositService;
 
     public List<RentalResponse> getAllRentals(){
        return rentalRepository.findAll().stream()
@@ -92,12 +94,14 @@ public class RentalService {
         // save rental
         rental.setRentFee(calculateFee(rental));
         rentalRepository.save(rental);
-        // create Deposit
-        Deposit deposit = Deposit.builder()
-                .amount(rental.getRentFee())
-                .rental(rental)
-                .build();
-        depositRepository.save(deposit);
+        // Create deposit
+        DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
+                DepositStatus.PENDING,
+                vehicle.getDepositFee(),
+                null,
+                rental.getId()
+        );
+        depositService.createDeposit(depositCreateRequest);
         // update status vehicle khi bắt đầu thuê
         rental.getVehicle().setStatus(VehicleStatus.INUSE);
         return rentalMapper.toRentalResponse(rental);

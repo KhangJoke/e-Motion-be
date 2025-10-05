@@ -27,10 +27,10 @@ public class RentalCheckList {
     @Column(name = "pic_url")
     private String imgUrl;
 
-    private Long kilometers;
-
     @Column(name = "current_battery")
     private double currentBattery;
+
+    private double fee;
 
     @Column(name = "created_at")
     @CreationTimestamp
