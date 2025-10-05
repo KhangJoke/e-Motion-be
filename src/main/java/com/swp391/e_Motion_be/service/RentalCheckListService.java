@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.service.rentalCheckList;
+package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListUpdateRequest;

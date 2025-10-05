@@ -14,6 +14,6 @@ public class ReservationScheduler {
 
     @Scheduled(fixedRate = 60000) // every hour
     public void notifyReservations() {
-        reservationService.notificationReservertion();
+        reservationService.notificationReservation();
     }
 }
