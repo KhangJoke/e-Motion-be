@@ -5,8 +5,6 @@ import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRe
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
-import com.swp391.e_Motion_be.service.DepositService;
-import com.swp391.e_Motion_be.service.PaymentService;
 import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -23,8 +21,6 @@ import java.util.Map;
 public class ReservationController {
 
     private final ReservationService reservationService;
-    private final DepositService depositService;
-    private final PaymentService paymentService;
 
     @PostMapping
     public ApiResponse<Map<String, Object>> createReservation(HttpServletRequest httpReq, @RequestBody @Valid CreateReservationRequest request) throws Exception {

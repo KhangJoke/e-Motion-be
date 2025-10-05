@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.UpdatePaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
@@ -74,7 +75,7 @@ public class PaymentController {
     }
 
     @PutMapping("/update/{id}")
-    public ApiResponse<PaymentResponse> updatePayment(@PathVariable @Valid Long id, @RequestBody PaymentRequest request){
+    public ApiResponse<PaymentResponse> updatePayment(@PathVariable @Valid Long id, @RequestBody UpdatePaymentRequest request){
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
         response.setMessage("Update Payment Successfully");
         response.setData(paymentService.updatePayment(request, id));

@@ -11,11 +11,13 @@ import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.auth.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,7 @@ public class ReservationService {
     private final DepositRepository depositRepository;
     private final RentalRepository rentalRepository;
     private final DepositService depositService;
+    private final EmailService emailService;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -56,6 +59,21 @@ public class ReservationService {
 
         if (isUser && !currentUserEmail.equals(request.getUserEmail())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING));
+        if(hasOngoingRental || hasOngoingReservation) {
+            throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
+        }
+
+        // Validate time constraints first
+        LocalDateTime now = LocalDateTime.now();
+        if (request.getStartTime().isBefore(now)) {
+            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
+        }
+        if (!request.getEndTime().isAfter(request.getStartTime())) {
+            throw new AppException(ErrorCode.RESERVATION_ENDTIME_INVALID);
         }
 
         // Check vehicle availability - combine both checks for efficiency
@@ -291,5 +309,46 @@ public class ReservationService {
         return reservations.stream()
                 .map(reservationMapper::toReservationResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void notificationReservertion(){
+
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Reservation> reservations = reservationRepository.findByStatusWithUser(
+                List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM)
+        );
+        // or optimized query
+
+        String subject;
+        String htmlMessage;
+
+        for (Reservation reservation : reservations) {
+            try {
+                LocalDateTime startTime = reservation.getStartTime();
+                ReservationStatus status = reservation.getStatus();
+                // Confirmed reservations flow
+                if (status == ReservationStatus.CONFIRM) {
+                    if (startTime.isBefore(now.plusDays(3)) && startTime.isAfter(now)) {
+                        subject = "⏰ Your Reservation is Coming Up Soon!";
+                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
+                                "Your confirmed reservation is approaching. Get ready!");
+                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+                    } else if (startTime.isBefore(now)) {
+                        subject = "⚠️ Your Reservation is Late/Expired!";
+                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
+                                "Your reservation time has passed. Please contact support if needed.");
+                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+
+                        reservation.setStatus(ReservationStatus.EXPIRED);
+                        reservationRepository.save(reservation);
+                    }
+                }
+
+            } catch (Exception e) {
+                throw new  AppException(ErrorCode.RESERVATION_EMAIL);
+            }
+        }
     }
 }

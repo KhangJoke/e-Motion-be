@@ -28,6 +28,8 @@ public class Rental {
     LocalDateTime endTime;
     @Column(name = "overdue_notified")
     private Boolean overdueNotified = false;
+    @Column(name = "expiring_notified")
+    private Boolean expiringNotified = false;
     @Column(name="rent_fee")
     double rentFee;
     // thêm phí phát sinh
@@ -63,4 +65,7 @@ public class Rental {
 
     @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     List<Payment> payments;
+
+    @OneToOne(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
+    VehicleLog vehicleLog;
 }

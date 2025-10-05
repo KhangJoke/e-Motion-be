@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.config.VNPayConfig;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.UpdatePaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
 import com.swp391.e_Motion_be.entity.*;
@@ -90,7 +91,7 @@ public class PaymentService {
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnPayConfig.getVnp_TmnCode());
-        vnp_Params.put("vnp_Amount", String.valueOf(Double.parseDouble(String.format("%.2f", request.getAmount())) * 100));
+        vnp_Params.put("vnp_Amount", String.valueOf((long) (Double.parseDouble(String.format("%.2f", request.getAmount())) * 100)));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
         vnp_Params.put("vnp_OrderInfo", request.getDescription());
@@ -306,7 +307,7 @@ public class PaymentService {
             String vnp_TransactionDate = originalPayment.getCreatedAt()
                     .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-            String refundAmount = String.format("%.2f", originalPayment.getAmount()); // Full refund
+            String refundAmount = String.valueOf((long) (Double.parseDouble(String.format("%.2f", request.getAmount())) * 100)); // Full refund
 
             Map<String, String> params = new LinkedHashMap<>();
             params.put("vnp_RequestId", vnp_RequestId);
@@ -521,12 +522,22 @@ public class PaymentService {
         if (request.getRentalId() != null) {
             rental = rentalRepository.findById(request.getRentalId())
                     .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+            if(rental.getStatus() != RentalStatus.PENDING){
+                throw new AppException(ErrorCode.RENTAL_CANNOT_BE_PAID);
+            }
+            rental.setStatus(RentalStatus.CONFIRM);
+            rentalRepository.save(rental);
         }
 
         Deposit deposit = null;
         if (request.getDepositId() != null) {
             deposit = depositRepository.findById(request.getDepositId())
                     .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+            if(deposit.getStatus() != DepositStatus.PENDING){
+                throw new AppException(ErrorCode.DEPOSIT_CANNOT_BE_PAID);
+            }
+            deposit.setStatus(DepositStatus.HOLD);
+            depositRepository.save(deposit);
         }
 
         Payment payment = Payment.builder()
@@ -535,17 +546,16 @@ public class PaymentService {
                 .deposit(deposit)
                 .amount(request.getAmount())
                 .description(request.getDescription())
-                .method(request.getMethod())
-                .type(request.getType())
-                .status(request.getStatus())
+                .method(PaymentMethod.CASH)
+                .type(request.getRentalId() == null ? PaymentType.RESERVATION : PaymentType.RENTAL)
+                .status(PaymentStatus.SUCCESS)
                 .build();
-
         Payment savedPayment = paymentRepository.save(payment);
         return paymentMapper.toPaymentResponse(savedPayment);
     }
 
     @Transactional
-    public PaymentResponse updatePayment(PaymentRequest request, Long id) {
+    public PaymentResponse updatePayment(UpdatePaymentRequest request, Long id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
 
