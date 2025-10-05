@@ -17,7 +17,6 @@ import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.repository.*;
-import com.swp391.e_Motion_be.service.auth.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
