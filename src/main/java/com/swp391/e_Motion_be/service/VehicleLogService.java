@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,13 +83,20 @@ public class VehicleLogService {
         User user = userRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
+        double totalCost = request.getRepairCost().values()
+                .stream()
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .sum();
 
         VehicleLog log = vehicleLogMapper.toEntity(request);
         log.setVehicle(vehicle);
         log.setStaff(user.getStaff());
         log.setCreatedAt(LocalDateTime.now());
+        log.setCost(totalCost);
 
-        return vehicleLogMapper.toResponse(vehicleLogRepository.save(log));
+        vehicleLogRepository.save(log);
+        return vehicleLogMapper.toResponse(log);
     }
 
     //UPDATE

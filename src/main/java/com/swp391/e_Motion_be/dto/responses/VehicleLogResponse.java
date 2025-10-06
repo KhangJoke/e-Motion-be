@@ -13,8 +13,9 @@ import java.util.Map;
 public class VehicleLogResponse {
     private Long id;
     private Map<String, Double> repairCost;
+    private Double cost;
     private LocalDateTime createdAt;
     private Long vehicleId;
     private Long staffId;
-    private String rentalId;
+    private Long rentalId;
 }
