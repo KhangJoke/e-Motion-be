@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
+import com.swp391.e_Motion_be.enums.DocType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -35,11 +36,11 @@ public class RentalService {
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
     private final UserRepository userRepository;
-    private final DepositRepository depositRepository;
 
     private final EmailService emailService;
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
+    private final DocumentRepository documentRepository;
 
     public List<RentalResponse> getAllRentals(){
        return rentalRepository.findAll().stream()
@@ -47,6 +48,7 @@ public class RentalService {
                 .toList();
     }
 
+    // Hàm tạo rental khi renter có thuê trước
     @Transactional
     public RentalResponse createRentalFromReservation(RentalCreateFromReservationRequest request){
         Reservation reservation = reservationRepository.findByCode(request.getReservationCode())
@@ -56,9 +58,10 @@ public class RentalService {
         Rental rental = rentalMapper.fromReservationToRental(reservation);
         rental.setReservation(reservation);
         rental.setStaff(staff);
-        return createRentalCommon(rental, reservation.getUser().getId() ,reservation.getVehicle());
+        return createRentalCommon(rental, reservation.getUser().getId() ,reservation.getVehicle(), reservation.getStation().getId());
     }
 
+    // Hàm tạo rental khi renter thuê trực tiếp tại trạm
     @Transactional
     public RentalResponse createRental(RentalCreateRequest request){
         // kiểm tra có tồn tại object ko
@@ -78,10 +81,18 @@ public class RentalService {
             throw new AppException(ErrorCode.RENTAL_HAS_CONFLICT);
         }
         Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
-        return createRentalCommon(rental, user.getId(), vehicle);
+        return createRentalCommon(rental, user.getId(), vehicle, station.getId());
     }
 
-    private RentalResponse createRentalCommon(Rental rental, long userId, Vehicle vehicle){
+    // Hàm này chứa các action chung của 2 hàm cách tạo rental
+    private RentalResponse createRentalCommon(Rental rental, Long userId, Vehicle vehicle, Long stationId){
+        // Kiểm tra CCCD và GPLX của renter
+        if(!documentRepository.existsByUser_IdAndType(userId, DocType.CCCD)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
+        }
+        if(!documentRepository.existsByUser_IdAndType(userId, DocType.LICENSE)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
+        }
         // Kiểm tra user có đơn thuê nào chưa trả ko
         boolean hasOngoingRental = rentalRepository.existsByUser_IdAndStatusNotIn(userId, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
         if(hasOngoingRental){
@@ -91,13 +102,17 @@ public class RentalService {
         if(!vehicle.getStatus().equals(VehicleStatus.AVAILABLE)){
             throw new AppException(ErrorCode.VEHICLE_NOT_READY);
         }
+        // Kiểm tra station của xe và của đơn có giống nhau ko
+        if(vehicle.getStation().getId().equals(stationId)) {
+            throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
+        }
         // save rental
-        rental.setRentFee(calculateFee(rental));
+        rental.setRentFee(calculateFee(rental)); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
                 DepositStatus.PENDING,
-                vehicle.getDepositFee(),
+                vehicle.getDepositFee(), // Cọc xe
                 null,
                 rental.getId()
         );
@@ -119,6 +134,7 @@ public class RentalService {
                 .toList();
     }
 
+    // hàm thay đổi status của rental
     public RentalResponse updateRentalStatus(RentalUpdateStatusRequest request){
         Rental rental = rentalRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));

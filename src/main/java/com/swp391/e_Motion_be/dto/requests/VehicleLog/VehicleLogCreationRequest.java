@@ -28,5 +28,4 @@ public class VehicleLogCreationRequest {
 
     @NotNull(message = "RentalId is required")
     private Long rentalId;
-
 }

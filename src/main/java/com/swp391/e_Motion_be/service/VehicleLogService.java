@@ -3,15 +3,11 @@ package com.swp391.e_Motion_be.service;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.entity.Vehicle;
-import com.swp391.e_Motion_be.entity.VehicleLog;
+import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleLogMapper;
-import com.swp391.e_Motion_be.repository.UserRepository;
-import com.swp391.e_Motion_be.repository.VehicleLogRepository;
-import com.swp391.e_Motion_be.repository.VehicleRepository;
+import com.swp391.e_Motion_be.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +23,8 @@ public class VehicleLogService {
     private final VehicleRepository vehicleRepository;
     private final UserRepository userRepository;
     private final VehicleLogMapper vehicleLogMapper;
+    private final StaffRepository staffRepository;
+    private final RentalRepository rentalRepository;
 
     // FIND ALL
     public List<VehicleLogResponse> findAllVehicleLogs() {
@@ -76,23 +74,26 @@ public class VehicleLogService {
 
     //CREATE
     public VehicleLogResponse createVehicleLog(VehicleLogCreationRequest request) {
+        // lấy ra các entity liên quan
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_ID_NOT_FOUND));
-
-        User user = userRepository.findById(request.getStaffId())
+        Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+        Rental rental = rentalRepository.findById(request.getRentalId())
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
+        VehicleLog vehicleLog = vehicleLogMapper.toEntity(request);
+        vehicleLog.setVehicle(vehicle);
+        vehicleLog.setStaff(staff);
+        vehicleLog.setRental(rental);
 
-        VehicleLog log = vehicleLogMapper.toEntity(request);
-        log.setVehicle(vehicle);
-        log.setStaff(user.getStaff());
-        log.setCreatedAt(LocalDateTime.now());
+        // Update tiền sửa vào rental
+        rental.setPenaltyFee(rental.getPenaltyFee() + request.getFee());
 
-        return vehicleLogMapper.toResponse(vehicleLogRepository.save(log));
+        return vehicleLogMapper.toResponse(vehicleLogRepository.save(vehicleLog));
     }
 
     //UPDATE
-    @Transactional
     public VehicleLogResponse updateVehicleLog(Long logId, VehicleLogUpdateRequest request) {
         VehicleLog vehicleLog = vehicleLogRepository.findById(logId)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_LOG_NOT_EXIST));
@@ -102,7 +103,6 @@ public class VehicleLogService {
     }
 
     //DELETE
-    @Transactional
     public void deleteVehicleLog(Long logId) {
         if (!vehicleLogRepository.existsById(logId)) {
             throw new AppException(ErrorCode.VEHICLE_LOG_NOT_EXIST);

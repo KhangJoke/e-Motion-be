@@ -113,6 +113,8 @@ public enum ErrorCode {
     RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "This vehicle has rental in this range time, please choose other time"),
     INVALID_RENTAL_STATUS(HttpStatus.BAD_REQUEST, "Invalid Rental Status"),
     USER_HAS_ONGOING_RENTAL(HttpStatus.CONFLICT, "User already rental vehicle"),
+    USER_NEED_HAS_CCCD(HttpStatus.BAD_REQUEST, "Renter need to has CCCD"),
+    USER_NEED_HAS_LICENSE(HttpStatus.BAD_REQUEST, "Renter need to has LICENSE"),
 
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),
