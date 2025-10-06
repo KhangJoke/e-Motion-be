@@ -14,13 +14,17 @@ public class RentalCheckListUpdateRequest {
     @NotNull(message = "ID is required")
     private Long id;
 
+    @NotBlank(message = "Staff email is required")
+    @Email(message = "Staff email must be a valid email address")
+    private String staffEmail;
+
     @NotNull(message = "Check type is required")
     private CheckType type;
 
     @NotNull(message = "Current battery is required")
     @DecimalMin(value = "0.0", message = "Current battery must be greater than or equal to 0")
     @DecimalMax(value = "100.0", message = "Current battery must be less than or equal to 100")
-    private double currentBattery;
+    private Double currentBattery;
 
     @NotNull(message = "Rental ID is required")
     private Long rentalId;

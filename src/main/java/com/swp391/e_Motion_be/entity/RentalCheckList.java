@@ -24,7 +24,7 @@ public class RentalCheckList {
     @Column(name = "check_type")
     private CheckType type;
 
-    @Column(name = "penalty_fee")
+    @Column(name = "fee")
     private double fee;
 
     @Column(name = "current_battery")
