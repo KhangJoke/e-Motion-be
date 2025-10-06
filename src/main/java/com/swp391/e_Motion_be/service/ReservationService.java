@@ -9,10 +9,7 @@ import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
-import com.swp391.e_Motion_be.enums.DepositStatus;
-import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.RentalStatus;
-import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
@@ -46,6 +43,7 @@ public class ReservationService {
     private final RentalRepository rentalRepository;
     private final DepositService depositService;
     private final EmailService emailService;
+    private final DocumentRepository documentRepository;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -60,10 +58,19 @@ public class ReservationService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
+        // Check có đang thuê hoặc đặt trước xe khác không
         boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
         boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING));
         if(hasOngoingRental || hasOngoingReservation) {
             throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
+        }
+
+        // Kiểm tra CCCD và GPLX của renter
+        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.CCCD)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
+        }
+        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.LICENSE)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
         }
 
         // Check vehicle availability - combine both checks for efficiency

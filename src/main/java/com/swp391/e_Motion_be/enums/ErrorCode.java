@@ -134,6 +134,9 @@ public enum ErrorCode {
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed"),
 
+    //Check in errors
+    ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "Vehicle has already been checked in for this rental"),
+
     //Reservation email
     RESERVATION_EMAIL(HttpStatus.EXPECTATION_FAILED, "Fail sending email");
 

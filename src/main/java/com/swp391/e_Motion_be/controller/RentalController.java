@@ -53,11 +53,4 @@ public class RentalController {
         response.setData(rentalService.updateRentalStatus(request));
         return response;
     }
-
-    @PatchMapping("/return/{id}")
-    public ApiResponse<RentalResponse> returnRental(@PathVariable long id){
-        ApiResponse<RentalResponse> response = new ApiResponse<>();
-        response.setData(rentalService.returnRental(id));
-        return response;
-    }
 }

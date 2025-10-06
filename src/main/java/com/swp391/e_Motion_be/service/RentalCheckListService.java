@@ -2,7 +2,8 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
+import com.swp391.e_Motion_be.dto.responses.rentalCheckList.RentalCheckInResponse;
+import com.swp391.e_Motion_be.dto.responses.rentalCheckList.RentalCheckOutResponse;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.RentalCheckList;
 import com.swp391.e_Motion_be.entity.Staff;
@@ -15,6 +16,7 @@ import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,31 +35,31 @@ public class RentalCheckListService {
 
     private final EmailService emailService;
 
-    public List<RentalCheckListResponse> getAllCheckLists() {
+    public List<RentalCheckOutResponse> getAllCheckLists() {
         return rentalCheckListRepository.findAll().stream()
-                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .map(rentalCheckListMapper::toRentalCheckOutResponse)
                 .toList();
     }
 
-    public RentalCheckListResponse getCheckListById(Long id) {
+    public RentalCheckOutResponse getCheckListById(Long id) {
         RentalCheckList checkList = rentalCheckListRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CHECKLIST_NOT_FOUND));
-        return rentalCheckListMapper.toRentalCheckListResponse(checkList);
+        return rentalCheckListMapper.toRentalCheckOutResponse(checkList);
     }
 
-    public List<RentalCheckListResponse> getCheckListsByRental(Long rentalId) {
+    public List<RentalCheckOutResponse> getCheckListsByRental(Long rentalId) {
         return rentalCheckListRepository.findByRental_Id(rentalId).stream()
-                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .map(rentalCheckListMapper::toRentalCheckOutResponse)
                 .toList();
     }
 
-    public List<RentalCheckListResponse> getCheckListsByStaffEmail(String email) {
+    public List<RentalCheckOutResponse> getCheckListsByStaffEmail(String email) {
         return rentalCheckListRepository.findByStaff_User_Email(email).stream()
-                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .map(rentalCheckListMapper::toRentalCheckOutResponse)
                 .toList();
     }
 
-    public RentalCheckListResponse createCheckList(RentalCheckListCreateRequest request, String staffEmail) {
+    public RentalCheckOutResponse createCheckList(RentalCheckListCreateRequest request, String staffEmail) {
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
@@ -68,14 +70,15 @@ public class RentalCheckListService {
         RentalCheckList checkList = rentalCheckListMapper.toCheckListEntity(request);
         checkList.setRental(rental);
         checkList.setStaff(staff);
+        checkList.setCreatedAt(LocalDateTime.now());
 
         rentalCheckListRepository.save(checkList);
 
-        return rentalCheckListMapper.toRentalCheckListResponse(checkList);
+        return rentalCheckListMapper.toRentalCheckOutResponse(checkList);
     }
 
 
-    public RentalCheckListResponse updateCheckList(RentalCheckListUpdateRequest request, String email) {
+    public RentalCheckOutResponse updateCheckList(RentalCheckListUpdateRequest request, String email) {
         RentalCheckList checkList = rentalCheckListRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -90,7 +93,7 @@ public class RentalCheckListService {
         checkList.setCurrentBattery(request.getCurrentBattery());
 
         rentalCheckListRepository.save(checkList);
-        return rentalCheckListMapper.toRentalCheckListResponse(checkList);
+        return rentalCheckListMapper.toRentalCheckOutResponse(checkList);
     }
 
     public void deleteCheckList(Long id, String email) {
@@ -106,15 +109,36 @@ public class RentalCheckListService {
         rentalCheckListRepository.delete(checkList);
     }
 
-    public RentalCheckListResponse createCheckIn(RentalCheckListCreateRequest request, String email) {
+    public RentalCheckInResponse createCheckIn(RentalCheckListCreateRequest request) {
+        String staffEmail = request.getStaffEmail();
         request.setType(CheckType.CHECK_IN);
-        RentalCheckListResponse response = createCheckList(request, email);
-        return response;
+        RentalCheckList checkIn = rentalCheckListMapper.toCheckListEntity(request);
+
+        Rental rental = rentalRepository.findById(request.getRentalId())
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        Staff staff = staffRepository.findByUser_Email(staffEmail).stream()
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+
+        boolean alreadyCheckedIn = rentalCheckListRepository.findByRental_Id(rental.getId()).stream()
+                .anyMatch(c -> c.getType() == CheckType.CHECK_IN);
+        if(alreadyCheckedIn) throw new AppException(ErrorCode.ALREADY_CHECKED_IN);
+
+        checkIn.setRental(rental);
+        checkIn.setStaff(staff);
+        checkIn.setCreatedAt(LocalDateTime.now());
+
+        rentalCheckListRepository.save(checkIn);
+
+        return rentalCheckListMapper.toRentalCheckInResponse(checkIn);
     }
 
-    public RentalCheckListResponse createCheckOut(RentalCheckListCreateRequest request, String email) {
+    @Transactional
+    public RentalCheckOutResponse createCheckOut(RentalCheckListCreateRequest request) {
+        String staffEmail = request.getStaffEmail();
         request.setType(CheckType.CHECK_OUT);
-        createCheckList(request, email);
+        createCheckList(request, staffEmail);
         calculateFee(request.getRentalId());
 
         // Lấy lại check-out mới nhất để trả về
@@ -123,7 +147,7 @@ public class RentalCheckListService {
                 .reduce((first, second) -> second)
                 .orElseThrow(() -> new AppException(ErrorCode.CHECKLIST_NOT_FOUND));
 
-        return rentalCheckListMapper.toRentalCheckListResponse(checkOut);
+        return rentalCheckListMapper.toRentalCheckOutResponse(checkOut);
     }
 
     public void calculateFee(Long rentalId){
@@ -142,28 +166,18 @@ public class RentalCheckListService {
 
         double batteryDiff = checkOut.getCurrentBattery() - checkIn.getCurrentBattery();
         if(batteryDiff < 0){
-            double percentUsed = Math.abs(batteryDiff) * 100;
-            fee += percentUsed * 12000; // 12k for each percent of battery used
+            fee += Math.abs(batteryDiff) * 12000; // 12k for each percent of battery used
         }
 
         Rental rental = checkOut.getRental();
         double pricePerDay = rental.getVehicle().getPricePerDay();
-        double pricePerHour = rental.getVehicle().getPricePerHour();
 
         LocalDateTime actualReturnTime = checkOut.getCreatedAt();
         LocalDateTime expectedReturnTime = rental.getEndTime();
 
         if (actualReturnTime.isAfter(expectedReturnTime)) {
-            long late = Math.max(0, Duration.between(expectedReturnTime, actualReturnTime).toMinutes());
-            double hoursLate = late / 60.0;
-
-            if (hoursLate <= 4) {
-                fee += hoursLate * pricePerHour;
-            } else if (hoursLate <= 8) {
-                fee += pricePerDay * 0.5;
-            } else {
-                fee += pricePerDay;
-            }
+            Long lateHours = Math.max(0, Duration.between(expectedReturnTime, actualReturnTime).toHours());
+            fee += lateHours * (0.2 * pricePerDay);
         }
         checkOut.setFee(fee);
         rentalCheckListRepository.save(checkOut);
