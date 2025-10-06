@@ -107,6 +107,9 @@ public enum ErrorCode {
     // RentalCheckList errors
     CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental checklist not found"),
     CHECKLIST_UNAUTHORIZED(HttpStatus.FORBIDDEN, "You are not authorized to modify this checklist"),
+    ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "Vehicle has already been checked in for this rental"),
+    ALREADY_CHECKED_OUT(HttpStatus.BAD_REQUEST, "Vehicle has already been checked out for this rental"),
+    CHECKLIST_TYPE_INVALID(HttpStatus.BAD_REQUEST, "check list type is invalid"),
 
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
@@ -133,9 +136,6 @@ public enum ErrorCode {
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed"),
-
-    //Check in errors
-    ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "Vehicle has already been checked in for this rental"),
 
     //Reservation email
     RESERVATION_EMAIL(HttpStatus.EXPECTATION_FAILED, "Fail sending email");

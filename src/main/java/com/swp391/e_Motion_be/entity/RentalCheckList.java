@@ -24,11 +24,10 @@ public class RentalCheckList {
     @Column(name = "check_type")
     private CheckType type;
 
-    @Column(name = "fee")
-    private double fee;
+    private Double fee;
 
     @Column(name = "current_battery")
-    private double currentBattery;
+    private Double currentBattery;
 
     @Column(name = "created_at")
     @CreationTimestamp
