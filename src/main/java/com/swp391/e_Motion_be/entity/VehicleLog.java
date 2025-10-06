@@ -25,6 +25,9 @@ public class VehicleLog {
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, Double> repairCost;
 
+    @Column(name ="total_cost")
+    private Double cost;
+
     @Column(name="created_at", nullable=false)
     @CreationTimestamp
     private LocalDateTime createdAt;

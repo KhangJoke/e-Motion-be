@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,15 +83,24 @@ public class VehicleLogService {
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
+        double totalCost = request.getRepairCost().values()
+                .stream()
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+
         VehicleLog vehicleLog = vehicleLogMapper.toEntity(request);
         vehicleLog.setVehicle(vehicle);
         vehicleLog.setStaff(staff);
         vehicleLog.setRental(rental);
+        vehicleLog.setCost(totalCost);
+
 
         // Update tiền sửa vào rental
-        rental.setPenaltyFee(rental.getPenaltyFee() + request.getFee());
+        rental.setPenaltyFee(rental.getPenaltyFee() + totalCost);
 
-        return vehicleLogMapper.toResponse(vehicleLogRepository.save(vehicleLog));
+        vehicleLogRepository.save(vehicleLog);
+        return vehicleLogMapper.toResponse(vehicleLog);
     }
 
     //UPDATE
