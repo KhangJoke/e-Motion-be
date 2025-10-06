@@ -14,11 +14,13 @@ import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
 import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -28,6 +30,8 @@ public class RentalCheckListService {
     private final RentalCheckListMapper rentalCheckListMapper;
     private final RentalRepository rentalRepository;
     private final StaffRepository staffRepository;
+
+    private final EmailService emailService;
 
     public List<RentalCheckListResponse> getAllCheckLists() {
         return rentalCheckListRepository.findAll().stream()
@@ -64,7 +68,6 @@ public class RentalCheckListService {
         RentalCheckList checkList = rentalCheckListMapper.toCheckListEntity(request);
         checkList.setRental(rental);
         checkList.setStaff(staff);
-        checkList.setCreatedAt(LocalDateTime.now());
 
         rentalCheckListRepository.save(checkList);
 
@@ -82,7 +85,6 @@ public class RentalCheckListService {
         if (!(userRole.equals(Role.ROLE_ADMIN) || staffEmail.equals(email))) {
             throw new AppException(ErrorCode.CHECKLIST_UNAUTHORIZED);
         }
-
 
         checkList.setType(request.getType());
         checkList.setCurrentBattery(request.getCurrentBattery());
@@ -163,8 +165,52 @@ public class RentalCheckListService {
                 fee += pricePerDay;
             }
         }
-
         checkOut.setFee(fee);
         rentalCheckListRepository.save(checkOut);
     }
+
+    public void sendDepositPendingEmail(Rental rental) {
+        String subject = "Deposit Refund Pending";
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = rental.getEndTime() != null
+                ? rental.getEndTime().format(formatter)
+                : "Not specified";
+
+        String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
+                + "<div style=\"background-color: #f9f9f9; padding: 20px;\">"
+                + "<h2 style=\"color: #3498db; text-align: center;\">Deposit Refund Pending</h2>"
+                + "<p style=\"font-size: 16px; color: #555;\">"
+                + "Dear " + rental.getUser().getFullName() + ",</p>"
+                + "<p style=\"font-size: 15px; color: #444;\">"
+                + "We have received your vehicle return for <strong>" + rental.getVehicle().getName() + "</strong>."
+                + " However, your deposit refund is still being processed.</p>"
+                + "<div style=\"background-color: #ffffff; padding: 15px; border-radius: 8px; "
+                + "border: 1px solid #ddd; margin: 20px 0;\">"
+                + "<p style=\"font-size: 16px; color: #2c3e50;\"><strong>Renter:</strong> "
+                + rental.getUser().getFullName() + "</p>"
+                + "<p style=\"font-size: 16px; color: #2c3e50;\"><strong>Vehicle:</strong> "
+                + rental.getVehicle().getName() + "</p>"
+                + "<p style=\"font-size: 16px; color: #2c3e50;\"><strong>Return Station:</strong> "
+                + rental.getStation().getName() + "</p>"
+                + "<p style=\"font-size: 16px; color: #2c3e50;\"><strong>Returned At:</strong> "
+                + endTimeFormatted + "</p>"
+                + "</div>"
+                + "<p style=\"font-size: 14px; color: #666;\">"
+                + "Your deposit will be refunded within <strong>24 hours</strong> after verification. "
+                + "We appreciate your patience and understanding."
+                + "</p>"
+                + "<p style=\"font-size: 13px; color: #999; margin-top: 30px;\">"
+                + "If you have already received your refund, please disregard this email."
+                + "</p>"
+                + "</div>"
+                + "</html>";
+
+        try {
+            emailService.sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
 }

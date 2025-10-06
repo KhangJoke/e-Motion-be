@@ -143,15 +143,6 @@ public class RentalService {
         return  rentalMapper.toRentalResponse(rental);
     }
 
-    public RentalResponse returnRental(long id){
-        Rental rental = rentalRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-        rental.setStatus(RentalStatus.COMPLETED);
-        rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
-        rentalRepository.save(rental);
-        return  rentalMapper.toRentalResponse(rental);
-    }
-
     private double calculateFee(Rental rental) {
         LocalDateTime start = rental.getStartTime();
         LocalDateTime end = rental.getEndTime();
