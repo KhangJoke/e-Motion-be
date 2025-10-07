@@ -61,6 +61,7 @@ public enum ErrorCode {
     EXTRACT_USERNAME_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Extract username from token failed"),
     NOT_LOGIN_YET(HttpStatus.UNAUTHORIZED, "You are not logged in. Please login to continue."),
     USER_NOT_EXISTS(HttpStatus.NOT_FOUND, "User does not exist"),
+    REFRESH_TOKEN_IS_REUSED(HttpStatus.UNAUTHORIZED, "Refresh token is reused. Please login again."),
 
     // Logout errors
     USER_HAS_BEEN_LOGOUT(HttpStatus.UNAUTHORIZED, "Your Account has been logout. Please login to continue."),
