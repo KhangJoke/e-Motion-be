@@ -29,14 +29,13 @@ public class RentalCheckListService {
     private double pricePerBattery;
     @Value("${penalty.fee.rate}")
     private double penaltyFeeRate;
+    @Value("${price.day.rate}")
+    private double priceDayRate;
 
     private final RentalCheckListRepository rentalCheckListRepository;
     private final RentalCheckListMapper rentalCheckListMapper;
     private final RentalRepository rentalRepository;
     private final StaffRepository staffRepository;
-
-    @Value("${price.day.rate}")
-    private double priceDayRate;
 
     public RentalCheckListResponse createCheckList(RentalCheckListCreateRequest request) {
         // --- Kiểm tra trùng check ---

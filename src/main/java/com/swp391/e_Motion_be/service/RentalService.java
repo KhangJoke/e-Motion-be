@@ -175,30 +175,92 @@ public class RentalService {
                 ? rental.getEndTime().format(formatter)
                 : "Not specified";
 
-        String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f9f9f9; padding: 20px;\">"
-                + "<h2 style=\"color: #e67e22; text-align: center;\">Rental Expiry Reminder</h2>"
-                + "<p style=\"font-size: 16px; color: #555;\">"
-                + "Dear " + rental.getUser().getFullName() + ",</p>"
-                + "<p style=\"font-size: 15px; color: #444;\">"
-                + "Your rental for vehicle <strong>" + rental.getVehicle().getName() + "</strong> "
-                + "will expire soon.</p>"
-                + "<div style=\"background-color: #ffffff; padding: 15px; border-radius: 8px; "
-                + "border: 1px solid #ddd; margin: 20px 0;\">"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
-                + "Renter: " + rental.getUser().getFullName() + "</p>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
-                + "Station: " + rental.getStation().getName() + "</p>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
-                + "Rental End Time: " + endTimeFormatted + "</p>"
+        String htmlMessage = "<!DOCTYPE html>"
+                + "<html lang='vi'>"
+                + "<head>"
+                + "<meta charset='UTF-8'>"
+                + "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+                + "<title>Rental Expire Reminder</title>"
+                + "</head>"
+                + "<body style='font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; color: #333333;'>"
+
+                + "<div style='width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; "
+                + "box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;'>"
+
+                // Header
+                + "<div style='background-color: #3B82F6; color: #ffffff; padding: 20px; text-align: center;'>"
+                + "<div style='margin-bottom: 10px;'>"
+                + "<img src='https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931450/navxfjt05woc38qvpbtw.png' "
+                + "alt='Company Logo' width='100' height='70'>"
                 + "</div>"
-                + "<p style=\"font-size: 14px; color: #666;\">"
-                + "Please return the vehicle on time to avoid additional charges."
-                + "</p>"
-                + "<p style=\"font-size: 13px; color: #999; margin-top: 30px;\">"
-                + "If you have already returned the vehicle, please ignore this email."
-                + "</p>"
+                + "<h1 style='margin: 0; font-size: 24px;'>Upcoming Notice: Your Rental Is About to Expire</h1>"
                 + "</div>"
+
+                // Content
+                + "<div style='padding: 20px 30px; line-height: 1.6; color: #333333;'>"
+                + "<p>Dear: <strong>" + rental.getUser().getFullName() + "</strong>,</p>"
+                + "<p>We would like to remind you that your current rental period will end soon. "
+                +"Please check the details below and ensure the vehicle is returned or renewed on time:</p>"
+
+                + "<table cellpadding='0' cellspacing='0' border='0' style='width: 100%; margin: 20px 0; border-collapse: collapse;'>"
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Rental ID:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getId() + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Vehicle Model:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getVehicle().getName() + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>End Time:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + endTimeFormatted + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Car Return Location:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getStation().getName() + "</strong></td></tr>"
+                + "</table>"
+
+                + "<p>Please make sure to <strong style='color:#0080ff;'>return</strong> or "
+                + "<strong style='color:#0080ff;'>extend</strong> your rental before the end time to <strong style='color:#ff0000;'>avoid late fees or service interruptions</strong>.</p>"
+
+                + "<p>If you have any questions or would like to <strong style='color:#ff8c1a'>extend your rental time</strong>, "
+                + "please click the <strong style='color:#3B82F6'>button</strong> below or contact us immediately.</p>"
+
+                + "<a href='[Liên kết gia hạn]' "
+                + "style='display:block; width:80%; margin:30px auto; padding:15px 25px; background-color:#3B82F6; "
+                + "color:#ffffff !important; text-align:center; text-decoration:none; border-radius:5px; font-size:16px; font-weight:bold;'>"
+                + "Gia Hạn Thuê Xe Hoặc Liên Hệ Hỗ Trợ</a>"
+
+                + "<p>Thank you very much for using our service.</p>"
+                + "<p>Best regards,<br>E-Motion</p>"
+                + "</div>"
+
+                // Footer
+                + "<div style='background-color:#f2f2f2; color:#555; padding:15px 25px; text-align:center; font-size:12px; "
+                + "border-top:1px solid #3B82F6; line-height:1.6;'>"
+
+                + "<div style='margin-bottom:10px;'>"
+                + "<img src='https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931502/logo_bp3y1d.png' alt='Company Logo' width='80' height='50'>"
+                + "</div>"
+
+                + "<div style='display:inline-block; text-align:left;'>"
+                + "<table cellpadding='0' cellspacing='0' border='0' style='font-size:12px; color:#333; border-collapse:collapse;'>"
+                + "<tr>"
+                + "<td valign='top' style='padding-right:20px;'>"
+                + "<strong>Hà Nội:</strong><br>E-Motion Station Hoàn Kiếm<br>E-Motion Station Cầu Giấy<br>E-Motion Station Thanh Xuân</td>"
+                + "<td style='border-left:1px solid #ccc; width:1px; padding:0 20px;'></td>"
+                + "<td valign='top' style='padding-left:20px;'>"
+                + "<strong>TP. Hồ Chí Minh:</strong><br>E-Motion Station Tân Bình<br>E-Motion Station Thủ Đức<br>E-Motion Station Trần Hưng Đạo</td>"
+                + "</tr></table></div>"
+
+                + "<p style='margin-top:10px; text-align:center;'><strong>Hotline:</strong> 0339695701 &nbsp;|&nbsp; "
+                + "<strong>Email:</strong> e.motion.vehicle1@gmail.com</p>"
+
+                + "<h6 style='margin:10px 0 0 0; font-size:11px; color:#999; font-weight:normal; text-align:center;'>"
+                + "© 2025 E-Motion. All rights reserved.</h6>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
                 + "</html>";
 
         try {
@@ -232,31 +294,94 @@ public class RentalService {
                 ? rental.getEndTime().format(formatter)
                 : "Not specified";
 
-        String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f9f9f9; padding: 20px;\">"
-                + "<h2 style=\"color: #e67e22; text-align: center;\">Rental Overdue Reminder</h2>"
-                + "<p style=\"font-size: 16px; color: #555;\">"
-                + "Dear " + rental.getUser().getFullName() + ",</p>"
-                + "<p style=\"font-size: 15px; color: #444;\">"
-                + "Your rental for vehicle <strong>" + rental.getVehicle().getName() + "</strong> "
-                + "has already expired.</p>"
-                + "<div style=\"background-color: #ffffff; padding: 15px; border-radius: 8px; "
-                + "border: 1px solid #ddd; margin: 20px 0;\">"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
-                + "Renter: " + rental.getUser().getFullName() + "</p>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
-                + "Station: " + rental.getStation().getName() + "</p>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #e74c3c;\">"
-                + "Rental End Time: " + endTimeFormatted + "</p>"
+        String htmlMessage = "<!DOCTYPE html>"
+                + "<html lang='vi'>"
+                + "<head>"
+                + "<meta charset='UTF-8'>"
+                + "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+                + "<title>Your Rental is Overdue</title>"
+                + "</head>"
+                + "<body style='font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; color: #333333;'>"
+
+                + "<div style='width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; "
+                + "box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;'>"
+
+                // Header
+                + "<div style='background-color: #3B82F6; color: #ffffff; padding: 20px; text-align: center;'>"
+                + "<div style='margin-bottom: 10px;'>"
+                + "<img src='https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931450/navxfjt05woc38qvpbtw.png' "
+                + "alt='Company Logo' width='100' height='70'>"
                 + "</div>"
-                + "<p style=\"font-size: 14px; color: #666;\">"
-                + "Please return the vehicle immediately to avoid additional charges."
-                + "</p>"
-                + "<p style=\"font-size: 13px; color: #999; margin-top: 30px;\">"
-                + "If you have already returned the vehicle, please ignore this email."
-                + "</p>"
+                + "<h1 style='margin: 0; font-size: 24px;'>Important Notice: Your Rental is Overdue</h1>"
                 + "</div>"
+
+                // Content
+                + "<div style='padding: 20px 30px; line-height: 1.6; color: #333333;'>"
+                + "<p>Dear: <strong>" + rental.getUser().getFullName() + "</strong>,</p>"
+                + "<p>We would like to inform you that your rental period is coming to an end. "
+                + "Please make arrangements to return the car on time as per the details below:</p>"
+
+                + "<table cellpadding='0' cellspacing='0' border='0' style='width: 100%; margin: 20px 0; border-collapse: collapse;'>"
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Rental ID:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getId() + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Vehicle Model:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getVehicle().getName() + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>End Time:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + endTimeFormatted + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Car Return Location:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getStation().getName() + "</strong></td></tr>"
+                + "</table>"
+
+                + "<p>Please ensure the car is returned at the correct <strong style='color:#0080ff;'>Station</strong> and "
+                + "<strong style='color:#0080ff;'>End Time</strong> to <strong style='color:#ff0000;'>avoid overtime charges</strong>.</p>"
+
+                + "<p>If you have any questions or would like to <strong style='color:#ff8c1a'>extend your rental time</strong>, "
+                + "please click the <strong style='color:#3B82F6'>button</strong> below or contact us immediately.</p>"
+
+                + "<a href='[Đường link liên hệ/Gia hạn]' "
+                + "style='display:block; width:80%; margin:30px auto; padding:15px 25px; background-color:#3B82F6; "
+                + "color:#ffffff !important; text-align:center; text-decoration:none; border-radius:5px; font-size:16px; font-weight:bold;'>"
+                + "Gia Hạn Thuê Xe Hoặc Liên Hệ Hỗ Trợ</a>"
+
+                + "<p>Thank you very much for using our service.</p>"
+                + "<p>Best regards,<br>E-Motion</p>"
+                + "</div>"
+
+                // Footer
+                + "<div style='background-color:#f2f2f2; color:#555; padding:15px 25px; text-align:center; font-size:12px; "
+                + "border-top:1px solid #3B82F6; line-height:1.6;'>"
+
+                + "<div style='margin-bottom:10px;'>"
+                + "<img src='https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931502/logo_bp3y1d.png' alt='Company Logo' width='80' height='50'>"
+                + "</div>"
+
+                + "<div style='display:inline-block; text-align:left;'>"
+                + "<table cellpadding='0' cellspacing='0' border='0' style='font-size:12px; color:#333; border-collapse:collapse;'>"
+                + "<tr>"
+                + "<td valign='top' style='padding-right:20px;'>"
+                + "<strong>Hà Nội:</strong><br>E-Motion Station Hoàn Kiếm<br>E-Motion Station Cầu Giấy<br>E-Motion Station Thanh Xuân</td>"
+                + "<td style='border-left:1px solid #ccc; width:1px; padding:0 20px;'></td>"
+                + "<td valign='top' style='padding-left:20px;'>"
+                + "<strong>TP. Hồ Chí Minh:</strong><br>E-Motion Station Tân Bình<br>E-Motion Station Thủ Đức<br>E-Motion Station Trần Hưng Đạo</td>"
+                + "</tr></table></div>"
+
+                + "<p style='margin-top:10px; text-align:center;'><strong>Hotline:</strong> 0339695701 &nbsp;|&nbsp; "
+                + "<strong>Email:</strong> e.motion.vehicle1@gmail.com</p>"
+
+                + "<h6 style='margin:10px 0 0 0; font-size:11px; color:#999; font-weight:normal; text-align:center;'>"
+                + "© 2025 E-Motion. All rights reserved.</h6>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
                 + "</html>";
+
 
         try {
             emailService.sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);

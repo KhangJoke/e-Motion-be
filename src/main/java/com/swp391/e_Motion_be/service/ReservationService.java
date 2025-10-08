@@ -73,6 +73,16 @@ public class ReservationService {
             throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
         }
 
+        // Check if start and end times are exact hours
+        if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
+            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        }
+
+        // Check reservation time validity
+        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
+            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
+        }
+
         // Check vehicle availability - combine both checks for efficiency
         if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime())) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
@@ -149,6 +159,11 @@ public class ReservationService {
         );
 
         return reservationConflict == 1 || rentalConflict == 1;
+    }
+
+    // Check if the time is on the exact hour (e.g., 1:00, 2:00)
+    private boolean isExactHour(LocalDateTime dateTime) {
+        return dateTime.getMinute() == 0 && dateTime.getSecond() == 0;
     }
 
     @Transactional

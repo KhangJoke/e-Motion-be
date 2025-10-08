@@ -98,6 +98,7 @@ public enum ErrorCode {
     RESERVATION_TIME_INVALID_TO_CANCEL(HttpStatus.BAD_REQUEST, "You may cancel your reservation up to 5 days before your trip"),
     RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Reservation has already been cancelled"),
     VEHICLE_STATION_MISMATCH(HttpStatus.BAD_REQUEST, "Vehicle does not belong to the selected station"),
+    TIME_MUST_BE_EXACT_HOUR(HttpStatus.BAD_REQUEST, "Reservation time must be in exact hour increments (e.g., 1:00 PM, 2:00 PM)"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),

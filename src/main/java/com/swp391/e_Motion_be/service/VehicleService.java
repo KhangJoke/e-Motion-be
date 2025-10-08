@@ -125,4 +125,9 @@ public class VehicleService {
                 unavailables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList()
         );
     }
+
+    public boolean isAvailable(long id) {
+        List<Vehicle> availableVehicle = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
+        return availableVehicle.stream().anyMatch(v -> v.getId() == id);
+    }
 }
