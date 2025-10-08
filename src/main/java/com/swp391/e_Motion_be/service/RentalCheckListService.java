@@ -6,7 +6,6 @@ import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.RentalCheckList;
 import com.swp391.e_Motion_be.entity.Staff;
-import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
@@ -16,7 +15,6 @@ import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
 import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
-import com.swp391.e_Motion_be.repository.VehicleRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +31,6 @@ public class RentalCheckListService {
     private final RentalCheckListMapper rentalCheckListMapper;
     private final RentalRepository rentalRepository;
     private final StaffRepository staffRepository;
-    private final VehicleRepository vehicleRepository;
     private final VehiclePricingConfig vehiclePricingConfig;
 
     private final EmailService emailService;
@@ -52,6 +49,7 @@ public class RentalCheckListService {
         }else{
             throw new AppException(ErrorCode.CHECKLIST_TYPE_INVALID);
         }
+
         // lấy ra các entity liên quan
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
@@ -59,22 +57,20 @@ public class RentalCheckListService {
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
         RentalCheckList checkList = rentalCheckListMapper.toCheckListEntity(request);
+        // chuyển trạng xe thành đang kiểm tra và trạng thuê thành đang chờ phí phát sinh
+        rental.setStatus(RentalStatus.PENDING_FEE);
+        rental.getVehicle().setStatus(VehicleStatus.CHECKING);
         checkList.setRental(rental);
         checkList.setStaff(staff);
-        // add fee nếu check-out
+        rentalCheckListRepository.save(checkList);
+        // add fee phát sinh lúc check-out
         if(request.getType().equals(CheckType.CHECK_OUT)){
             checkList.setFee(calculateFee(rental.getId()));
             // lưu phí phát sinh và cập nhật status rental
             rental.setPenaltyFee(calculateFee(rental.getId()));
-            rental.setStatus(RentalStatus.PENDING_FEE);
-            // check xe renter trả có cần bảo trì ko
-            if(request.isMaintain()){
-                rental.getVehicle().setStatus(VehicleStatus.MAINTAINED);
-            }else{
-                rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
-            }
+            checkList.setRental(rental);
+            rentalCheckListRepository.save(checkList);
         }
-        rentalCheckListRepository.save(checkList);
         return rentalCheckListMapper.toRentalCheckListResponse(checkList);
     }
 
@@ -84,18 +80,19 @@ public class RentalCheckListService {
         RentalCheckList checkIn = checkLists.stream()
                 .filter(c -> c.getType() == CheckType.CHECK_IN)
                 .findFirst()
-                .orElseThrow(() -> new AppException(ErrorCode.CHECKLIST_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.CHECKIN_NOT_FOUND));
 
         RentalCheckList checkOut = checkLists.stream()
                 .filter(c -> c.getType() == CheckType.CHECK_OUT)
-                .reduce((first, second) -> second)
-                .orElseThrow(() -> new AppException(ErrorCode.CHECKLIST_NOT_FOUND));
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.CHECKOUT_NOT_FOUND));
 
-        double fee = 0.0;
+
+        double  fee = 0.0;
 
         double batteryDiff = checkOut.getCurrentBattery() - checkIn.getCurrentBattery();
         if(batteryDiff < 0){
-            fee += Math.abs(batteryDiff) * 12000; // 12k for each percent of battery used
+            fee += Math.abs(batteryDiff) * 12_000 ; // 12k for each percent of battery used
         }
 
         Rental rental = checkOut.getRental();
@@ -108,6 +105,8 @@ public class RentalCheckListService {
             long lateHours = Math.max(0, Duration.between(expectedReturnTime, actualReturnTime).toHours());
             fee += lateHours * (0.2 * pricePerDay);
         }
+
+
         return fee;
     }
 
