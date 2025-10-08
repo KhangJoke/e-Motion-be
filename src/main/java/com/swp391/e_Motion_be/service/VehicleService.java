@@ -9,7 +9,6 @@ import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
 import com.swp391.e_Motion_be.repository.StationRepository;
@@ -109,5 +108,10 @@ public class VehicleService {
                         .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime())))
                 .map(vehicleMapper::toVehicleListResponse)
                 .toList();
+    }
+
+    public boolean isAvailable(long id) {
+        List<Vehicle> availableVehicle = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
+        return availableVehicle.stream().anyMatch(v -> v.getId() == id);
     }
 }
