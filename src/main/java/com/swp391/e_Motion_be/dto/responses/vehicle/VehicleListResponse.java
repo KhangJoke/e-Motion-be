@@ -17,10 +17,8 @@ public class VehicleListResponse {
     private VehicleStatus status;
     private String category;
     private int seats;
-    private Double pricePer4Hours;
-    private Double pricePer8Hours;
-    private Double pricePer12Hours;
-    private Double pricePerDay;
+    private String priceRate;
+    private int hourRate;
     private Double consumptionRate;
     private Double batteryCapacity;
     private Long stationId;

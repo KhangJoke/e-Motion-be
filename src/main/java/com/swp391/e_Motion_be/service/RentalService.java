@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.service;
 
-import com.swp391.e_Motion_be.config.VehiclePricingConfig;
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
@@ -18,8 +17,8 @@ import com.swp391.e_Motion_be.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -38,12 +37,19 @@ public class RentalService {
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
     private final UserRepository userRepository;
+    private final DocumentRepository documentRepository;
 
     private final EmailService emailService;
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
-    private final DocumentRepository documentRepository;
-    private final VehiclePricingConfig vehiclePricingConfig;
+
+    @Value("${price.8h.rate}")
+    private double price8hRate;
+    @Value("${price.12h.rate}")
+    private double price12hRate;
+    @Value("${price.day.rate}")
+    private double priceDayRate;
+
 
     public List<RentalResponse> getAllRentals(){
        return rentalRepository.findAll().stream()
@@ -104,7 +110,7 @@ public class RentalService {
             throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
         }
         // save rental
-        rental.setRentFee(calculateFee(rental)); // Tiền thuê
+        rental.setRentFee(calculateRentalFee(rental)); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
@@ -114,8 +120,6 @@ public class RentalService {
                 rental.getId()
         );
         depositService.createDeposit(depositCreateRequest);
-        // update status vehicle khi bắt đầu thuê
-        rental.getVehicle().setStatus(VehicleStatus.INUSE);
         return rentalMapper.toRentalResponse(rental);
     }
 
@@ -140,31 +144,25 @@ public class RentalService {
         return  rentalMapper.toRentalResponse(rental);
     }
 
-    private double calculateFee(Rental rental) {
+    private double calculateRentalFee(Rental rental) {
         LocalDateTime start = rental.getStartTime();
         LocalDateTime end = rental.getEndTime();
         long hours = Duration.between(start, end).toHours();
-        long days = hours / 24;
-        long remainHours = hours % 24;
         double fee = 0;
+        double pricePer4Hours = rental.getVehicle().getPricePer4Hours();
 
-        Vehicle vehicle = rental.getVehicle();
-
-        // Tính theo ngày
-        if (days > 0) {
-            fee += days * rental.getVehicle().getPricePer4Hours()*vehiclePricingConfig.getPriceDayMultiplier();
+        if(hours < 4){
+            throw new AppException(ErrorCode.INVALID_TIME_RANGE);
         }
-        // Tính theo giờ (phần dư)
-        if (remainHours > 0) {
-            if (remainHours < 8) {
-                fee += vehicle.getPricePer4Hours()/4 * remainHours;
-            } else if (remainHours < 12) {
-                fee += vehicle.getPricePer4Hours()*vehiclePricingConfig.getPrice8hMultiplier()/8 * remainHours;
-            } else {
-                fee += vehicle.getPricePer4Hours()*vehiclePricingConfig.getPrice12hMultiplier()/12 * remainHours;
-            }
+        else if (hours < 8) {
+            fee += pricePer4Hours/4 * hours;
+        } else if (hours < 12) {
+            fee += (pricePer4Hours*price8hRate/8 )* hours;
+        } else if (hours < 24) {
+            fee += (pricePer4Hours*price12hRate/12) * hours;
+        } else {
+            fee += (pricePer4Hours*priceDayRate/24) * hours;
         }
-
         return fee;
     }
 
