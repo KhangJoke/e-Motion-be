@@ -67,7 +67,6 @@ public class RentalCheckListService {
         if(request.getType().equals(CheckType.CHECK_OUT)){
             checkList.setFee(calculateFee(rental.getId()));
             // lưu phí phát sinh và cập nhật status rental
-            rental.setPenaltyFee(calculateFee(rental.getId()));
             checkList.setRental(rental);
             rentalCheckListRepository.save(checkList);
         }
