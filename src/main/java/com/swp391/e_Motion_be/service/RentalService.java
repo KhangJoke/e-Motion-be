@@ -76,13 +76,7 @@ public class RentalService {
                 .orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTS));
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-        // kiểm tra thời gian thuê có conflic với các đơn đang thuê ko
-        boolean hasConflict = rentalRepository.findByVehicle_IdAndStatusNotIn(request.getVehicleId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED))
-                .stream().anyMatch(r -> r.getStartTime().minusHours(3).isBefore(request.getEndTime())
-                && r.getEndTime().plusHours(3).isAfter(request.getStartTime()));
-        if(hasConflict){
-            throw new AppException(ErrorCode.RENTAL_HAS_CONFLICT);
-        }
+
         Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
         return createRentalCommon(rental, user.getId(), vehicle, station.getId());
     }
