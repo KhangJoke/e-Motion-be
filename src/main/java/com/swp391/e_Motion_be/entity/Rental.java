@@ -32,9 +32,7 @@ public class Rental {
     private Boolean expiringNotified = false;
     @Column(name="rent_fee")
     Double rentFee;
-    // phí phát sinh sau khi trả xe, vd: trễ, pin, ...
-    @Column(name="penalty_fee")
-    Double penaltyFee;
+
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     LocalDateTime createdAt;
