@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleLogMapper;
 import com.swp391.e_Motion_be.repository.*;
@@ -96,8 +97,8 @@ public class VehicleLogService {
         vehicleLog.setCost(totalCost);
 
 
-        // Update tiền sửa vào rental
-        rental.setPenaltyFee(rental.getPenaltyFee() + totalCost);
+        // Update vehicle status -> maintance
+        vehicle.setStatus(VehicleStatus.MAINTAINED);
 
         vehicleLogRepository.save(vehicleLog);
         return vehicleLogMapper.toResponse(vehicleLog);

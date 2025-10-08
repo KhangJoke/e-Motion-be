@@ -16,9 +16,7 @@ import com.swp391.e_Motion_be.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
@@ -61,11 +59,14 @@ public class VehicleService {
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
 
         vehicle.setStation(station);
+
         //SAVE
         vehicleRepository.save(vehicle);
         return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
-
+    private double roundToNearest10(double value) {
+        return Math.round(value / 10.0) * 10.0;
+    }
     // UPDATE
     @Transactional
     public VehicleDetailResponse updateVehicle(Long id, VehicleUpdateRequest request) {

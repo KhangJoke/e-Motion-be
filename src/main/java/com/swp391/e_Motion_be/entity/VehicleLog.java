@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import com.swp391.e_Motion_be.dto.convert.MapToJsonConverter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -27,6 +28,9 @@ public class VehicleLog {
 
     @Column(name ="total_cost")
     private Double cost;
+
+    @Column(name = "images")
+    private List<String> imgs;
 
     @Column(name="created_at", nullable=false)
     @CreationTimestamp

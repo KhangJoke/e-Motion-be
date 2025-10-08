@@ -10,10 +10,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RentalCheckListResponse {
+
     private Long id;
     private String type;
     private Double fee;
     private Double currentBattery;
+    private String img;
     private Long rentalId;
     private String staffEmail;
     private LocalDateTime createdAt;

@@ -32,9 +32,7 @@ public class Rental {
     private Boolean expiringNotified = false;
     @Column(name="rent_fee")
     Double rentFee;
-    // phí phát sinh sau khi trả xe, vd: trễ, pin, ...
-    @Column(name="penalty_fee")
-    Double penaltyFee;
+
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     LocalDateTime createdAt;
@@ -70,4 +68,8 @@ public class Rental {
 
     @OneToOne(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
     VehicleLog vehicleLog;
+
+    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    List<RentalCheckList> rentalCheckLists;
+
 }

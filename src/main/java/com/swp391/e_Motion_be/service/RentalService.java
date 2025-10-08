@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.config.VehiclePricingConfig;
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
@@ -17,6 +18,7 @@ import com.swp391.e_Motion_be.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,7 @@ public class RentalService {
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
     private final DocumentRepository documentRepository;
+    private final VehiclePricingConfig vehiclePricingConfig;
 
     public List<RentalResponse> getAllRentals(){
        return rentalRepository.findAll().stream()
@@ -73,13 +76,7 @@ public class RentalService {
                 .orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTS));
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-        // kiểm tra thời gian thuê có conflic với các đơn đang thuê ko
-        boolean hasConflict = rentalRepository.findByVehicle_IdAndStatusNotIn(request.getVehicleId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED))
-                .stream().anyMatch(r -> r.getStartTime().minusHours(3).isBefore(request.getEndTime())
-                && r.getEndTime().plusHours(3).isAfter(request.getStartTime()));
-        if(hasConflict){
-            throw new AppException(ErrorCode.RENTAL_HAS_CONFLICT);
-        }
+
         Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
         return createRentalCommon(rental, user.getId(), vehicle, station.getId());
     }
@@ -150,16 +147,27 @@ public class RentalService {
         long days = hours / 24;
         long remainHours = hours % 24;
         double fee = 0;
+
+        Vehicle vehicle = rental.getVehicle();
+
         // Tính theo ngày
         if (days > 0) {
-            fee += days * rental.getVehicle().getPricePerDay();
+            fee += days * rental.getVehicle().getPricePer4Hours()*vehiclePricingConfig.getPriceDayMultiplier();
         }
         // Tính theo giờ (phần dư)
         if (remainHours > 0) {
-            fee += remainHours * rental.getVehicle().getPricePerHour();
+            if (remainHours < 8) {
+                fee += vehicle.getPricePer4Hours()/4 * remainHours;
+            } else if (remainHours < 12) {
+                fee += vehicle.getPricePer4Hours()*vehiclePricingConfig.getPrice8hMultiplier()/8 * remainHours;
+            } else {
+                fee += vehicle.getPricePer4Hours()*vehiclePricingConfig.getPrice12hMultiplier()/12 * remainHours;
+            }
         }
+
         return fee;
     }
+
 
     public void sendRentalExpiringEmail(Rental rental) {
         String subject = "Your Rental is About to Expire";
