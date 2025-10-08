@@ -124,8 +124,9 @@ public class ReservationService {
         // Create VNPay payment URL
         CreatePaymentUrlRequest paymentUrlRequest = new CreatePaymentUrlRequest(
                 depositResponse.getAmount(),
-                "Reservation Deposit - Vehicle: " + vehicle.getId(),
+                "Reservation Deposit",
                 user.getEmail(),
+                PaymentType.RESERVATION,
                 depositResponse.getId(),
                 null
         );

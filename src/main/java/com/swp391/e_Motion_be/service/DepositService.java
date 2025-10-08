@@ -26,6 +26,12 @@ public class DepositService {
     private final ReservationRepository reservationRepository;
     private final RentalRepository rentalRepository;
 
+    public DepositResponse getDepositById(Long id) {
+        Deposit deposit = depositRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+        return depositMapper.toDepositResponse(deposit);
+    }
+
     public List<DepositResponse> getAllDeposits() {
         return depositRepository.findAll().stream()
                 .map(depositMapper:: toDepositResponse)

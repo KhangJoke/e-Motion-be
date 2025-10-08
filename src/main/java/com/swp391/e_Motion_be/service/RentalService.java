@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.config.VehiclePricingConfig;
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
@@ -18,7 +19,6 @@ import com.swp391.e_Motion_be.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -44,11 +45,18 @@ public class RentalService {
     private final DepositService depositService;
     private final DocumentRepository documentRepository;
     private final VehiclePricingConfig vehiclePricingConfig;
+    private final ReservationService reservationService;
 
     public List<RentalResponse> getAllRentals(){
        return rentalRepository.findAll().stream()
                 .map(rentalMapper::toRentalResponse)
                 .toList();
+    }
+
+    public RentalResponse getRentalById(Long id){
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+        return rentalMapper.toRentalResponse(rental);
     }
 
     // Hàm tạo rental khi renter có thuê trước
@@ -280,5 +288,36 @@ public class RentalService {
             rental.setOverdueNotified(true);
             rentalRepository.save(rental);
         });
+    }
+
+    public RentalOverviewResponse getRentalOverviewById(Long id) {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        RentalCheckList rentalCheckList = rental.getRentalCheckLists().stream()
+                .filter(r -> "CHECK_OUT".equalsIgnoreCase(r.getType().toString()))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_CHECKLIST_NOT_FOUND));
+
+        double checkListFee = rentalCheckList.getFee();
+        double reservationDepositAmount = rental.getReservation()!=null ? rental.getReservation().getDeposit().getAmount() : 0;
+        double rentalDepositAmount = rental.getDeposit().getAmount();
+
+        VehicleLog vehicleLog = rental.getVehicleLog();
+        Map<String, Double> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairCost() : null;
+        double vehicleDamageFee = vehicleLog != null ? vehicleLog.getCost() : 0;
+
+        double totalCharges = vehicleDamageFee + checkListFee;
+        double totalDeposits = reservationDepositAmount + rentalDepositAmount;
+
+        return RentalOverviewResponse.builder()
+                .rental(rental)
+                .checkListFee(checkListFee)
+                .reservationDeposit(reservationDepositAmount)
+                .rentalDeposit(rentalDepositAmount)
+                .vehicleDamages(vehicleDamages)
+                .vehicleDamageFee(vehicleDamageFee)
+                .refundEligible(totalCharges <= totalDeposits)
+                .build();
     }
 }

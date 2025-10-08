@@ -113,6 +113,7 @@ public enum ErrorCode {
     ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "Vehicle has already been checked in for this rental"),
     ALREADY_CHECKED_OUT(HttpStatus.BAD_REQUEST, "Vehicle has already been checked out for this rental"),
     CHECKLIST_TYPE_INVALID(HttpStatus.BAD_REQUEST, "check list type is invalid"),
+    RENTAL_CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental checklist not found"),
 
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),

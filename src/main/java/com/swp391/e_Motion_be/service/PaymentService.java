@@ -81,7 +81,7 @@ public class PaymentService {
                 .amount(request.getAmount())
                 .description(request.getDescription())
                 .method(PaymentMethod.VNPAY)
-                .type(request.getRentalId() == null ? PaymentType.RESERVATION : PaymentType.RENTAL)
+                .type(request.getType())
                 .status(PaymentStatus.PENDING)
                 .build();
         paymentRepository.save(payment);
@@ -189,9 +189,11 @@ public class PaymentService {
             processSuccessfulPayment(payment);
             log.info("Payment successful for txnRef: {}", vnp_TxnRef);
             paymentRepository.save(payment);
+            emailService.sendPaymentStatusToEmail(payment);
         } else {
             processFailedPayment(payment);
             log.warn("Payment failed for txnRef: {} with code: {}", vnp_TxnRef, responseCode);
+            emailService.sendPaymentStatusToEmail(payment);
             return null;
         }
 
@@ -316,7 +318,7 @@ public class PaymentService {
             params.put("vnp_TmnCode", vnPayConfig.getVnp_TmnCode());
             params.put("vnp_TransactionType", vnp_TransactionType);
             params.put("vnp_TxnRef", request.getTxnRef());
-            params.put("vnp_Amount", refundAmount); // VNPay uses smallest unit
+            params.put("vnp_Amount", refundAmount);
             params.put("vnp_OrderInfo", "Hoan tien giao dich");
             params.put("vnp_TransactionNo", originalPayment.getTransactionNo());
             params.put("vnp_TransactionDate", vnp_TransactionDate);
@@ -547,7 +549,7 @@ public class PaymentService {
                 .amount(request.getAmount())
                 .description(request.getDescription())
                 .method(PaymentMethod.CASH)
-                .type(request.getRentalId() == null ? PaymentType.RESERVATION : PaymentType.RENTAL)
+                .type(request.getPaymentType())
                 .status(PaymentStatus.SUCCESS)
                 .build();
         Payment savedPayment = paymentRepository.save(payment);
