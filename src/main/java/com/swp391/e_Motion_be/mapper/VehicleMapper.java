@@ -24,6 +24,9 @@ public interface VehicleMapper {
     @Mapping(source = "station.address", target = "address")
     @Mapping(source = "station.city", target = "city") // map Station -> city
     @Mapping(target = "images", expression = "java(getImageUrls(vehicle))")
+    @Mapping(target = "pricePer8Hours", expression = "java(roundToNearest10(vehicle.getPricePer4Hours() * 1.4))")
+    @Mapping(target = "pricePer12Hours", expression = "java(roundToNearest10(vehicle.getPricePer4Hours() * 1.6))")
+    @Mapping(target = "pricePerDay", expression = "java(roundToNearest10(vehicle.getPricePer4Hours() * 2))")
     VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
     @Mapping(source = "station.id", target = "stationId")
@@ -50,5 +53,9 @@ public interface VehicleMapper {
         return vehicle.getImages().stream()
                 .map(ImgVehicle::getUrl)
                 .toList();
+    }
+
+    default double roundToNearest10(double value) {
+        return Math.round(value / 10.0) * 10.0;
     }
 }

@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.config.VehiclePricingConfig;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
 import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
 import com.swp391.e_Motion_be.entity.Rental;
@@ -33,6 +34,7 @@ public class RentalCheckListService {
     private final RentalRepository rentalRepository;
     private final StaffRepository staffRepository;
     private final VehicleRepository vehicleRepository;
+    private final VehiclePricingConfig vehiclePricingConfig;
 
     private final EmailService emailService;
 
@@ -97,7 +99,7 @@ public class RentalCheckListService {
         }
 
         Rental rental = checkOut.getRental();
-        double pricePerDay = rental.getVehicle().getPricePerDay();
+        double pricePerDay = rental.getVehicle().getPricePer4Hours()*vehiclePricingConfig.getPriceDayMultiplier();
 
         LocalDateTime actualReturnTime = checkOut.getCreatedAt();
         LocalDateTime expectedReturnTime = rental.getEndTime();
