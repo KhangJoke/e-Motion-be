@@ -61,6 +61,7 @@ public enum ErrorCode {
     EXTRACT_USERNAME_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Extract username from token failed"),
     NOT_LOGIN_YET(HttpStatus.UNAUTHORIZED, "You are not logged in. Please login to continue."),
     USER_NOT_EXISTS(HttpStatus.NOT_FOUND, "User does not exist"),
+    REFRESH_TOKEN_IS_REUSED(HttpStatus.UNAUTHORIZED, "Refresh token is reused. Please login again."),
 
     // Logout errors
     USER_HAS_BEEN_LOGOUT(HttpStatus.UNAUTHORIZED, "Your Account has been logout. Please login to continue."),
@@ -105,7 +106,8 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh token not found"),
 
     // RentalCheckList errors
-    CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental checklist not found"),
+    CHECKIN_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental check-in not found"),
+    CHECKOUT_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental check-out not found"),
     CHECKLIST_UNAUTHORIZED(HttpStatus.FORBIDDEN, "You are not authorized to modify this checklist"),
     ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "Vehicle has already been checked in for this rental"),
     ALREADY_CHECKED_OUT(HttpStatus.BAD_REQUEST, "Vehicle has already been checked out for this rental"),

@@ -24,7 +24,9 @@ public class RentalCheckList {
     @Column(name = "check_type")
     private CheckType type;
 
-    private Double fee;
+    private Double fee = 0.0;
+
+    private String img;
 
     @Column(name = "current_battery")
     private Double currentBattery;

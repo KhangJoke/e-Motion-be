@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -19,6 +20,9 @@ public class VehicleLogCreationRequest {
 
     @NotNull(message = "VehicleId is required")
     private Long vehicleId;
+
+    @NotNull(message = "Images are required")
+    private List<String> imgs;
 
     @NotNull(message = "StaffId is required (Staff)")
     private Long staffId;

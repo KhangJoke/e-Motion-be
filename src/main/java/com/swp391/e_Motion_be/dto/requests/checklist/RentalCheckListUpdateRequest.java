@@ -26,6 +26,9 @@ public class RentalCheckListUpdateRequest {
     @DecimalMax(value = "100.0", message = "Current battery must be less than or equal to 100")
     private Double currentBattery;
 
+    @NotBlank(message = "Img is required")
+    private String img;
+
     @NotNull(message = "Rental ID is required")
     private Long rentalId;
 }

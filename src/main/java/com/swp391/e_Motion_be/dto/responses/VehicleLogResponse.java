@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -14,6 +15,7 @@ public class VehicleLogResponse {
     private Long id;
     private Map<String, Double> repairCost;
     private Double cost;
+    private List<String> imgs;
     private LocalDateTime createdAt;
     private Long vehicleId;
     private Long staffId;

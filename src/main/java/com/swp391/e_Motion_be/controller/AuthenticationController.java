@@ -79,6 +79,9 @@ public class AuthenticationController {
         }
         // Rotate refresh token
         RefreshToken oldRefreshToken = refreshTokenService.findByToken(refreshToken);
+        if(oldRefreshToken.isRevoked() || oldRefreshToken.getReplacedBy() != null) {
+            throw new AppException(ErrorCode.REFRESH_TOKEN_IS_REUSED);
+        }
         String newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
         ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
                 .httpOnly(true)

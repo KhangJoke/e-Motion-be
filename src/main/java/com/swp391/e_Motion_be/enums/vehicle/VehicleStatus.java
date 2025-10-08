@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum VehicleStatus {
     AVAILABLE("Sẵn sàng"),
+    CHECKING("Đang kiểm tra"),
     MAINTAINED("Đang bảo trì"),
     INUSE("Đang thuê");
 
