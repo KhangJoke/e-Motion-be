@@ -21,11 +21,11 @@ public class VehicleDetailResponse {
     private String category;
     private VehicleStatus status;
     private int seats;
-    private Double pricePer4Hours;
-    private Double pricePer8Hours;
-    private Double pricePer12Hours;
-    private Double pricePerDay;
-    private Double depositFee;
+    private String pricePer4Hours;
+    private String pricePer8Hours;
+    private String pricePer12Hours;
+    private String pricePerDay;
+    private String depositFee;
     private Double consumptionRate;
     private Double batteryLevel;
     private Double batteryCapacity;

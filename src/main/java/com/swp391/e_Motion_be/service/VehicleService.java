@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleSearchResponse;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -16,6 +17,9 @@ import com.swp391.e_Motion_be.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -33,18 +37,10 @@ public class VehicleService {
     }
 
     // Find by PlateNumber
-    public VehicleListResponse findVehicleByPlateNumber(String plateNumber) {
+    public VehicleDetailResponse findVehicleByPlateNumber(String plateNumber) {
         Vehicle vehicle = vehicleRepository.findByPlateNumber(plateNumber)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        return vehicleMapper.toVehicleListResponse(vehicle);
-    }
-
-    // Find all
-    public List<VehicleListResponse> findAllVehicle() {
-        return vehicleRepository.findAll()
-                .stream()
-                .map(vehicleMapper::toVehicleListResponse)
-                .toList();
+        return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
 
     // CREATE
@@ -100,15 +96,34 @@ public class VehicleService {
     }
 
     // Search bằng thanh tìm kiếm
-    public List<VehicleListResponse> searchVehicles(VehicleFindRequest request) {
-        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatus(request.getCity(), VehicleStatus.AVAILABLE);
-        return vehicles.stream()
-                .filter(v -> v.getReservations().stream()
-                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime())))
-                .filter(v -> v.getRentals().stream()
-                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime())))
-                .map(vehicleMapper::toVehicleListResponse)
-                .toList();
+    public VehicleSearchResponse searchVehicles(VehicleFindRequest request) {
+        // lấy ra tất cả các xe có thể sử dụng
+        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatusIn(request.getCity(), List.of(VehicleStatus.AVAILABLE, VehicleStatus.INUSE));
+
+        List<Vehicle> availables = new ArrayList<>();
+        List<Vehicle> unavailables = new ArrayList<>();
+
+        // duyệt qua từng xe và chia vào list phù hợp
+        for(Vehicle v : vehicles) {
+            boolean hasConflic = v.getReservations().stream()
+                    .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime()))
+                    ||
+                    v.getRentals().stream()
+                            .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime()));
+
+            if (hasConflic) {
+                unavailables.add(v);
+            } else {
+                availables.add(v);
+            }
+        }
+
+        long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
+
+        return new VehicleSearchResponse(
+                availables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList(),
+                unavailables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList()
+        );
     }
 
     public boolean isAvailable(long id) {

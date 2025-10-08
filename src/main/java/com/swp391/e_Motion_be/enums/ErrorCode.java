@@ -10,6 +10,7 @@ public enum ErrorCode {
     // Generic errors
     UNEXPECTED_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected exception"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),
+    INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "Time range must be more or equal 4"),
 
     // Update password errors
     PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "New password and confirm new password do not match"),
