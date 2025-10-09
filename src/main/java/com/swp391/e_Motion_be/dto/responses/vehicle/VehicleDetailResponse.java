@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
+import com.swp391.e_Motion_be.dto.responses.StationResponse;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -34,6 +35,7 @@ public class VehicleDetailResponse {
     private String plateNumber;
     private LocalDateTime lastMaintenance;
     private Long stationId;
+    private StationResponse station;
     private StationCity city;
     private String address;
     private List<String> images;

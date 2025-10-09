@@ -32,9 +32,9 @@ public class DocumentService {
     public DocumentResponse createDocument(DocumentCreationRequest request) {
         String extractedCccd = ocrService.extractCccdFromUrl(request.getImgUrl());
         // 1. Verify OCR
-        if(extractedCccd.equals(request.getDocNumber())){
+        if(extractedCccd.equals(request.getNumber())){
             // 2. Check trùng số CCCD
-            if(documentRepository.existsByNumber(request.getDocNumber())){
+            if(documentRepository.existsByNumber(request.getNumber())){
                 throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
             }
         }else{
@@ -47,7 +47,7 @@ public class DocumentService {
                 throw new AppException(ErrorCode.DOCUMENT_NUMBER_MISMATCH);
             }
         }
-        // 3. Lưu document vào user tương ứng
+        // 3. lấy ra user
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_EXISTS));
         Document document = documentMapper.toDocumentEntity(request);

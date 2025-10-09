@@ -11,6 +11,7 @@ import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
+import com.swp391.e_Motion_be.enums.DocumentType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -40,6 +41,7 @@ public class RentalService {
 
     private final RentalRepository rentalRepository;
     private final ReservationRepository reservationRepository;
+    private final DocumentRepository documentRepository;
     private final StaffRepository staffRepository;
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
@@ -103,12 +105,12 @@ public class RentalService {
     // Hàm này chứa các action chung của 2 hàm cách tạo rental
     private RentalResponse createRentalCommon(Rental rental, Long userId, Vehicle vehicle, Long stationId){
         // Kiểm tra CCCD và GPLX của renter
-//        if(!documentRepository.existsByUser_IdAndType(userId, DocType.CCCD)){
-//            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
-//        }
-//        if(!documentRepository.existsByUser_IdAndType(userId, DocType.LICENSE)){
-//            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
-//        }
+        if(!documentRepository.existsByUser_IdAndType(userId, DocumentType.CCCD)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
+        }
+        if(!documentRepository.existsByUser_IdAndType(userId, DocumentType.LICENSE)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
+        }
         // Kiểm tra user có đơn thuê nào chưa trả ko
         boolean hasOngoingRental = rentalRepository.existsByUser_IdAndStatusNotIn(userId, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
         if(hasOngoingRental){

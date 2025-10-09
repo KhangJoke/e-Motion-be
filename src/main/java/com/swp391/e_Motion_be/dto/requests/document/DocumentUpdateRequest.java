@@ -1,6 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.document;
 
-import com.swp391.e_Motion_be.enums.DocType;
+import com.swp391.e_Motion_be.enums.DocumentType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -18,7 +18,7 @@ public class DocumentUpdateRequest {
     String imgUrl;
 
     @NotBlank(message = "Document type is required")
-    DocType docType;
+    DocumentType documentType;
 
     @NotBlank(message = "Document number must not be blank")
     @Size(max = 20, message = "Document number must not exceed 20 characters")

@@ -98,7 +98,6 @@ public class VehicleLogService {
         vehicleLog.setRental(rental);
         vehicleLog.setCost(totalCost);
 
-
         // Update vehicle status -> maintance
         vehicle.setStatus(VehicleStatus.MAINTAINED);
 

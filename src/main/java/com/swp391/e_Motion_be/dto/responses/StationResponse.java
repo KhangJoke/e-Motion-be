@@ -8,5 +8,7 @@ public class StationResponse {
     private String name;
     private String address;
     private String city;
+    private Double latitude;
+    private Double longitude;
     private String stationStatus;
 }

@@ -7,10 +7,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public abstract class RentalCheckListMapper {
-    public abstract RentalCheckList toCheckListEntity(RentalCheckListCreateRequest request);
+public interface RentalCheckListMapper {
+    RentalCheckList toCheckListEntity(RentalCheckListCreateRequest request);
     @Mapping(source = "rental.id", target = "rentalId")
     @Mapping(source = "staff.user.email", target = "staffEmail")
-    public abstract RentalCheckListResponse toRentalCheckListResponse(RentalCheckList rentalCheckOut);
-
+    RentalCheckListResponse toRentalCheckListResponse(RentalCheckList rentalCheckOut);
 }

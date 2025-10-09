@@ -1,6 +1,6 @@
 package com.swp391.e_Motion_be.entity;
 
-import com.swp391.e_Motion_be.enums.DocType;
+import com.swp391.e_Motion_be.enums.DocumentType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -18,9 +18,9 @@ public class Document {
     @Column(name = "doc_img_url")
     String imgUrl;
     @Enumerated(EnumType.STRING)
-    @Column(name = "doc_type")
-    DocType type;
-    @Column(name = "doc_number", unique = true)
+    @Column(name = "doc_type", nullable = false)
+    DocumentType type;
+    @Column(name = "doc_number", unique = true, nullable = false)
     String number;
 
     @ManyToOne(fetch = FetchType.LAZY)

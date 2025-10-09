@@ -33,6 +33,7 @@ public abstract class VehicleMapper {
     @Mapping(source = "category", target = "category")
     @Mapping(source = "station.address", target = "address")
     @Mapping(source = "brand", target = "brand")
+    @Mapping(source = "station", target = "station") // map Station -> station
     @Mapping(source = "station.city", target = "city") // map Station -> city
     @Mapping(target = "images", expression = "java(getImageUrls(vehicle))")
     @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")
