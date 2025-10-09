@@ -4,14 +4,19 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleScheduleResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleSearchResponse;
+import com.swp391.e_Motion_be.entity.Rental;
+import com.swp391.e_Motion_be.entity.Reservation;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
+import com.swp391.e_Motion_be.repository.RentalRepository;
+import com.swp391.e_Motion_be.repository.ReservationRepository;
 import com.swp391.e_Motion_be.repository.StationRepository;
 import com.swp391.e_Motion_be.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
@@ -28,6 +33,8 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final VehicleMapper vehicleMapper;
     private final StationRepository stationRepository;
+    private final RentalRepository rentalRepository;
+    private final ReservationRepository reservationRepository;
 
     // Find by ID
     public VehicleDetailResponse findVehicleById(Long id) {
@@ -98,7 +105,7 @@ public class VehicleService {
     // Search bằng thanh tìm kiếm
     public VehicleSearchResponse searchVehicles(VehicleFindRequest request) {
         // lấy ra tất cả các xe có thể sử dụng
-        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatusIn(request.getCity(), List.of(VehicleStatus.AVAILABLE, VehicleStatus.INUSE));
+        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatusIn(request.getCity(), List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING));
 
         List<Vehicle> availables = new ArrayList<>();
         List<Vehicle> unavailables = new ArrayList<>();
@@ -117,13 +124,24 @@ public class VehicleService {
                 availables.add(v);
             }
         }
-
         long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
 
         return new VehicleSearchResponse(
                 availables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList(),
                 unavailables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList()
         );
+    }
+
+    public List<VehicleScheduleResponse> getVehicleSchedule(Long vid){
+        List<VehicleScheduleResponse> schedules = new ArrayList<>();
+        rentalRepository.findByVehicle_Id(vid).ifPresent(rental ->
+                schedules.add(new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
+        );
+        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusIn(vid, List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM));
+        schedules.addAll(reservations.stream()
+                .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
+                .toList());
+        return schedules;
     }
 
     public boolean isAvailable(long id) {

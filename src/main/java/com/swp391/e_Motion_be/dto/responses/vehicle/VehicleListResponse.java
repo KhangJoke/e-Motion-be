@@ -17,7 +17,7 @@ public class VehicleListResponse {
     private VehicleStatus status;
     private String category;
     private int seats;
-    private String priceRate;
+    private Double priceRate;
     private int hourRate;
     private Double consumptionRate;
     private Double batteryCapacity;

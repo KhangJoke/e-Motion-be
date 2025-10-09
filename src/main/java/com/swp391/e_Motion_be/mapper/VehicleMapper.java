@@ -6,7 +6,6 @@ import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
 import com.swp391.e_Motion_be.entity.ImgVehicle;
 import com.swp391.e_Motion_be.entity.Vehicle;
-import com.swp391.e_Motion_be.util.CurrencyUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -34,11 +33,9 @@ public abstract class VehicleMapper {
     @Mapping(source = "station.address", target = "address")
     @Mapping(source = "station.city", target = "city") // map Station -> city
     @Mapping(target = "images", expression = "java(getImageUrls(vehicle))")
-    @Mapping(target = "pricePer4Hours", expression = "java(formatFee(vehicle.getPricePer4Hours()))")
     @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")
     @Mapping(target = "pricePer12Hours", expression = "java(getPriceEachRate(vehicle, price12hRate))")
     @Mapping(target = "pricePerDay", expression = "java(getPriceEachRate(vehicle, priceDayRate))")
-    @Mapping(target = "depositFee", expression = "java(formatFee(vehicle.getDepositFee()))")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
     @Mapping(source = "vehicle.station.id", target = "stationId")
@@ -69,17 +66,15 @@ public abstract class VehicleMapper {
                 .toList();
     }
 
-    String getPriceEachRate(Vehicle vehicle, double rate) {
-        return formatFee(vehicle.getPricePer4Hours() * rate);
+    double getPriceEachRate(Vehicle vehicle, double rate) {
+        return vehicle.getPricePer4Hours() * rate;
     }
 
-    String getPriceRate(Vehicle vehicle, long hours) {
-        double fee = 0;
-        if(hours < 8) fee = vehicle.getPricePer4Hours();
-        else if(hours < 12) fee =  vehicle.getPricePer4Hours()*price8hRate;
-        else if (hours < 24) fee =  vehicle.getPricePer4Hours()*price12hRate;
-        else fee =  vehicle.getPricePer4Hours()*priceDayRate;
-        return formatFee(fee);
+    double getPriceRate(Vehicle vehicle, long hours) {
+        if(hours < 8) return vehicle.getPricePer4Hours();
+        else if(hours < 12) return vehicle.getPricePer4Hours()*price8hRate;
+        else if (hours < 24) return vehicle.getPricePer4Hours()*price12hRate;
+        else return vehicle.getPricePer4Hours()*priceDayRate;
     }
 
     int getHourRate(long hours) {
@@ -87,9 +82,5 @@ public abstract class VehicleMapper {
         else if(hours < 12) return 8;
         else if (hours < 24) return 12;
         else return 24;
-    }
-
-    String formatFee(double fee) {
-        return CurrencyUtil.formatVnCurrency(fee);
     }
 }

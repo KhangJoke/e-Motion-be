@@ -61,10 +61,11 @@ public class RentalCheckListService {
         if(request.getType().equals(CheckType.CHECK_IN)){
             // update status vehicle, rental khi bắt đầu thuê
             rental.setStatus(RentalStatus.ONGOING);
-            rental.getVehicle().setStatus(VehicleStatus.INUSE);
+            rental.getVehicle().setStatus(VehicleStatus.ONGOING);
         }else{
             // lưu phí phát sinh và cập nhật status rental, vehicle
-            checkList.setFee(calculateFee(rental.getId()));
+            double fee = calculateFee(rental.getId());
+            checkList.setFee(fee);
             rental.setStatus(RentalStatus.PENDING_FEE);
             rental.getVehicle().setStatus(VehicleStatus.CHECKING);
         }

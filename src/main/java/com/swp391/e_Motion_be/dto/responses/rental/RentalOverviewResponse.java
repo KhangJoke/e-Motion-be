@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.requests.rental;
+package com.swp391.e_Motion_be.dto.responses.rental;
 
 import com.swp391.e_Motion_be.entity.Rental;
 import lombok.AllArgsConstructor;
