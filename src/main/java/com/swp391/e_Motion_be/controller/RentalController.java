@@ -1,8 +1,12 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.rental.*;
+import com.swp391.e_Motion_be.dto.requests.rental.CheckOutProcessResponse;
+import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

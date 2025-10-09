@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.dto.responses.rental;
 
-import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
