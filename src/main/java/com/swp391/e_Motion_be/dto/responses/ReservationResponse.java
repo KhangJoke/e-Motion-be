@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.dto.responses;
 
 import com.swp391.e_Motion_be.enums.ReservationStatus;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,8 @@ public class ReservationResponse {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime endTime;
+    private Boolean overdueNotified;
+    private Boolean expiringNotified;
     private String userEmail;
     private Long vehicleId;
     private Long stationId;

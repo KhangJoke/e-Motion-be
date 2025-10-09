@@ -6,6 +6,7 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleScheduleResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleSearchResponse;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
@@ -33,8 +34,24 @@ public class VehicleController {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleByPlateNumber(plateNumber));
     }
 
+    // Find all available
+    @GetMapping
+    public ApiResponse<List<VehicleListResponse>> getAllVehicles() {
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findAllVehicles());
+        return response;
+    }
+
+    // Find by brand
+    @GetMapping("/brand/{brand}")
+    public ApiResponse<List<VehicleListResponse>> getVehiclesByBrand(@PathVariable String brand) {
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findVehicleByBrand(brand));
+        return response;
+    }
+
     // Create a new vehicle
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<VehicleDetailResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
         return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
     }
@@ -57,6 +74,14 @@ public class VehicleController {
     public ApiResponse<VehicleSearchResponse> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
         ApiResponse<VehicleSearchResponse> response = new ApiResponse<>();
         response.setData(vehicleService.searchVehicles(request));
+        return response;
+    }
+
+    // Get ra danh sách đang thuê và đặt trước của xe
+    @GetMapping("/schedule/{vid}")
+    public ApiResponse<List<VehicleScheduleResponse>> scheduleVehicles(@PathVariable Long vid){
+        ApiResponse<List<VehicleScheduleResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.getVehicleSchedule(vid));
         return response;
     }
 }

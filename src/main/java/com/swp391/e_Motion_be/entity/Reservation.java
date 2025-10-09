@@ -23,6 +23,13 @@ public class Reservation {
     @Column(name="reservation_status",nullable = false)
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
+
+    @Column(name = "overdue_notified")
+    private Boolean overdueNotified = false;
+
+    @Column(name = "expiring_notified")
+    private Boolean expiringNotified = false;
+
     @Column(name="created_at",nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;

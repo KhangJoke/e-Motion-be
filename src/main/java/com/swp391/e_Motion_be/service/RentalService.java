@@ -44,6 +44,7 @@ public class RentalService {
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
     private final PaymentService paymentService;
+    private final RentalCheckListRepository rentalCheckListRepository;
 
     @Value("${price.8h.rate}")
     private double price8hRate;
@@ -117,7 +118,10 @@ public class RentalService {
         if(!vehicle.getStation().getId().equals(stationId)) {
             throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
         }
+
         // save rental
+        // set status của xe sang đang thuê
+        vehicle.setStatus(VehicleStatus.ONGOING);
         rental.setRentFee(calculateRentalFee(rental)); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
@@ -172,6 +176,37 @@ public class RentalService {
             fee += (pricePer4Hours*priceDayRate/24) * hours;
         }
         return fee;
+    }
+
+    public RentalOverviewResponse getRentalOverviewById(Long id) {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        RentalCheckList rentalCheckList = rental.getRentalCheckLists().stream()
+                .filter(r -> "CHECK_OUT".equalsIgnoreCase(r.getType().toString()))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_CHECKLIST_NOT_FOUND));
+
+        double checkListFee = rentalCheckList.getFee();
+        double reservationDepositAmount = rental.getReservation()!=null ? rental.getReservation().getDeposit().getAmount() : 0;
+        double rentalDepositAmount = rental.getDeposit().getAmount();
+
+        VehicleLog vehicleLog = rental.getVehicleLog();
+        Map<String, Double> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairCost() : null;
+        double vehicleDamageFee = vehicleLog != null ? vehicleLog.getCost() : 0;
+
+        double totalCharges = vehicleDamageFee + checkListFee;
+        double totalDeposits = reservationDepositAmount + rentalDepositAmount;
+
+        return RentalOverviewResponse.builder()
+                .rental(rental)
+                .checkListFee(checkListFee)
+                .reservationDeposit(reservationDepositAmount)
+                .rentalDeposit(rentalDepositAmount)
+                .vehicleDamages(vehicleDamages)
+                .vehicleDamageFee(vehicleDamageFee)
+                .refundEligible(totalCharges <= totalDeposits)
+                .build();
     }
 
 
@@ -287,7 +322,7 @@ public class RentalService {
                 now,
                 threshold
         );
-        expiringRentals.forEach(rental -> {;
+        expiringRentals.forEach(rental -> {
             sendRentalExpiringEmail(rental);
             rental.setExpiringNotified(true);
             rentalRepository.save(rental);
@@ -296,7 +331,6 @@ public class RentalService {
 
     public void sendRentalOverdueEmail(Rental rental) {
         String subject = "Your Rental is Overdue";
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String endTimeFormatted = rental.getEndTime() != null
                 ? rental.getEndTime().format(formatter)
@@ -411,37 +445,6 @@ public class RentalService {
             rental.setOverdueNotified(true);
             rentalRepository.save(rental);
         });
-    }
-
-    public RentalOverviewResponse getRentalOverviewById(Long id) {
-        Rental rental = rentalRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-
-        RentalCheckList rentalCheckList = rental.getRentalCheckLists().stream()
-                .filter(r -> "CHECK_OUT".equalsIgnoreCase(r.getType().toString()))
-                .findFirst()
-                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_CHECKLIST_NOT_FOUND));
-
-        double checkListFee = rentalCheckList.getFee();
-        double reservationDepositAmount = rental.getReservation()!=null ? rental.getReservation().getDeposit().getAmount() : 0;
-        double rentalDepositAmount = rental.getDeposit().getAmount();
-
-        VehicleLog vehicleLog = rental.getVehicleLog();
-        Map<String, Double> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairCost() : null;
-        double vehicleDamageFee = vehicleLog != null ? vehicleLog.getCost() : 0;
-
-        double totalCharges = vehicleDamageFee + checkListFee;
-        double totalDeposits = reservationDepositAmount + rentalDepositAmount;
-
-        return RentalOverviewResponse.builder()
-                .rentalResponse(rentalMapper.toRentalResponse(rental))
-                .checkListFee(checkListFee)
-                .reservationDeposit(reservationDepositAmount)
-                .rentalDeposit(rentalDepositAmount)
-                .vehicleDamages(vehicleDamages)
-                .vehicleDamageFee(vehicleDamageFee)
-                .refundEligible(totalCharges <= totalDeposits)
-                .build();
     }
 
     public String processCheckInPayment(Long id, String ipAddr) throws Exception {
