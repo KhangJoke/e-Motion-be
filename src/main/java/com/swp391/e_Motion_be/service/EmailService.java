@@ -1,9 +1,11 @@
 package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.email.PaymentEmailRequest;
+import com.swp391.e_Motion_be.dto.email.PaymentItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import jakarta.mail.MessagingException;
@@ -17,7 +19,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -80,97 +85,193 @@ public class EmailService {
                 + "</html>";
     }
 
-    public void sendPaymentStatusToEmail(Payment payment) {
-        // 1. Dùng một hàm helper để chuẩn bị toàn bộ dữ liệu
+    public void sendPaymentStatusToEmail(Payment payment, String url) {
         PaymentEmailRequest emailModel = createEmailContentModel(payment);
 
-        // 2. Dùng Thymeleaf để tạo HTML
         Context context = new Context();
         context.setVariable("subject", emailModel.getSubject());
         context.setVariable("message", emailModel.getMessage());
+        context.setVariable("paymentType", emailModel.getPaymentType());
         context.setVariable("paymentStatus", emailModel.getPaymentStatus());
         context.setVariable("statusColor", emailModel.getStatusColor());
-        context.setVariable("depositFee", emailModel.getDepositFee());
-        context.setVariable("rentalFee", emailModel.getRentalFee());
-        context.setVariable("penaltyFee", emailModel.getPenaltyFee());
-        context.setVariable("vehicleLogFee", emailModel.getVehicleLogFee());
+        context.setVariable("items", emailModel.getItems());
         context.setVariable("vehicleDamages", emailModel.getVehicleDamages());
+        context.setVariable("vehicleDamagesTotal", emailModel.getVehicleDamagesTotal());
         context.setVariable("total", emailModel.getTotal());
+        context.setVariable("url", url);
 
-        String htmlBody = templateEngine.process("payment-email", context);
-
-        // 3. Gửi email
+        String htmlBody = templateEngine.process("payment-status-email", context);
         sendEmail(payment.getUser().getEmail(), emailModel.getSubject(), htmlBody);
     }
 
-    // Tạo model dữ liệu cho email
+    // Tạo nội dung email dựa trên loại thanh toán
     private PaymentEmailRequest createEmailContentModel(Payment payment) {
-        // Khởi tạo các biến
-        Rental rental = null;
-        Deposit deposit = null;
-        RentalCheckList rentalCheckList = null;
-        VehicleLog vehicleLog = null;
+        PaymentType type = payment.getType();
 
-        // Logic if-else if để lấy dữ liệu từ Payment object
-        if (payment.getType() == PaymentType.RENTAL) {
-            rental = payment.getRental();
-            deposit = payment.getDeposit();
-        } else if (payment.getType() == PaymentType.RESERVATION) {
-            deposit = payment.getDeposit();
-        } else if (payment.getType() == PaymentType.PENALTY_FEE_RENTAL) {
-            rental = payment.getRental();
-            rentalCheckList = rental.getRentalCheckLists().stream()
-                    .filter(r -> r.getType().toString().equalsIgnoreCase(CheckType.CHECK_OUT.toString()))
-                    .findFirst().orElse(null);
-            vehicleLog = rental.getVehicleLog();
-            deposit = rental.getDeposit();
-        }
+        return switch (type) {
+            case RESERVATION -> createReservationEmail(payment);
+            case RENTAL -> createRentalEmail(payment);
+            case PENALTY_FEE_RENTAL -> createPenaltyFeeEmail(payment);
+            case REFUND -> createRefundEmail(payment);
+            default -> createDefaultEmail(payment);
+        };
+    }
 
-        // Tính toán các chi phí
+    // Email cho thanh toán đặt cọc (Reservation)
+    private PaymentEmailRequest createReservationEmail(Payment payment) {
+        Deposit deposit = payment.getDeposit();
+        List<PaymentItem> items = new ArrayList<>();
         double total = 0;
-        double depositFee = 0;
-        double rentalFee = 0;
-        double penaltyFee = 0;
-        double vehicleLogFee = 0;
 
         if (deposit != null && deposit.getAmount() > 0) {
-            depositFee = deposit.getAmount();
+            items.add(PaymentItem.builder()
+                    .label("Deposit Fee")
+                    .amount(deposit.getAmount())
+                    .build());
             total += deposit.getAmount();
         }
-        if (rental != null && rental.getRentFee() > 0) {
-            rentalFee = rental.getRentFee();
-            total += rental.getRentFee();
-        }
-        if (rentalCheckList != null && rentalCheckList.getFee() > 0) {
-            penaltyFee = rentalCheckList.getFee();
-            total += rentalCheckList.getFee();
-        }
-        if (vehicleLog != null && vehicleLog.getCost() > 0) {
-            vehicleLogFee = vehicleLog.getCost();
-            total += vehicleLog.getCost();
-        }
 
-        // Lấy trạng thái và màu sắc
-        String paymentStatus = payment.getStatus().toString();
-        String statusColor = switch (paymentStatus.toUpperCase()) {
-            case "SUCCESS" -> "#38a169";
-            case "FAILED" -> "#e53e3e";
-            default -> "#718096";
-        };
-
-        // Trả về model hoàn chỉnh
         return PaymentEmailRequest.builder()
-                .subject("Your Payment Confirmation")
-                .message("Thanks for your payment! Below are your transaction details.")
-                .paymentStatus(paymentStatus)
-                .statusColor(statusColor)
-                .depositFee(depositFee)
-                .rentalFee(rentalFee)
-                .penaltyFee(penaltyFee)
-                .vehicleLogFee(vehicleLogFee)
-                .vehicleDamages(vehicleLog != null ? vehicleLog.getRepairCost() : Collections.emptyMap())
+                .subject("Reservation Confirmed - Payment Receipt")
+                .message("Your reservation has been confirmed! Below are your payment details.")
+                .paymentType(PaymentType.RESERVATION)
+                .paymentStatus(payment.getStatus().toString())
+                .statusColor(getStatusColor(payment.getStatus()))
+                .items(items)
+                .vehicleDamages(Collections.emptyMap())
                 .total(total)
                 .build();
+    }
+
+    // Email cho thanh toán thuê xe (Check-in)
+    private PaymentEmailRequest createRentalEmail(Payment payment) {
+        Rental rental = payment.getRental();
+        Deposit deposit = payment.getDeposit();
+        List<PaymentItem> items = new ArrayList<>();
+        double total = 0;
+
+        if (deposit != null && deposit.getAmount() > 0) {
+            items.add(PaymentItem.builder()
+                    .label("Deposit Fee")
+                    .amount(deposit.getAmount())
+                    .build());
+            total += deposit.getAmount();
+        }
+
+        if (rental != null && rental.getRentFee() > 0) {
+            items.add(PaymentItem.builder()
+                    .label("Rental Fee")
+                    .amount(rental.getRentFee())
+                    .build());
+            total += rental.getRentFee();
+        }
+
+        return PaymentEmailRequest.builder()
+                .subject("Rental Started - Payment Receipt")
+                .message("Your rental has started! Below are your payment details.")
+                .paymentType(PaymentType.RENTAL)
+                .paymentStatus(payment.getStatus().toString())
+                .statusColor(getStatusColor(payment.getStatus()))
+                .items(items)
+                .vehicleDamages(Collections.emptyMap())
+                .total(total)
+                .build();
+    }
+
+    // Email cho thanh toán phí phạt (Check-out)
+    private PaymentEmailRequest createPenaltyFeeEmail(Payment payment) {
+        Rental rental = payment.getRental();
+        List<PaymentItem> items = new ArrayList<>();
+        double total = 0;
+        double damageTotal = 0;
+
+        // Lấy rental checklist (check-out)
+        RentalCheckList checkOut = rental.getRentalCheckLists().stream()
+                .filter(r -> r.getType() == CheckType.CHECK_OUT)
+                .findFirst()
+                .orElse(null);
+
+        // Lấy vehicle log
+        VehicleLog vehicleLog = rental.getVehicleLog();
+
+        // Thêm phí trả xe trễ
+        if (checkOut != null && checkOut.getFee() > 0) {
+            items.add(PaymentItem.builder()
+                    .label("Late Return And Pin Penalty")
+                    .amount(checkOut.getFee())
+                    .build());
+            total += checkOut.getFee();
+        }
+
+        // Thêm các damage charges (sẽ hiển thị chi tiết ở bảng riêng)
+        Map<String, Double> vehicleDamages = Collections.emptyMap();
+        if (vehicleLog != null && vehicleLog.getRepairCost() != null && !vehicleLog.getRepairCost().isEmpty()) {
+            vehicleDamages = vehicleLog.getRepairCost();
+            damageTotal = vehicleDamages.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            total += damageTotal;
+        }
+
+        return PaymentEmailRequest.builder()
+                .subject("Rental Completed - Final Payment Receipt")
+                .message("Your rental has been completed. Below is your final payment summary.")
+                .paymentType(PaymentType.PENALTY_FEE_RENTAL)
+                .paymentStatus(payment.getStatus().toString())
+                .statusColor(getStatusColor(payment.getStatus()))
+                .items(items)
+                .vehicleDamages(vehicleDamages)
+                .vehicleDamagesTotal(damageTotal)
+                .total(total)
+                .build();
+    }
+
+    // Email mặc định cho các loại thanh toán khác
+    private PaymentEmailRequest createDefaultEmail(Payment payment) {
+        return PaymentEmailRequest.builder()
+                .subject("Payment Confirmation")
+                .message("Thank you for your payment. Below are your transaction details.")
+                .paymentType(payment.getType())
+                .paymentStatus(payment.getStatus().toString())
+                .statusColor(getStatusColor(payment.getStatus()))
+                .items(Collections.emptyList())
+                .vehicleDamages(Collections.emptyMap())
+                .total(0)
+                .build();
+    }
+
+    // Email cho hoàn tiền (Refund)
+    private PaymentEmailRequest createRefundEmail(Payment payment) {
+        double refundAmount = payment.getAmount() > 0 ? payment.getAmount() : 0;
+
+        List<PaymentItem> items = new ArrayList<>();
+        if (refundAmount > 0) {
+            items.add(PaymentItem.builder()
+                    .label("Refund Amount")
+                    .amount(refundAmount)
+                    .build());
+        }
+
+        return PaymentEmailRequest.builder()
+                .subject("Refund Processed - Payment Receipt")
+                .message("Your refund has been processed! Below are your refund details.")
+                .paymentType(PaymentType.REFUND)
+                .paymentStatus(payment.getStatus().toString())
+                .statusColor(getStatusColor(payment.getStatus()))
+                .items(items)
+                .vehicleDamages(Collections.emptyMap())
+                .total(refundAmount)
+                .build();
+    }
+
+    // Lấy màu tương ứng với trạng thái thanh toán
+    private String getStatusColor(PaymentStatus status) {
+        return switch (status) {
+            case SUCCESS -> "#38a169"; // Green
+            case FAILED -> "#e53e3e";  // Red
+            case PENDING -> "#ecc94b"; // Yellow
+            default -> "#718096";      // Gray
+        };
     }
 
 }

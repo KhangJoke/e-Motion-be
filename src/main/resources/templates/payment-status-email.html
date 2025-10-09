@@ -2,53 +2,183 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .header {
+            border-bottom: 3px solid #2b6cb0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            color: #2b6cb0;
+            margin: 0 0 10px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .summary-table tr {
+            border-bottom: 1px solid #eee;
+        }
+        .summary-table td {
+            padding: 12px 8px;
+        }
+        .summary-table .label {
+            font-weight: 500;
+            color: #555;
+        }
+        .summary-table .amount {
+            text-align: right;
+            font-weight: 600;
+            color: #333;
+        }
+        .damage-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff5f5;
+            border-left: 4px solid #e53e3e;
+            border-radius: 5px;
+        }
+        .damage-section h3 {
+            color: #e53e3e;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .damage-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .damage-table tr {
+            border-bottom: 1px solid #fed7d7;
+        }
+        .damage-table td {
+            padding: 10px 8px;
+        }
+        .damage-total {
+            background-color: #feb2b2;
+            font-weight: bold;
+        }
+        .total-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #edf2f7;
+            border-radius: 8px;
+        }
+        .total-section table {
+            width: 100%;
+        }
+        .total-section td {
+            padding: 8px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .total-amount {
+            text-align: right;
+            color: #2b6cb0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+        .footer-note {
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; color: #333;">
-<div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; padding: 20px;">
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h2 th:text="${subject}">Payment Confirmation</h2>
+        <p th:text="${message}">Thank you for your payment</p>
+        <div>
+            <strong>Status: </strong>
+            <span class="status-badge"
+                  th:style="'background-color:' + ${statusColor} + '; color: white;'"
+                  th:text="${paymentStatus}"></span>
+        </div>
+    </div>
 
-    <h2 style="color: #2b6cb0;" th:text="${subject}"></h2>
-    <p th:text="${message}"></p>
-    <p><b>Status:</b> <span th:style="'color:' + ${statusColor}" th:text="${paymentStatus}"></span></p>
+    <!-- Payment Type Badge (Optional) -->
+    <div th:if="${paymentType}" style="margin-bottom: 20px;">
+            <span style="background-color: #e6f2ff; color: #2b6cb0; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: 600;">
+                <span th:text="${paymentType}"></span>
+            </span>
+    </div>
 
-    <h3 class="summary-header">Payment Summary</h3>
-    <table class="summary-table">
-        <tr th:if="${depositFee > 0}">
-            <td>Deposit Fee</td>
-            <td class="text-right" th:text="${#numbers.formatDecimal(depositFee, 1, 2) + 'đ'}"></td>
-        </tr>
-        <tr th:if="${rentalFee > 0}">
-            <td>Rental Fee</td>
-            <td class="text-right" th:text="${ #numbers.formatDecimal(rentalFee, 1, 2) + 'đ'}"></td>
-        </tr>
-        <tr th:if="${penaltyFee > 0}">
-            <td>Late Return Penalty Fee</td>
-            <td class="text-right" th:text="${#numbers.formatDecimal(penaltyFee, 1, 2) + 'đ'}"></td>
+    <!-- Payment Summary -->
+    <h3 style="color: #2d3748; margin-bottom: 15px;">Payment Summary</h3>
+    <table class="summary-table" th:if="${items != null and !items.isEmpty()}">
+        <tr th:each="item : ${items}">
+            <td class="label" th:text="${item.label}">Item Label</td>
+            <td class="amount" th:text="${#numbers.formatDecimal(item.amount, 1, 2)} + 'đ'">0.00đ</td>
         </tr>
     </table>
 
-    <div th:if="${vehicleDamages != null and !vehicleDamages.isEmpty()}">
-        <h3 style="margin-top:20px; border-bottom: 2px solid #e53e3e; padding-bottom: 5px; color: #e53e3e;">Vehicle Damage Charges</h3>
-        <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+    <!-- Vehicle Damage Charges -->
+    <div class="damage-section" th:if="${vehicleDamages != null and !vehicleDamages.isEmpty()}">
+        <h3>⚠️ Vehicle Damage Charges</h3>
+        <table class="damage-table">
             <tr th:each="damage : ${vehicleDamages}">
-                <td style="padding:8px; border-bottom:1px solid #eee;" th:text="${damage.key}"></td>
-                <td style="padding:8px; text-align:right; border-bottom:1px solid #eee;" th:text="${ #numbers.formatDecimal(damage.value, 1, 2)} + 'đ'"></td>
+                <td th:text="${damage.key}">Damage Description</td>
+                <td style="text-align: right;" th:text="${#numbers.formatDecimal(damage.value, 1, 2)} + 'đ'">0.00đ</td>
             </tr>
-            <tr>
-                <td style="padding:8px; font-weight:bold;">Total Damage Cost</td>
-                <td style="padding:8px; text-align:right; font-weight:bold;" th:text="${#numbers.formatDecimal(vehicleDamages.values().stream().mapToDouble(Double.doubleValue()).sum(), 1, 2)} + 'đ'"></td>
+            <tr class="damage-total">
+                <td>Total Damage Cost</td>
+                <td style="text-align: right;"
+                    th:text="${#numbers.formatDecimal(vehicleDamagesTotal, 1, 2)} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
 
-    <table style="width:100%; margin-top:20px;">
-        <tr>
-            <td style="padding:8px; font-size:18px; font-weight:bold;">Grand Total</td>
-            <td style="padding:8px; text-align:right; font-size:18px; font-weight:bold;" th:text="${#numbers.formatDecimal(total, 1, 2)} + 'đ'"></td>
-        </tr>
-    </table>
+    <!-- Grand Total -->
+    <div class="total-section">
+        <table>
+            <tr>
+                <td>Grand Total</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(total, 1, 2)} + 'đ'">0.00đ</td>
+            </tr>
+        </table>
+    </div>
 
-    <p style='margin-top:20px;'>If you have any questions, feel free to reply to this email.</p>
-    <p style='color:gray; font-size:12px;'>Thank you for choosing our service</p>
+    <div class="url-section" th:if="${url != null and !url.isEmpty()}">
+        <h3>Payment Url</h3>
+        <p th:text="${url}"></p>
+        <h4>Click to VNPay Link to continue</h4>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>If you have any questions about this payment, please feel free to reply to this email or contact our support team.</p>
+        <p class="footer-note">Thank you for choosing our service! 🚗</p>
+    </div>
 </div>
 </body>
 </html>
