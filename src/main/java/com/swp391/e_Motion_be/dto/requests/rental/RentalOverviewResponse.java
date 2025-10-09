@@ -1,6 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.rental;
 
-import com.swp391.e_Motion_be.entity.Rental;
+import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.util.Map;
 @NoArgsConstructor
 @Builder
 public class RentalOverviewResponse {
-    private Rental rental;
+    private RentalResponse rentalResponse;
     private double reservationDeposit;
     private double rentalDeposit;
     private double checkListFee;

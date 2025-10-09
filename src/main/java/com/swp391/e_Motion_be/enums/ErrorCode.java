@@ -138,6 +138,7 @@ public enum ErrorCode {
     PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "The payment is processing failed"),
     RENTAL_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "The rental cannot be paid"),
     DEPOSIT_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "The deposit cannot be paid"),
+    CREATE_PAYMENT_URL_FAILED(HttpStatus.BAD_REQUEST, "Create payment url failed"),
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed"),

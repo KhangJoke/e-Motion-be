@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; padding: 20px;">
+
+    <h2 style="color: #2b6cb0;" th:text="${subject}"></h2>
+    <p th:text="${message}"></p>
+    <p><b>Status:</b> <span th:style="'color:' + ${statusColor}" th:text="${paymentStatus}"></span></p>
+
+    <h3 class="summary-header">Payment Summary</h3>
+    <table class="summary-table">
+        <tr th:if="${depositFee > 0}">
+            <td>Deposit Fee</td>
+            <td class="text-right" th:text="${#numbers.formatDecimal(depositFee, 1, 2) + 'đ'}"></td>
+        </tr>
+        <tr th:if="${rentalFee > 0}">
+            <td>Rental Fee</td>
+            <td class="text-right" th:text="${ #numbers.formatDecimal(rentalFee, 1, 2) + 'đ'}"></td>
+        </tr>
+        <tr th:if="${penaltyFee > 0}">
+            <td>Late Return Penalty Fee</td>
+            <td class="text-right" th:text="${#numbers.formatDecimal(penaltyFee, 1, 2) + 'đ'}"></td>
+        </tr>
+    </table>
+
+    <div th:if="${vehicleDamages != null and !vehicleDamages.isEmpty()}">
+        <h3 style="margin-top:20px; border-bottom: 2px solid #e53e3e; padding-bottom: 5px; color: #e53e3e;">Vehicle Damage Charges</h3>
+        <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+            <tr th:each="damage : ${vehicleDamages}">
+                <td style="padding:8px; border-bottom:1px solid #eee;" th:text="${damage.key}"></td>
+                <td style="padding:8px; text-align:right; border-bottom:1px solid #eee;" th:text="${ #numbers.formatDecimal(damage.value, 1, 2)} + 'đ'"></td>
+            </tr>
+            <tr>
+                <td style="padding:8px; font-weight:bold;">Total Damage Cost</td>
+                <td style="padding:8px; text-align:right; font-weight:bold;" th:text="${#numbers.formatDecimal(vehicleDamages.values().stream().mapToDouble(Double.doubleValue()).sum(), 1, 2)} + 'đ'"></td>
+            </tr>
+        </table>
+    </div>
+
+    <table style="width:100%; margin-top:20px;">
+        <tr>
+            <td style="padding:8px; font-size:18px; font-weight:bold;">Grand Total</td>
+            <td style="padding:8px; text-align:right; font-size:18px; font-weight:bold;" th:text="${#numbers.formatDecimal(total, 1, 2)} + 'đ'"></td>
+        </tr>
+    </table>
+
+    <p style='margin-top:20px;'>If you have any questions, feel free to reply to this email.</p>
+    <p style='color:gray; font-size:12px;'>Thank you for choosing our service</p>
+</div>
+</body>
+</html>

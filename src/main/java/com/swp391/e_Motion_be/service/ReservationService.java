@@ -66,12 +66,12 @@ public class ReservationService {
         }
 
         // Kiểm tra CCCD và GPLX của renter
-        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.CCCD)){
-            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
-        }
-        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.LICENSE)){
-            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
-        }
+//        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.CCCD)){
+//            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
+//        }
+//        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.LICENSE)){
+//            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
+//        }
 
         // Check if start and end times are exact hours
         if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
@@ -145,21 +145,15 @@ public class ReservationService {
 
     // Check if vehicle is unavailable due to existing reservations or rentals
     private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
-        int reservationConflict = reservationRepository.existsConflict(
+        int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
-                List.of("PENDING", "CONFIRM"),
                 startTime,
-                endTime
+                endTime,
+                List.of("PENDING", "CONFIRM"), // Trạng thái cần kiểm tra của Reservation
+                List.of("COMPLETED", "CANCELLED", "OVERDUE")   // Trạng thái cần loại trừ của Rental
         );
 
-        int rentalConflict = rentalRepository.existsConflict(
-                vehicleId,
-                List.of("COMPLETED", "CANCELLED"),
-                startTime,
-                endTime
-        );
-
-        return reservationConflict == 1 || rentalConflict == 1;
+        return conflictCount > 0;
     }
 
     // Check if the time is on the exact hour (e.g., 1:00, 2:00)

@@ -28,6 +28,6 @@ public class PaymentResponse {
     private LocalDateTime payDate;// vnp_PayDate
 
     private String userEmail;
-    private Long rentalId;
-    private Long depositId;
+    private RentalResponse rentalResponse;
+    private DepositResponse depositResponse;
 }

@@ -1,16 +1,15 @@
 package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalOverviewResponse;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
-import com.swp391.e_Motion_be.enums.DocType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
+import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
@@ -44,6 +43,7 @@ public class RentalService {
     private final EmailService emailService;
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
+    private final PaymentService paymentService;
 
     @Value("${price.8h.rate}")
     private double price8hRate;
@@ -98,12 +98,12 @@ public class RentalService {
     // Hàm này chứa các action chung của 2 hàm cách tạo rental
     private RentalResponse createRentalCommon(Rental rental, Long userId, Vehicle vehicle, Long stationId){
         // Kiểm tra CCCD và GPLX của renter
-        if(!documentRepository.existsByUser_IdAndType(userId, DocType.CCCD)){
-            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
-        }
-        if(!documentRepository.existsByUser_IdAndType(userId, DocType.LICENSE)){
-            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
-        }
+//        if(!documentRepository.existsByUser_IdAndType(userId, DocType.CCCD)){
+//            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
+//        }
+//        if(!documentRepository.existsByUser_IdAndType(userId, DocType.LICENSE)){
+//            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
+//        }
         // Kiểm tra user có đơn thuê nào chưa trả ko
         boolean hasOngoingRental = rentalRepository.existsByUser_IdAndStatusNotIn(userId, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
         if(hasOngoingRental){
@@ -114,7 +114,7 @@ public class RentalService {
             throw new AppException(ErrorCode.VEHICLE_NOT_READY);
         }
         // Kiểm tra station của xe và của đơn có giống nhau ko
-        if(vehicle.getStation().getId().equals(stationId)) {
+        if(!vehicle.getStation().getId().equals(stationId)) {
             throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
         }
         // save rental
@@ -434,7 +434,7 @@ public class RentalService {
         double totalDeposits = reservationDepositAmount + rentalDepositAmount;
 
         return RentalOverviewResponse.builder()
-                .rental(rental)
+                .rentalResponse(rentalMapper.toRentalResponse(rental))
                 .checkListFee(checkListFee)
                 .reservationDeposit(reservationDepositAmount)
                 .rentalDeposit(rentalDepositAmount)
@@ -442,5 +442,88 @@ public class RentalService {
                 .vehicleDamageFee(vehicleDamageFee)
                 .refundEligible(totalCharges <= totalDeposits)
                 .build();
+    }
+
+    public String processCheckInPayment(Long id, String ipAddr) throws Exception {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        if(!rental.getStatus().equals(RentalStatus.PENDING)){
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
+        }
+
+        double reservationDepositAmount = rental.getReservation()!=null ? rental.getReservation().getDeposit().getAmount() : 0;
+        double rentalDepositAmount = rental.getDeposit().getAmount();
+
+        CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
+        request.setRentalId(rental.getId());
+        request.setDepositId(rental.getDeposit().getId());
+        request.setType(PaymentType.RENTAL);
+        request.setAmount(rental.getRentFee()+rentalDepositAmount-reservationDepositAmount);
+        request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
+        request.setUserEmail(rental.getUser().getEmail());
+
+        return paymentService.createPaymentUrl(request, ipAddr);
+    }
+
+    public CheckOutProcessResponse processCheckOutPayment(Long id, String remoteAddr) {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        if (!rental.getStatus().equals(RentalStatus.PENDING_FEE)) {
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
+        }
+
+        RentalOverviewResponse overview = getRentalOverviewById(id);
+        double totalCharges = overview.getVehicleDamageFee() + overview.getCheckListFee();
+        double totalDeposits = overview.getReservationDeposit() + overview.getRentalDeposit();
+        double balance = totalCharges - totalDeposits;
+
+        // TRƯỜNG HỢP 1: Khách hàng cần trả thêm tiền
+        if (balance > 0) {
+            CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
+            request.setRentalId(rental.getId());
+            request.setType(PaymentType.PENALTY_FEE_RENTAL);
+            request.setAmount(balance);
+            request.setDescription("Check-out Payment for Rental ID: " + rental.getId());
+            request.setUserEmail(rental.getUser().getEmail());
+
+            try {
+                String url = paymentService.createPaymentUrl(request, remoteAddr);
+
+                return CheckOutProcessResponse.builder()
+                        .processStatus("PAYMENT_REQUIRED")
+                        .paymentUrl(url)
+                        .rental(rentalMapper.toRentalResponse(rental))
+                        .build();
+            } catch (Exception e) {
+                throw new AppException(ErrorCode.CREATE_PAYMENT_URL_FAILED);
+            }
+        }
+        // TRƯỜNG HỢP 2: Hoàn tiền hoặc không làm gì
+        else {
+            if (balance < 0) {
+                RefundRequest refundRequest = new RefundRequest();
+                refundRequest.setIpAddr(remoteAddr);
+                refundRequest.setTxnRef(rental.getPayments().get(0).getTxnRef());
+                refundRequest.setAmount(Math.abs(balance));
+                refundRequest.setFullRefund(false);
+
+                try {
+                    paymentService.refundPayment(refundRequest);
+                } catch (Exception e) {
+                    throw new AppException(ErrorCode.REFUND_FAILED);
+                }
+            }
+
+            rental.setStatus(RentalStatus.COMPLETED);
+            Rental updatedRental = rentalRepository.save(rental);
+
+            return CheckOutProcessResponse.builder()
+                    .processStatus("COMPLETED")
+                    .paymentUrl(null) // Không có URL
+                    .rental(rentalMapper.toRentalResponse(updatedRental))
+                    .build();
+        }
     }
 }
