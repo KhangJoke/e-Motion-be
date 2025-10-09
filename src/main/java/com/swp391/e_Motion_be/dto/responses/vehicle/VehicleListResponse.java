@@ -19,7 +19,7 @@ public class VehicleListResponse {
     private String category;
     private VehicleBrand brand;
     private int seats;
-    private String priceRate;
+    private Double priceRate;
     private int hourRate;
     private Double consumptionRate;
     private Double batteryCapacity;

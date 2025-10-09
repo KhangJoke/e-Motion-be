@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.mapper;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.responses.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.responses;
+package com.swp391.e_Motion_be.dto.responses.rental;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

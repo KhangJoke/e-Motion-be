@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.swp391.e_Motion_be.deserializer.VehicleStatusDeserializer;
 import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.exception.AppException;
 import lombok.AllArgsConstructor;
 
@@ -14,7 +13,7 @@ public enum VehicleStatus {
     AVAILABLE("Sẵn sàng"),
     CHECKING("Đang kiểm tra"),
     MAINTAINED("Đang bảo trì"),
-    INUSE("Đang thuê");
+    ONGOING("Đang thuê");
 
     private final String description;
 

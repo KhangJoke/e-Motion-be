@@ -15,7 +15,7 @@ import java.util.Locale;
 public class RentalCheckListResponse {
     private Long id;
     private String type;
-    private String fee;
+    private Double fee;
     private Double currentBattery;
     private String img;
     private Long rentalId;

@@ -355,7 +355,7 @@ public class ReservationService {
                                 "Your reservation time has passed. Please contact support if needed.");
                         emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
 
-                        reservation.setStatus(ReservationStatus.EXPIRED);
+                        reservation.setStatus(ReservationStatus.OVERDUE);
                         reservation.setExpiringNotified(Boolean.TRUE);
                         reservationRepository.save(reservation);
                     }
