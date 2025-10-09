@@ -1,12 +1,14 @@
 package com.swp391.e_Motion_be.controller;
 
+import com.swp391.e_Motion_be.dto.requests.rental.CheckOutProcessResponse;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.service.RentalService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +68,20 @@ public class RentalController {
     public ApiResponse<RentalOverviewResponse> getRentalOverview(@PathVariable Long id){
         ApiResponse<RentalOverviewResponse> response = new ApiResponse<>();
         response.setData(rentalService.getRentalOverviewById(id));
+        return response;
+    }
+
+    @PostMapping("/{id}/check-inpayment")
+    public ApiResponse<String> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setData(rentalService.processCheckInPayment(id , request.getRemoteAddr()));
+        return response;
+    }
+
+    @PostMapping("/{id}/check-outpayment")
+    public ApiResponse<CheckOutProcessResponse> processCheckOutPayment(@PathVariable Long id, HttpServletRequest request){
+        ApiResponse<CheckOutProcessResponse> response = new ApiResponse<>();
+        response.setData(rentalService.processCheckOutPayment(id , request.getRemoteAddr()));
         return response;
     }
 }

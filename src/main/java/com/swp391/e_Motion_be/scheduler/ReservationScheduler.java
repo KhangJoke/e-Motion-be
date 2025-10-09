@@ -12,7 +12,7 @@ public class ReservationScheduler {
 
     private final ReservationService reservationService;
 
-    @Scheduled(fixedRate = 60000) // every hour
+    @Scheduled(fixedRate = 6000000) // every hour
     public void notifyReservations() {
         reservationService.notificationReservation();
     }

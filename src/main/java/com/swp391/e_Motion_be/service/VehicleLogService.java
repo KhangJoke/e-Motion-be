@@ -90,6 +90,8 @@ public class VehicleLogService {
                 .mapToDouble(Double::doubleValue)
                 .sum();
 
+        totalCost = Math.round(totalCost * 100.0) / 100.0;
+
         VehicleLog vehicleLog = vehicleLogMapper.toEntity(request);
         vehicleLog.setVehicle(vehicle);
         vehicleLog.setStaff(staff);

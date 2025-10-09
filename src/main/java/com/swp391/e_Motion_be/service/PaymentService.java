@@ -67,10 +67,19 @@ public class PaymentService {
         if (request.getRentalId() != null) {
             rental = rentalRepository.findById(request.getRentalId())
                     .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+            if(rental.getStatus() != RentalStatus.PENDING && rental.getStatus() != RentalStatus.PENDING_FEE){
+                throw new AppException(ErrorCode.RENTAL_CANNOT_BE_PAID);
+            }
         }
 
-        Deposit deposit = depositRepository.findById(request.getDepositId())
-                .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+        Deposit deposit = null;
+        if (request.getDepositId() != null) {
+            deposit = depositRepository.findById(request.getDepositId())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+            if(deposit.getStatus() != DepositStatus.PENDING){
+                throw new AppException(ErrorCode.DEPOSIT_CANNOT_BE_PAID);
+            }
+        }
 
         // Create payment record
         Payment payment = Payment.builder()
@@ -204,15 +213,22 @@ public class PaymentService {
     protected void processSuccessfulPayment(Payment payment) {
         Deposit deposit = payment.getDeposit();
 
-        if (deposit == null) {
-            log.warn("No deposit found for payment: {}", payment.getId());
-            return;
-        }
-
         if (payment.getType() == PaymentType.RESERVATION) {
             processReservationPayment(deposit);
-        } else if (payment.getType() == PaymentType.RENTAL && payment.getRental() != null) {
+        } else if (payment.getType() == PaymentType.RENTAL &&
+                payment.getRental() != null &&
+                deposit != null)
+        {
             processRentalPayment(deposit, payment.getRental());
+        } else if (payment.getType() == PaymentType.PENALTY_FEE_RENTAL) {
+            Rental rental = payment.getRental();
+            if (rental != null) {
+                rental.setStatus(RentalStatus.COMPLETED);
+                rentalRepository.save(rental);
+            }
+            log.info("Penalty fee rental payment processed: {}", payment.getId());
+        } else {
+            log.warn("No associated action for payment type: {}", payment.getType());
         }
     }
 
@@ -428,7 +444,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public TransactionResponse queryTransaction(String txnRef, HttpServletRequest request) throws Exception {
+    public TransactionResponse queryTransaction(String txnRef, HttpServletRequest request) {
         log.info("Processing query transaction for txnRef: {}", txnRef);
 
         try {
@@ -527,8 +543,6 @@ public class PaymentService {
             if(rental.getStatus() != RentalStatus.PENDING){
                 throw new AppException(ErrorCode.RENTAL_CANNOT_BE_PAID);
             }
-            rental.setStatus(RentalStatus.CONFIRM);
-            rentalRepository.save(rental);
         }
 
         Deposit deposit = null;
@@ -538,8 +552,6 @@ public class PaymentService {
             if(deposit.getStatus() != DepositStatus.PENDING){
                 throw new AppException(ErrorCode.DEPOSIT_CANNOT_BE_PAID);
             }
-            deposit.setStatus(DepositStatus.HOLD);
-            depositRepository.save(deposit);
         }
 
         Payment payment = Payment.builder()

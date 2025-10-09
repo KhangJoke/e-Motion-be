@@ -34,8 +34,24 @@ public class VehicleController {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleByPlateNumber(plateNumber));
     }
 
+    // Find all available
+    @GetMapping
+    public ApiResponse<List<VehicleListResponse>> getAllVehicles() {
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findAllVehicles());
+        return response;
+    }
+
+    // Find by brand
+    @GetMapping("/brand/{brand}")
+    public ApiResponse<List<VehicleListResponse>> getVehiclesByBrand(@PathVariable String brand) {
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findVehicleByBrand(brand));
+        return response;
+    }
+
     // Create a new vehicle
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<VehicleDetailResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
         return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
     }

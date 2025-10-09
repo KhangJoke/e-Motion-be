@@ -22,23 +22,6 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByEndTimeBefore(LocalDateTime time);
     List<Reservation> findByVehicle_IdAndStatusIn(Long vehicleId, List<ReservationStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String email, List<ReservationStatus> statuses);
-    @Query(value = """
-        SELECT EXISTS (
-            SELECT 1
-            FROM reservations r
-            WHERE r.vehicle_id = :vehicleId
-              AND r.reservation_status IN (:statuses)
-              AND :startTime < DATE_ADD(r.reserved_start_time, INTERVAL 3 HOUR)
-              AND :endTime > DATE_SUB(r.reserved_end_time, INTERVAL 3 HOUR)
-        )
-    """, nativeQuery = true)
-    int existsConflict(
-            @Param("vehicleId") Long vehicleId,
-            @Param("statuses") List<String> statuses,
-            @Param("startTime") LocalDateTime startTime,
-            @Param("endTime") LocalDateTime endTime
-    );
-
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status IN (:statuses)")
     List<Reservation> findByStatusWithUser(@Param("statuses") List<ReservationStatus> statuses);
 
