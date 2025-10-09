@@ -35,7 +35,7 @@ public class VehicleController {
     }
 
     // Find all available
-    @GetMapping("/vehicles")
+    @GetMapping("")
     public ApiResponse<List<VehicleListResponse>> getAllVehicles() {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findAllVehicles());
@@ -43,7 +43,7 @@ public class VehicleController {
     }
 
     // Find by brand
-    @GetMapping("/vehicles/brand/{brand}")
+    @GetMapping("/brand/{brand}")
     public ApiResponse<List<VehicleListResponse>> getVehiclesByBrand(@PathVariable String brand) {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findVehicleByBrand(brand));
