@@ -44,13 +44,10 @@ public class RentalService {
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
     private final UserRepository userRepository;
-    private final DocumentRepository documentRepository;
-    private final ReservationService reservationService;
     private final EmailService emailService;
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
     private final PaymentService paymentService;
-    private final RentalCheckListRepository rentalCheckListRepository;
 
     @Value("${price.8h.rate}")
     private double price8hRate;
@@ -127,7 +124,7 @@ public class RentalService {
 
         // save rental
         // set status của xe sang đang thuê
-        vehicle.setStatus(VehicleStatus.ONGOING);
+        vehicle.setStatus(VehicleStatus.UNAVAILABLE);
         rental.setRentFee(calculateRentalFee(rental)); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
@@ -499,7 +496,11 @@ public class RentalService {
 
             try {
                 String url = paymentService.createPaymentUrl(request, remoteAddr);
-
+                emailService.sendPaymentStatusToEmail(rental.getPayments()
+                        .stream()
+                        .filter(p -> p.getType() == PaymentType.PENALTY_FEE_RENTAL)
+                        .findFirst()
+                        .orElse(null),url);
                 return CheckOutProcessResponse.builder()
                         .processStatus("PAYMENT_REQUIRED")
                         .paymentUrl(url)
@@ -527,6 +528,11 @@ public class RentalService {
 
             rental.setStatus(RentalStatus.COMPLETED);
             Rental updatedRental = rentalRepository.save(rental);
+            emailService.sendPaymentStatusToEmail(rental.getPayments()
+                    .stream()
+                    .filter(p -> p.getType() == PaymentType.REFUND)
+                    .findFirst()
+                    .orElse(null),null);
 
             return CheckOutProcessResponse.builder()
                     .processStatus("COMPLETED")

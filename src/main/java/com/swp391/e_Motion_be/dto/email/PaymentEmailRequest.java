@@ -1,25 +1,22 @@
 package com.swp391.e_Motion_be.dto.email;
 
-import lombok.AllArgsConstructor;
+import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class PaymentEmailRequest {
     private String subject;
     private String message;
+    private PaymentType paymentType;
     private String paymentStatus;
     private String statusColor;
-    private double depositFee;
-    private double rentalFee;
-    private double penaltyFee;
-    private double vehicleLogFee;
+    private List<PaymentItem> items;
     private Map<String, Double> vehicleDamages;
+    private double vehicleDamagesTotal;
     private double total;
 }

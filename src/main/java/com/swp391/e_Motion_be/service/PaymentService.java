@@ -198,11 +198,11 @@ public class PaymentService {
             processSuccessfulPayment(payment);
             log.info("Payment successful for txnRef: {}", vnp_TxnRef);
             paymentRepository.save(payment);
-            emailService.sendPaymentStatusToEmail(payment);
+            emailService.sendPaymentStatusToEmail(payment, null);
         } else {
             processFailedPayment(payment);
             log.warn("Payment failed for txnRef: {} with code: {}", vnp_TxnRef, responseCode);
-            emailService.sendPaymentStatusToEmail(payment);
+            emailService.sendPaymentStatusToEmail(payment, null);
             return null;
         }
 
