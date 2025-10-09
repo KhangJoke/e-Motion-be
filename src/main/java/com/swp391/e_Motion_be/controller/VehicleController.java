@@ -35,7 +35,7 @@ public class VehicleController {
     }
 
     // Find all available
-    @GetMapping("")
+    @GetMapping
     public ApiResponse<List<VehicleListResponse>> getAllVehicles() {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findAllVehicles());
@@ -51,7 +51,7 @@ public class VehicleController {
     }
 
     // Create a new vehicle
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<VehicleDetailResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
         return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
     }
