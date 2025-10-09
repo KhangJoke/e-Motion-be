@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
@@ -27,6 +28,10 @@ public class Vehicle {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "brand",nullable = false)
+    private VehicleBrand brand;
 
     @Enumerated(EnumType.STRING)
     @Column(name="vehicle_type",nullable = false)

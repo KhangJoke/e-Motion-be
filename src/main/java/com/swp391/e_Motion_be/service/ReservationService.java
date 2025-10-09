@@ -342,19 +342,21 @@ public class ReservationService {
                 LocalDateTime startTime = reservation.getStartTime();
                 ReservationStatus status = reservation.getStatus();
                 // Confirmed reservations flow
-                if (status == ReservationStatus.CONFIRM) {
+                if (status == ReservationStatus.CONFIRM && reservation.getOverdueNotified().equals(Boolean.FALSE)) {
                     if (startTime.isBefore(now.plusDays(3)) && startTime.isAfter(now)) {
                         subject = "⏰ Your Reservation is Coming Up Soon!";
                         htmlMessage = emailService.buildReservationHtml(reservation, subject,
                                 "Your confirmed reservation is approaching. Get ready!");
                         emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-                    } else if (startTime.isBefore(now)) {
+                        reservation.setOverdueNotified(Boolean.TRUE);
+                    } else if (startTime.isBefore(now)  && reservation.getExpiringNotified().equals(Boolean.FALSE)) {
                         subject = "⚠️ Your Reservation is Late/Expired!";
                         htmlMessage = emailService.buildReservationHtml(reservation, subject,
                                 "Your reservation time has passed. Please contact support if needed.");
                         emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
 
                         reservation.setStatus(ReservationStatus.EXPIRED);
+                        reservation.setExpiringNotified(Boolean.TRUE);
                         reservationRepository.save(reservation);
                     }
                 }

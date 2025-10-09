@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
+import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
@@ -26,7 +27,10 @@ public class VehicleCreationRequest {
 
     @NotNull(message = "Category is required")
     private VehicleCategory category;
-    
+
+    @NotNull(message = "Brand is required")
+    private VehicleBrand brand;
+
     @NotNull(message = "Vehicle status is required")
     private VehicleStatus status;
 

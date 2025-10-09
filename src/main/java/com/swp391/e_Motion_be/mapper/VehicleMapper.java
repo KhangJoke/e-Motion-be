@@ -25,6 +25,7 @@ public abstract class VehicleMapper {
     double priceDayRate;
 
     @Mapping(source = "stationId", target = "station.id")// handle manually in service
+    @Mapping(source = "brand", target = "brand")
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
     @Mapping(source = "station.id", target = "stationId")
@@ -32,6 +33,7 @@ public abstract class VehicleMapper {
     @Mapping(source = "status", target = "status")
     @Mapping(source = "category", target = "category")
     @Mapping(source = "station.address", target = "address")
+    @Mapping(source = "brand", target = "brand")
     @Mapping(source = "station.city", target = "city") // map Station -> city
     @Mapping(target = "images", expression = "java(getImageUrls(vehicle))")
     @Mapping(target = "pricePer4Hours", expression = "java(formatFee(vehicle.getPricePer4Hours()))")
@@ -41,10 +43,12 @@ public abstract class VehicleMapper {
     @Mapping(target = "depositFee", expression = "java(formatFee(vehicle.getDepositFee()))")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
+
     @Mapping(source = "vehicle.station.id", target = "stationId")
     @Mapping(source = "vehicle.station.city", target = "city") // map Station -> city
     @Mapping(source = "vehicle.type", target = "type")
     @Mapping(source = "vehicle.status", target = "status")
+    @Mapping(source = "vehicle.brand", target = "brand")
     @Mapping(source = "vehicle.category", target = "category")
     @Mapping(target = "isMain", expression = "java(getMainImage(vehicle))")
     @Mapping(target = "hourRate", expression = "java(getHourRate(hours))")
@@ -92,4 +96,5 @@ public abstract class VehicleMapper {
     String formatFee(double fee) {
         return CurrencyUtil.formatVnCurrency(fee);
     }
+
 }

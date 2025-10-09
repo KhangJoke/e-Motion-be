@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleSearchResponse;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
@@ -43,6 +46,39 @@ public class VehicleService {
         return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
 
+    // Find By Brand
+    public List<VehicleListResponse> findVehicleByBrand(String brand) {
+        VehicleBrand vehicleBrand;
+        try {
+            vehicleBrand = VehicleBrand.valueOf(brand.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_VEHICLE_BRAND);
+        }
+
+        List<Vehicle> vehicles = vehicleRepository.findByBrandAndStatus(vehicleBrand,VehicleStatus.AVAILABLE );
+
+        if (vehicles == null || vehicles.isEmpty()) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
+        }
+
+        return vehicles.stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .collect(Collectors.toList());
+    }
+
+    // Find all
+    public List<VehicleListResponse> findAllVehicles() {
+        List<Vehicle> vehicles = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
+
+        if (vehicles.isEmpty()) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
+        }
+
+        return vehicles.stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .collect(Collectors.toList());
+    }
+
     // CREATE
     public VehicleDetailResponse createVehicle(VehicleCreationRequest request) {
         //Check Station is FOUNd or NOT
@@ -60,6 +96,7 @@ public class VehicleService {
         vehicleRepository.save(vehicle);
         return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
+
     private double roundToNearest10(double value) {
         return Math.round(value / 10.0) * 10.0;
     }
