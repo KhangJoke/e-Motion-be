@@ -214,6 +214,7 @@ public class ReservationService {
         RefundRequest refundRequest = new RefundRequest();
         refundRequest.setIpAddr(request.getRemoteAddr());
         refundRequest.setTxnRef(depositPayment.getTxnRef());
+        refundRequest.setAmount(depositPayment.getAmount());
         refundRequest.setFullRefund(true);
 
         PaymentResponse refundResponse = paymentService.refundPayment(refundRequest);
@@ -227,6 +228,7 @@ public class ReservationService {
             // Update reservation status
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
+            emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null),null);
 
             log.info("Reservation cancelled: {}", code);
             return true;

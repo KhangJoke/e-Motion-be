@@ -19,10 +19,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -99,6 +96,8 @@ public class EmailService {
         context.setVariable("vehicleDamagesTotal", emailModel.getVehicleDamagesTotal());
         context.setVariable("total", emailModel.getTotal());
         context.setVariable("url", url);
+        context.setVariable("totalDeposit", emailModel.getTotalDeposit());
+        context.setVariable("refundAmount", emailModel.getRefundAmount());
 
         String htmlBody = templateEngine.process("payment-status-email", context);
         sendEmail(payment.getUser().getEmail(), emailModel.getSubject(), htmlBody);
@@ -242,14 +241,68 @@ public class EmailService {
 
     // Email cho hoàn tiền (Refund)
     private PaymentEmailRequest createRefundEmail(Payment payment) {
-        double refundAmount = payment.getAmount() > 0 ? payment.getAmount() : 0;
+        Rental rental = payment.getRental();
 
+        if (rental == null) {
+            return PaymentEmailRequest.builder()
+                    .subject("Refund Processed - Payment Receipt")
+                    .message("Your refund has been processed!")
+                    .paymentType(PaymentType.REFUND)
+                    .paymentStatus(payment.getStatus().toString())
+                    .statusColor(getStatusColor(payment.getStatus()))
+                    .items(Collections.emptyList())
+                    .vehicleDamages(Collections.emptyMap())
+                    .vehicleDamagesTotal(0)
+                    .total(0)
+                    .totalDeposit(payment.getDeposit() != null ? payment.getDeposit().getAmount() : 0)
+                    .refundAmount(payment.getAmount())
+                    .build();
+        }
+
+        double rentalDeposit = rental.getDeposit() != null ? rental.getDeposit().getAmount() : 0;
+        double reservationDeposit = payment.getDeposit() != null ? payment.getDeposit().getAmount() : 0;
+        double totalDeposit = rentalDeposit + reservationDeposit;
         List<PaymentItem> items = new ArrayList<>();
-        if (refundAmount > 0) {
+        double totalDeductions = 0;
+        double damageTotal = 0;
+
+        // Get rental checklist (check-out)
+        RentalCheckList checkOut = null;
+        if (rental.getRentalCheckLists() != null) {
+            checkOut = rental.getRentalCheckLists().stream()
+                    .filter(r -> r.getType() == CheckType.CHECK_OUT)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        // Get vehicle log
+        VehicleLog vehicleLog = rental.getVehicleLog();
+
+        // Add late return fee
+        if (checkOut != null && checkOut.getFee() != null && checkOut.getFee() > 0) {
             items.add(PaymentItem.builder()
-                    .label("Refund Amount")
-                    .amount(refundAmount)
+                    .label("Late Return And Pin Penalty")
+                    .amount(checkOut.getFee())
                     .build());
+            totalDeductions += checkOut.getFee();
+        }
+
+        // Add damage charges
+        Map<String, Double> vehicleDamages = Collections.emptyMap();
+        if (vehicleLog != null && vehicleLog.getRepairCost() != null && !vehicleLog.getRepairCost().isEmpty()) {
+            vehicleDamages = vehicleLog.getRepairCost();
+            damageTotal = vehicleDamages.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            totalDeductions += damageTotal;
+        }
+
+        // Calculate actual refund amount
+        double actualRefundAmount = totalDeposit - totalDeductions;
+
+        // Validation: refund shouldn't be negative
+        if (actualRefundAmount < 0) {
+            actualRefundAmount = 0;
         }
 
         return PaymentEmailRequest.builder()
@@ -259,8 +312,11 @@ public class EmailService {
                 .paymentStatus(payment.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
                 .items(items)
-                .vehicleDamages(Collections.emptyMap())
-                .total(refundAmount)
+                .vehicleDamages(vehicleDamages)
+                .vehicleDamagesTotal(damageTotal)
+                .total(totalDeductions)
+                .totalDeposit(totalDeposit)
+                .refundAmount(actualRefundAmount)
                 .build();
     }
 
@@ -270,6 +326,7 @@ public class EmailService {
             case SUCCESS -> "#38a169"; // Green
             case FAILED -> "#e53e3e";  // Red
             case PENDING -> "#ecc94b"; // Yellow
+            case REFUND -> "#3182ce"; // Blue
             default -> "#718096";      // Gray
         };
     }

@@ -19,4 +19,6 @@ public class PaymentEmailRequest {
     private Map<String, Double> vehicleDamages;
     private double vehicleDamagesTotal;
     private double total;
+    private double totalDeposit;
+    private double refundAmount;
 }

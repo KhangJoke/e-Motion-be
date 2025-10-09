@@ -320,12 +320,12 @@ public class PaymentService {
             String vnp_Version = "2.1.0";
             String vnp_Command = "refund";
             String vnp_CreateBy = "system";
-            String vnp_TransactionType = request.isFullRefund() ? "03" : "02";
+            String vnp_TransactionType = request.isFullRefund() ? "03" : "03";
 
             String vnp_TransactionDate = originalPayment.getCreatedAt()
                     .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-            String refundAmount = String.valueOf((long) (Double.parseDouble(String.format("%.2f", request.getAmount())) * 100)); // Full refund
+            String refundAmount = String.valueOf((long) (Double.parseDouble(String.format("%.2f", request.getAmount()))));
 
             Map<String, String> params = new LinkedHashMap<>();
             params.put("vnp_RequestId", vnp_RequestId);

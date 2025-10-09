@@ -43,6 +43,7 @@ public class RentalService {
     private final StaffRepository staffRepository;
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
+    private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final RentalMapper rentalMapper;
@@ -450,6 +451,7 @@ public class RentalService {
         });
     }
 
+    @Transactional
     public String processCheckInPayment(Long id, String ipAddr) throws Exception {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
@@ -472,6 +474,7 @@ public class RentalService {
         return paymentService.createPaymentUrl(request, ipAddr);
     }
 
+    @Transactional
     public CheckOutProcessResponse processCheckOutPayment(Long id, String remoteAddr) {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
@@ -528,11 +531,10 @@ public class RentalService {
 
             rental.setStatus(RentalStatus.COMPLETED);
             Rental updatedRental = rentalRepository.save(rental);
-            emailService.sendPaymentStatusToEmail(rental.getPayments()
-                    .stream()
-                    .filter(p -> p.getType() == PaymentType.REFUND)
-                    .findFirst()
-                    .orElse(null),null);
+            Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElseThrow(
+                    () -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS)
+            );
+            emailService.sendPaymentStatusToEmail(payment,null);
 
             return CheckOutProcessResponse.builder()
                     .processStatus("COMPLETED")
