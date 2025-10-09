@@ -14,6 +14,7 @@ import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
 import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
+import com.swp391.e_Motion_be.util.CurrencyFee;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -189,7 +190,7 @@ public class RentalCheckListService {
 
                 + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
                 + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Usage fee:</th>"
-                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + checkOut.getFee() + " VND </strong> </td></tr>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + CurrencyFee.toVND(checkOut.getFee()) + " </strong> </td></tr>"
                 + "</table>"
 
                 + "<p>We hope to see you again soon. For feedback or support, please click the "

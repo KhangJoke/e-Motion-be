@@ -1,6 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.document;
 
-import com.swp391.e_Motion_be.enums.DocType;
+import com.swp391.e_Motion_be.enums.DocumentType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,12 +19,12 @@ public class DocumentCreationRequest {
     String imgUrl;
 
     @NotNull(message = "Document type is required")
-    DocType docType;
+    DocumentType type;
 
     @NotBlank(message = "Document number must not be blank")
     @Size(max = 20, message = "Document number must not exceed 20 characters")
     @Pattern(regexp = "^[0-9]{9,12}$", message = "Document number must be 9–12 digits (for CCCD/CMND)")
-    String docNumber;
+    String number;
 
     @NotNull(message = "Email is required")
     String email;

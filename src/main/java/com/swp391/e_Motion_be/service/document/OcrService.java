@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
@@ -14,14 +15,13 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OcrService {
@@ -37,8 +37,9 @@ public class OcrService {
             if (!created) {
                 throw new AppException(ErrorCode.CREATE_FOLDER_FAILED);
             }
-            copyTessDataFolder(tempTessDataDir.toPath());
         }
+        // copy sang folder tạm
+        copyTessDataFolder(tempTessDataDir.toPath());
         // Khởi tạo Tesseract
         Tesseract tesseract = new Tesseract();
         tesseract.setDatapath(tempTessDataDir.getAbsolutePath());
@@ -47,33 +48,14 @@ public class OcrService {
     }
 
     private static void copyTessDataFolder(Path targetDir) {
-        // Lấy URL của thư mục trong resources
-        URI uri;
-        Path sourcePath;
-        try {
-            uri = Objects.requireNonNull(OcrService.class.getClassLoader().getResource("tessdata")).toURI();
-            if (uri.getScheme().equals("jar")) {
-                // Nếu chạy trong JAR
-                FileSystem fileSystem = FileSystems.newFileSystem(uri, new java.util.HashMap<>());
-                sourcePath = fileSystem.getPath("/" + "tessdata");
-            } else {
-                sourcePath = Paths.get(uri);
+        String[] files = {"eng.traineddata"}; // có thể thêm nhiều ngôn ngữ
+        for (String fileName : files) {
+            try (InputStream is = OcrService.class.getClassLoader().getResourceAsStream("tessdata/" + fileName)) {
+                if (is == null) throw new AppException(ErrorCode.NOT_FOUND_FOLDER_DATASET);
+                Files.copy(is, targetDir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new AppException(ErrorCode.FAIL_COPY_DATASET);
             }
-            // Copy toàn bộ file trong thư mục
-            Files.walk(sourcePath).forEach(source -> {
-                try {
-                    Path destination = targetDir.resolve(sourcePath.relativize(source).toString());
-                    if (Files.isDirectory(source)) {
-                        Files.createDirectories(destination);
-                    } else {
-                        Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                } catch (IOException e) {
-                    throw new AppException(ErrorCode.FAIL_COPY_DATASET);
-                }
-            });
-        } catch (Exception e) {
-            throw new AppException(ErrorCode.NOT_FOUND_FOLDER_DATASET);
         }
     }
 
@@ -105,13 +87,10 @@ public class OcrService {
             BufferedImage preprocessed = preprocess(img);
 
             ITesseract tesseract = getTesseract();
-            String text = tesseract.doOCR(preprocessed);
-
-            return extractCccd(text)
-                    .orElseThrow(() ->{
-                        cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(imageUrl));
-                        return new AppException(ErrorCode.NOT_FOUND_CCCD_IN_IMAGE);
-                    });
+            // loại bỏ các ký tự ko phải số
+            String text = tesseract.doOCR(preprocessed).replaceAll("[^0-9]", " ");
+            log.warn(text);
+            return extractCccd(text , imageUrl);
 
         } catch (IOException e) {
             cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(imageUrl));
@@ -122,11 +101,15 @@ public class OcrService {
         }
     }
 
-    private Optional<String> extractCccd(String text) {
-        if (text == null || text.isBlank()) return Optional.empty();
+    private String extractCccd(String text, String imageUrl) {
+        if (text == null || text.isBlank())
+            throw new AppException(ErrorCode.NOT_FOUND_CCCD_IN_IMAGE);
+        // Lấy 12 chữ số liên tiếp nếu có
         Matcher matcher = CCCD_PATTERN.matcher(text);
-        if (matcher.find()) return Optional.of(matcher.group());
-        return Optional.empty();
+        if (matcher.find()) return matcher.group();
+        // Nếu không đủ 12 số → xóa ảnh trên cloud, ném lỗi
+        cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(imageUrl));
+        throw new AppException(ErrorCode.NOT_FOUND_CCCD_IN_IMAGE);
     }
 }
 
