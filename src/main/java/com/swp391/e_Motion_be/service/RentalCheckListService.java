@@ -119,9 +119,20 @@ public class RentalCheckListService {
     public void sendRentalReturnedNotification(Rental rental) {
         String subject = "Your vehicle has been successfully returned to the station.";
 
+        RentalCheckList checkOut = rentalCheckListRepository.findByRental_Id(rental.getId()).stream()
+                .filter(c -> c.getType() == CheckType.CHECK_OUT)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.CHECKOUT_NOT_FOUND));
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String startTimeFormatted = rental.getStartTime() != null
+                ? rental.getStartTime().format(formatter)
+                : "Not specified";
         String endTimeFormatted = rental.getEndTime() != null
                 ? rental.getEndTime().format(formatter)
+                : "Not specified";
+        String actualReturnedTime = checkOut.getCreatedAt() != null
+                ? checkOut.getCreatedAt().format(formatter)
                 : "Not specified";
 
         String htmlMessage = "<!DOCTYPE html>"
@@ -129,7 +140,7 @@ public class RentalCheckListService {
                 + "<head>"
                 + "<meta charset='UTF-8'>"
                 + "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
-                + "<title>Your Rental is Overdue</title>"
+                + "<title>Vehicle Returned Successfully</title>"
                 + "</head>"
                 + "<body style='font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; color: #333333;'>"
 
@@ -142,14 +153,14 @@ public class RentalCheckListService {
                 + "<img src='https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931450/navxfjt05woc38qvpbtw.png' "
                 + "alt='Company Logo' width='100' height='70'>"
                 + "</div>"
-                + "<h1 style='margin: 0; font-size: 24px;'>Important Notice: Your Rental is Overdue</h1>"
+                + "<h1 style='margin: 0; font-size: 24px;'>Notification: Your vehicle has been successfully returned to the station!</h1>"
                 + "</div>"
 
                 // Content
                 + "<div style='padding: 20px 30px; line-height: 1.6; color: #333333;'>"
                 + "<p>Dear: <strong>" + rental.getUser().getFullName() + "</strong>,</p>"
-                + "<p>We would like to inform you that your rental period is coming to an end. "
-                + "Please make arrangements to return the car on time as per the details below:</p>"
+                + "<p>Thank you for using E-Motion. Your vehicle has been successfully returned to the station."
+                + " We hope you had a great experience!</p>"
 
                 + "<table cellpadding='0' cellspacing='0' border='0' style='width: 100%; margin: 20px 0; border-collapse: collapse;'>"
                 + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
@@ -161,27 +172,37 @@ public class RentalCheckListService {
                 + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getVehicle().getName() + "</strong></td></tr>"
 
                 + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Start Time:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + startTimeFormatted + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
                 + "background-color:#f9f9f9; font-weight:bold; color:#555;'>End Time:</th>"
                 + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + endTimeFormatted + "</strong></td></tr>"
 
                 + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Actual Vehicle returned time::</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + actualReturnedTime + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
                 + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Car Return Location:</th>"
                 + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getStation().getName() + "</strong></td></tr>"
+
+                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
+                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Usage fee:</th>"
+                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + checkOut.getFee() + " VND </strong> </td></tr>"
                 + "</table>"
 
-                + "<p>Please ensure the car is returned at the correct <strong style='color:#0080ff;'>Station</strong> and "
-                + "<strong style='color:#0080ff;'>End Time</strong> to <strong style='color:#ff0000;'>avoid overtime charges</strong>.</p>"
-
-                + "<p>If you have any questions or would like to <strong style='color:#ff8c1a'>extend your rental time</strong>, "
-                + "please click the <strong style='color:#3B82F6'>button</strong> below or contact us immediately.</p>"
+                + "<p>We hope to see you again soon. For feedback or support, please click the "
+                + "<strong style='color:#3B82F6'>button</strong> below or contact us immediately.</p>"
 
                 + "<a href='[Đường link liên hệ/Gia hạn]' "
                 + "style='display:block; width:80%; margin:30px auto; padding:15px 25px; background-color:#3B82F6; "
                 + "color:#ffffff !important; text-align:center; text-decoration:none; border-radius:5px; font-size:16px; font-weight:bold;'>"
-                + "Gia Hạn Thuê Xe Hoặc Liên Hệ Hỗ Trợ</a>"
+                + "Feedback / Contact Support</a>"
 
                 + "<p>Thank you very much for using our service.</p>"
-                + "<p>Best regards,<br>E-Motion</p>"
+                + "<p>Best regards,</p><br>"
+                + "<p>E-Motion</p>"
                 + "</div>"
 
                 // Footer

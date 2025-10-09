@@ -327,20 +327,9 @@ public class RentalService {
 
     public void sendRentalOverdueEmail(Rental rental) {
         String subject = "Your Rental is Overdue";
-        RentalCheckList checkOut = rentalCheckListRepository.findByRental_Id(rental.getId()).stream()
-                .filter(c -> c.getType() == CheckType.CHECK_OUT)
-                .findFirst()
-                .orElseThrow(() -> new AppException(ErrorCode.CHECKOUT_NOT_FOUND));
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
-        String startTimeFormatted = rental.getStartTime() != null
-                ? rental.getStartTime().format(formatter)
-                : "Not specified";
         String endTimeFormatted = rental.getEndTime() != null
                 ? rental.getEndTime().format(formatter)
-                : "Not specified";
-        String actualReturnedTime = checkOut.getCreatedAt() != null
-                ? checkOut.getCreatedAt().format(formatter)
                 : "Not specified";
 
         String htmlMessage = "<!DOCTYPE html>"
@@ -380,24 +369,12 @@ public class RentalService {
                 + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getVehicle().getName() + "</strong></td></tr>"
 
                 + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
-                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Start Time:</th>"
-                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + startTimeFormatted + "</strong></td></tr>"
-
-                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
                 + "background-color:#f9f9f9; font-weight:bold; color:#555;'>End Time:</th>"
                 + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + endTimeFormatted + "</strong></td></tr>"
 
                 + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
-                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Actual Vehicle returned time::</th>"
-                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + actualReturnedTime + "</strong></td></tr>"
-
-                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
                 + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Car Return Location:</th>"
                 + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + rental.getStation().getName() + "</strong></td></tr>"
-
-                + "<tr><th style='width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee; "
-                + "background-color:#f9f9f9; font-weight:bold; color:#555;'>Usage fee:</th>"
-                + "<td style='padding:10px; border-bottom:1px solid #eee;'><strong>" + checkOut.getFee() + "</strong></td></tr>"
                 + "</table>"
 
                 + "<p>Please ensure the car is returned at the correct <strong style='color:#0080ff;'>Station</strong> and "
