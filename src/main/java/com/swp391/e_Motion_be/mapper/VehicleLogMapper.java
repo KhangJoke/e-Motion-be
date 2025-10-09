@@ -8,6 +8,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Mapper(componentModel = "spring")
 public interface VehicleLogMapper {
     @Mapping(source = "vehicleId", target = "vehicle.id") // handle manually in service
@@ -21,4 +25,5 @@ public interface VehicleLogMapper {
     VehicleLogResponse toResponse(VehicleLog vehicleLog);
 
     void updateVehicleLogFromRequest(@MappingTarget VehicleLog vehicleLog, VehicleLogUpdateRequest request);
+
 }
