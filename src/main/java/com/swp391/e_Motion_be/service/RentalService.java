@@ -41,6 +41,7 @@ public class RentalService {
 
     private final RentalRepository rentalRepository;
     private final ReservationRepository reservationRepository;
+    private final DocumentRepository documentRepository;
     private final StaffRepository staffRepository;
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;

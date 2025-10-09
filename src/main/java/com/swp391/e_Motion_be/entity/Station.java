@@ -26,6 +26,12 @@ public class Station {
     @Column(name = "station_address")
     private String address;
 
+    @Column(name = "station_latitude")
+    private Double latitude;
+
+    @Column(name = "station_longitude")
+    private Double longitude;
+
     @Column(name = "station_status")
     @Enumerated(EnumType.STRING)
     private StationStatus status;
