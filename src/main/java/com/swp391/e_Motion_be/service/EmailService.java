@@ -411,7 +411,7 @@ public class EmailService {
         context.setVariable("startTime", startTimeFormatted);
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("actualVehicleReturned", actualReturnedTime);
-        context.setVariable("location", rental.getStation().getAddress());
+        context.setVariable("location", rental.getStation().getName());
         context.setVariable("usageFee", CurrencyFee.toVND(checkOut.getFee()));
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
