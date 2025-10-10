@@ -8,6 +8,8 @@ import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
+import com.swp391.e_Motion_be.util.CurrencyFee;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class EmailService {
     @Autowired
     private TemplateEngine templateEngine;
     private final JavaMailSender emailSender;
+    private final RentalCheckListRepository rentalCheckListRepository;
 
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
@@ -330,5 +333,96 @@ public class EmailService {
             default -> "#718096";      // Gray
         };
     }
+
+    public void sendRentalOverdueEmail(Rental rental) {
+        String subject = "Your Rental is Overdue";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = rental.getEndTime() != null
+                ? rental.getEndTime().format(formatter)
+                : "Not specified";
+
+
+        Context context = new Context();
+        context.setVariable("userFullName", rental.getUser().getFullName());
+        context.setVariable("rentalId", rental.getId());
+        context.setVariable("vehicleName", rental.getVehicle().getName());
+        context.setVariable("endTime", endTimeFormatted);
+        context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("contactLink", "https://e-motion.vn/support");
+
+        String htmlMessage = templateEngine.process("rental-overdue-email", context);
+
+        try {
+            sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
+    public void sendRentalExpiringEmail(Rental rental) {
+        String subject = "Your Rental is About to Expire";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = rental.getEndTime() != null
+                ? rental.getEndTime().format(formatter)
+                : "Not specified";
+
+
+        Context context = new Context();
+        context.setVariable("userFullName", rental.getUser().getFullName());
+        context.setVariable("rentalId", rental.getId());
+        context.setVariable("vehicleName", rental.getVehicle().getName());
+        context.setVariable("endTime", endTimeFormatted);
+        context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("contactLink", "https://e-motion.vn/support");
+
+        String htmlMessage = templateEngine.process("rental-expiring-email", context);
+
+        try {
+            sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
+    public void sendRentalReturnedNotification(Rental rental) {
+        String subject = "Your vehicle has been successfully returned to the station.";
+
+        RentalCheckList checkOut = rentalCheckListRepository.findByRental_Id(rental.getId()).stream()
+                .filter(c -> c.getType() == CheckType.CHECK_OUT)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.CHECKOUT_NOT_FOUND));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+
+        String startTimeFormatted = rental.getStartTime() != null
+                ? rental.getStartTime().format(formatter)
+                : "Not specified";
+        String endTimeFormatted = rental.getEndTime() != null
+                ? rental.getEndTime().format(formatter)
+                : "Not specified";
+        String actualReturnedTime = checkOut.getCreatedAt() != null
+                ? checkOut.getCreatedAt().format(formatter)
+                : "Not specified";
+        Context context = new Context();
+        context.setVariable("userFullName", rental.getUser().getFullName());
+        context.setVariable("rentalId", rental.getId());
+        context.setVariable("vehicleName", rental.getVehicle().getName());
+        context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("startTime", startTimeFormatted);
+        context.setVariable("endTime", endTimeFormatted);
+        context.setVariable("actualVehicleReturned", actualReturnedTime);
+        context.setVariable("location", rental.getStation().getAddress());
+        context.setVariable("usageFee", CurrencyFee.toVND(checkOut.getFee()));
+        context.setVariable("contactLink", "https://e-motion.vn/support");
+
+        String htmlMessage = templateEngine.process("rental-returned-email", context);
+
+        try {
+            sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
 
 }
