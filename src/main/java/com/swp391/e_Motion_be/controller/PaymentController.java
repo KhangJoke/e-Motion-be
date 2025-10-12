@@ -11,6 +11,7 @@ import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,13 +40,15 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay-return")
-    public ApiResponse<PaymentResponse> paymentVnPayReturn(@RequestParam Map<String, String> params) {
+    public void paymentVnPayReturn(@RequestParam Map<String, String> params, HttpServletResponse response) throws Exception {
         PaymentResponse paymentResponse = paymentService.handleReturn(params);
-        ApiResponse<PaymentResponse> response = new ApiResponse<>();
-        response.setStatus(200);
-        response.setMessage(paymentResponse == null ? "Payment Failed" : "Payment Successful");
-        response.setData(paymentResponse);
-        return response;
+        String redirectUrl;
+        if (paymentResponse == null) {
+            redirectUrl = "http://localhost:5173/booking/payment-result?status=failed";
+        } else {
+            redirectUrl = "http://localhost:5173/booking/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef();
+        }
+        response.sendRedirect(redirectUrl);
     }
 
     @PostMapping()
