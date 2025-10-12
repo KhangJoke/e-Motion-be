@@ -172,6 +172,15 @@ public class PaymentService {
         Payment payment = paymentRepository.findByTxnRef(vnp_TxnRef)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
 
+        if("94".equals(responseCode)){
+            processFailedPayment(payment);
+            log.warn("Payment failed for txnRef: {} with code: {}", vnp_TxnRef, responseCode);
+            emailService.sendPaymentStatusToEmail(payment, null);
+            payment.setTxnRef(vnPayConfig.generateTxnRef());
+            paymentRepository.save(payment);
+            return null;
+        }
+
         // Prevent duplicate processing
         if (payment.getStatus() != PaymentStatus.PENDING) {
             log.warn("Payment already processed: {}", vnp_TxnRef);
@@ -391,7 +400,12 @@ public class PaymentService {
             String responseCode = responseParams.get("vnp_ResponseCode");
             if (responseCode == null) {
                 throw new AppException(ErrorCode.REFUND_RESPONSE_INVALID);
-            }else if(!"00".equals(responseCode)){
+            }else if ("94".equals(responseCode)) {
+                log.warn("Refund failed for txnRef: {} with code: {}", responseParams.get("vnp_TxnRef"), responseCode);
+                originalPayment.setTxnRef(vnPayConfig.generateTxnRef());
+                paymentRepository.save(originalPayment);
+                throw new AppException(ErrorCode.REFUND_FAILED);
+            } else if(!"00".equals(responseCode)){
                 log.error("Refund failed with response code: {}", responseCode);
                 throw new AppException(ErrorCode.REFUND_FAILED);
             }
