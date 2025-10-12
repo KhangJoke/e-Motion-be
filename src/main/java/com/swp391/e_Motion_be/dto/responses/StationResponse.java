@@ -10,5 +10,5 @@ public class StationResponse {
     private String city;
     private Double latitude;
     private Double longitude;
-    private String stationStatus;
+    private String status;
 }

@@ -50,7 +50,7 @@ public class StaffController {
     }
 
     @PutMapping("/{email}")
-    public ApiResponse<StaffResponse> updateStaffById(@PathVariable String email,
+    public ApiResponse<StaffResponse> updateStaffByEmail(@PathVariable String email,
                                                       @RequestBody @Valid StaffUpdateRequest request){
         ApiResponse<StaffResponse> response = new ApiResponse<>();
         response.setData(staffService.updateStaff(request));

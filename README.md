@@ -801,3 +801,621 @@ Success Response:
 "data": null
 }
 ```
+
+## RentalCheckList API(/api/rental-checklists)
+
+Base URL: http://localhost:8080/api/rental-checklists
+
+All responses are wrapped in:
+
+{ "status": 200, "message": "success", "data": { ... } }
+
+## 1.CreateCheckList (CHECK_IN)
+
+Endpoint: POST /api/vehicles/rental-checklists
+
+Description: Create a new checklist check in.
+
+Request Body: http://localhost:8080/api/rental-checklists
+
+```json
+{
+"rentalId": 3,
+"currentBattery": 10.0,
+"staffEmail": "voquangtrungyb@gmail.com",
+"type": "CHECK_IN",
+"img": "http://example.com/updated_image.png"
+}
+```
+
+Success Response:
+```json
+{
+  "status": 200,
+  "message": null,
+  "data": {
+    "id": 18,
+    "type": "CHECK_IN",
+    "fee": 0.0,
+    "currentBattery": 70.0,
+    "img": "http://example.com/updated_image.png",
+    "rentalId": 3,
+    "staffEmail": "voquangtrungyb@gmail.com",
+    "createdAt": "2025-10-12T12:56:25.565433"
+  }
+}
+```
+
+## 2.CreateCheckList (CHECK_OUT)
+
+Endpoint: POST /api/vehicles/rental-checklists
+
+Description: Create a new checklist check out.
+
+Request Body: http://localhost:8080/api/rental-checklists
+
+```json
+{
+  "rentalId": 3,
+  "currentBattery": 10.0,
+  "staffEmail": "voquangtrungyb@gmail.com",
+  "type": "CHECK_OUT",
+  "img": "http://example.com/updated_image.png"
+}
+```
+
+Success Response:
+```json
+{
+  "status": 200,
+  "message": null,
+  "data": {
+    "id": 19,
+    "type": "CHECK_OUT",
+    "fee": 7470000.0,
+    "currentBattery": 10.0,
+    "img": "http://example.com/updated_image.png",
+    "rentalId": 3,
+    "staffEmail": "voquangtrungyb@gmail.com",
+    "createdAt": "2025-10-12T13:01:00.996125"
+  }
+}
+```
+
+## Staff API (/api/staffs)
+
+Base URL: http://localhost:8080/api/staffs 
+All responses are wrapped in:
+
+{ "status": 200, "message": "success", "data": { ... } }
+
+## 1. Create Staff
+
+Endpoint: POST /api/staffs
+
+Description: Create a new staff.
+
+Request Body: http://localhost:8080/api/staffs
+
+```json
+{
+    "email": "nguyen1112894@gmail.com",
+    "stationName": "E-Motion Station Cầu Giấy"
+}
+```
+
+Success Response:
+```json
+{
+    "status": 200,
+    "message": "Create staff successfully",
+    "data": {
+        "email": "nguyen1112894@gmail.com",
+        "stationName": "E-Motion Station Cầu Giấy",
+        "fullName": "Nguyen"
+    }
+}
+```
+
+## 2. Find Staff by Email
+
+Endpoint: GET /api/staffs/{email}
+
+Description: Find staff by email.
+
+Path Parameter: http://localhost:8080/api/staffs/nguyen1112894@gmail.com
+
+```json
+{
+  "status": 200,
+  "message": "Get staff by user email successfully",
+  "data": {
+    "email": "nguyen1112894@gmail.com",
+    "stationName": "E-Motion Station Cầu Giấy",
+    "fullName": "Nguyen"
+  }
+}
+```
+
+## 3. Find all staffs.
+
+Endpoint: GET /api/staffs
+
+Description: Find all staffs.
+
+Path Parameter: http://localhost:8080/api/staffs
+
+```json
+{
+  "status": 200,
+  "message": "Get all staffs successfully",
+  "data": [
+    {
+      "email": "trungbeat7749@gmail.com",
+      "stationName": "E-Motion Station Hoàn Kiếm",
+      "fullName": "Hồ Thơm"
+    },
+    {
+      "email": "khangngoc3082005@gmail.com",
+      "stationName": "E-Motion Station Hoàn Kiếm",
+      "fullName": "Khang"
+    },
+    {
+      "email": "le4035040@gmail.com",
+      "stationName": "E-Motion Station Tân Bình",
+      "fullName": "nam"
+    },
+    {
+      "email": "myapah7605@gmail.com",
+      "stationName": "E-Motion Station Tân Bình",
+      "fullName": "phat"
+    },
+    {
+      "email": "myapah2005@gmail.com",
+      "stationName": "E-Motion Station Thủ Đức",
+      "fullName": "phat"
+    },
+    {
+      "email": "voquangtrung04022005@gmail.com",
+      "stationName": "E-Motion Station Thủ Đức",
+      "fullName": "Quang Trung Đại Đế"
+    },
+    {
+      "email": "barrysmunozeg1ef@gmail.com",
+      "stationName": "E-Motion Station Trần Hưng Đạo",
+      "fullName": "Quang Trung Đại Đế"
+    },
+    {
+      "email": "trunho05@gmail.com",
+      "stationName": "E-Motion Station Cầu Giấy",
+      "fullName": "Nguyễn Huệ"
+    },
+    {
+      "email": "voquangtrungyb@gmail.com",
+      "stationName": "E-Motion Station Cầu Giấy",
+      "fullName": "vua Quang Trung"
+    },
+    {
+      "email": "voquangtrung11a2locan2021@gmail.com",
+      "stationName": "E-Motion Station Thanh Xuân",
+      "fullName": "Bắc Bình Vương"
+    },
+    {
+      "email": "nhatnam13112005@gmail.com",
+      "stationName": "E-Motion Station Thanh Xuân",
+      "fullName": "Nguyen Quang Nhat Nam"
+    },
+    {
+      "email": "voquangtrungtiktok@gmail.com",
+      "stationName": "E-Motion Station Cầu Giấy",
+      "fullName": "Võ Quang Trung"
+    },
+    {
+      "email": "nguyen1112894@gmail.com",
+      "stationName": "E-Motion Station Cầu Giấy",
+      "fullName": "Nguyen"
+    }
+  ]
+}
+```
+
+## 4. Delete Staff by Email
+
+Endpoint: DELETE /api/staffs/{email}
+
+Description: Delete staff by email.
+
+Path Parameter: http://localhost:8080/api/staffs/nguyen1112894@gmail.com
+
+```json
+{
+  "status": 200,
+  "message": "Delete staff by email successfully",
+  "data": null
+}
+```
+
+## 5. Update Staff by Email
+
+Endpoint: PUT /api/staffs/{email}
+
+Description: Update staff by email.
+
+Request Body: http://localhost:8080/api/staffs/voquangtrungtiktok@gmail.com
+
+```json
+{
+  "email": "voquangtrungtiktok@gmail.com",
+  "oldStationName": "E-Motion Station Cầu Giấy",
+  "newStationName": "E-Motion Station Thủ Đức"
+}
+```
+
+Success Response:
+```json
+{
+  "status": 200,
+  "message": "Update staff by id successfully",
+  "data": {
+    "email": "voquangtrungtiktok@gmail.com",
+    "stationName": "E-Motion Station Thủ Đức",
+    "fullName": "Võ Quang Trung"
+  }
+}
+```
+
+## Station API (/api/stations)
+
+Base URL: http://localhost:8080/api/stations
+All responses are wrapped in:
+
+{ "status": 200, "message": "success", "data": { ... } }
+
+## 1. Create Station
+
+Endpoint: POST /api/stations
+
+Description: Create a new station.
+
+Request Body: http://localhost:8080/api/stations
+
+```json
+{
+  "name": "E-Motion Station Example6",
+  "address": "123 Example Street",
+  "city": "Hà Nội",
+  "status": "ACTIVE",
+  "latitude": 10.762622,
+  "longitude": 106.660172
+}
+
+```
+
+Success Response:
+```json
+{
+  "status": 200,
+  "message": "Create station successfully",
+  "data": {
+    "name": "E-Motion Station Example6",
+    "address": "123 Example Street",
+    "city": "HANOI",
+    "latitude": 10.762622,
+    "longitude": 106.660172,
+    "status": "ACTIVE"
+  }
+}
+```
+
+## 2. Find Station by name
+
+Endpoint: GET /api/stations/name/{name}
+
+Description: Find station by name.
+
+Path Parameter: http://localhost:8080/api/stations/name/E-Motion Station Example6
+
+```json
+{
+  "status": 200,
+  "message": "Get station by name successfully",
+  "data": {
+    "name": "E-Motion Station Example6",
+    "address": "123 Example Street",
+    "city": "HANOI",
+    "latitude": 10.762622,
+    "longitude": 106.660172,
+    "status": "ACTIVE"
+  }
+}
+```
+
+## 3. Find Station by address
+
+Endpoint: GET /api/stations/address/{address}
+
+Description: Find station by address.
+
+Path Parameter: http://localhost:8080/api/stations/address/123 Example Street
+```json
+{
+  "status": 200,
+  "message": "Get stations by address successfully",
+  "data": [
+    {
+      "name": "E-Motion Station Example6",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+## 4. Find Station by city
+
+Endpoint: GET /api/stations/city/{city}
+
+Description: Find station by city.
+
+Path Parameter: http://localhost:8080/api/stations/city/HANOI
+```json
+{
+  "status": 200,
+  "message": "Get stations by city successfully",
+  "data": [
+    {
+      "name": "E-Motion Station Hoàn Kiếm",
+      "address": "66 Tràng Tiền, Hoàn Kiếm",
+      "city": "HANOI",
+      "latitude": 21.02552,
+      "longitude": 105.85335,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Cầu Giấy",
+      "address": "69 P. Vũ Phạm Hàm, Trung Hoà, Cầu Giấy",
+      "city": "HANOI",
+      "latitude": 21.0201,
+      "longitude": 105.80095,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Thanh Xuân",
+      "address": "183 Đ. Nguyễn Trãi, Thượng Đình, Thanh Xuân",
+      "city": "HANOI",
+      "latitude": 20.99851,
+      "longitude": 105.8139,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Example",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": null,
+      "longitude": null,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example1",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": null,
+      "longitude": null,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example2",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": null,
+      "longitude": null,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example3",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example4",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example5",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example6",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+## 5. Find all stations.
+
+Endpoint: GET /api/stations
+
+Description: Find all stations.
+
+Path Parameter: http://localhost:8080/api/stations
+
+```json
+{
+  "status": 200,
+  "message": "Get all stations successfully",
+  "data": [
+    {
+      "name": "E-Motion Station Hoàn Kiếm",
+      "address": "66 Tràng Tiền, Hoàn Kiếm",
+      "city": "HANOI",
+      "latitude": 21.02552,
+      "longitude": 105.85335,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Tân Bình",
+      "address": "396 Đ. Lý Thường Kiệt, Phường 7, Tân Bình",
+      "city": "TP_HCM",
+      "latitude": 10.78463,
+      "longitude": 106.65434,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Thủ Đức",
+      "address": "5 Đ. Đỗ Xuân Hợp, Phước Long B, Thủ Đức",
+      "city": "TP_HCM",
+      "latitude": 10.82967,
+      "longitude": 106.7679,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Trần Hưng Đạo",
+      "address": "34 Trần Hưng Đạo, P. Phạm Ngũ Lão, Q1",
+      "city": "TP_HCM",
+      "latitude": 10.76723,
+      "longitude": 106.69443,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Cầu Giấy",
+      "address": "69 P. Vũ Phạm Hàm, Trung Hoà, Cầu Giấy",
+      "city": "HANOI",
+      "latitude": 21.0201,
+      "longitude": 105.80095,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Thanh Xuân",
+      "address": "183 Đ. Nguyễn Trãi, Thượng Đình, Thanh Xuân",
+      "city": "HANOI",
+      "latitude": 20.99851,
+      "longitude": 105.8139,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Example",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": null,
+      "longitude": null,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example1",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": null,
+      "longitude": null,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example2",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": null,
+      "longitude": null,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example3",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example4",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example5",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": null
+    },
+    {
+      "name": "E-Motion Station Example6",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+## 6. Delete Staff by Email
+
+Endpoint: DELETE /api/stations/{name}
+
+Description: Delete station by name.
+
+Path Parameter: http://localhost:8080/api/stations/E-Motion Station Example6
+
+```json
+{
+  "status": 200,
+  "message": "Delete station successfully",
+  "data": null
+}
+```
+
+## 7. Update Station by name
+
+Endpoint: PUT /api/stations/{name}
+
+Description: Update station by name.
+
+Request Body: http://localhost:8080/api/stations/E-Motion Station Example6
+
+```json
+{
+  "name": "E-Motion Station Example6",
+  "address": "124 Example Street ",
+  "city": "Hà Nội",
+  "status": "ACTIVE",
+  "latitude": 10.762672,
+  "longitude": 106.660172
+}
+```
+
+Success Response:
+```json
+{
+  "status": 200,
+  "message": "Update station successfully",
+  "data": {
+    "name": "E-Motion Station Example6",
+    "address": "124 Example Street ",
+    "city": "HANOI",
+    "latitude": 10.762672,
+    "longitude": 106.660172,
+    "status": "ACTIVE"
+  }
+}
+```

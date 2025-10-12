@@ -25,5 +25,11 @@ public class StationCreationRequest {
     private StationCity city;
 
     @NotNull(message = "Status must not be null")
-    private StationStatus stationStatus;
+    private StationStatus status;
+
+    @NotNull(message = "Latitude must not be null")
+    private Double latitude;
+
+    @NotNull(message = "Longitude must not be null")
+    private Double longitude;
 }
