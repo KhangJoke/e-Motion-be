@@ -1908,9 +1908,9 @@ Base URL: `http://localhost:8080/api/payment`
 
 All responses are wrapped in:
 ```json
-{ 
-  "status": 200, 
-  "message": "success", 
+{
+  "status": 200,
+  "message": "success",
   "data": { ... }
 }
 ```
@@ -2408,9 +2408,9 @@ Base URL: `http://localhost:8080/api/vehicle-logs`
 All responses are wrapped in:
 
 ```json
-{ 
-  "status": 200, 
-  "message": "success", 
+{
+  "status": 200,
+  "message": "success",
   "data": { ... }
 }
 ```
@@ -2620,15 +2620,466 @@ GET /api/vehicle-logs/vehicle/5
 
 ---
 
+## Staff API (/api/staffs)
+
+Base URL: `http://localhost:8080/api/staffs`
+
+All responses are wrapped in:
+```json
+{
+  "status": 200,
+  "message": "success",
+  "data": { ... }
+}
+```
+
+### 1. Create Staff
+
+**Endpoint:** `POST /api/staffs`
+
+**Description:** Create a new staff member and assign them to a station.
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Request Body:**
+```json
+{
+  "email": "nguyen1112894@gmail.com",
+  "stationName": "E-Motion Station Cầu Giấy"
+}
+```
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Create staff successfully",
+  "data": {
+    "email": "nguyen1112894@gmail.com",
+    "stationName": "E-Motion Station Cầu Giấy",
+    "fullName": "Nguyen"
+  }
+}
+```
+
+---
+
+### 2. Find Staff by Email
+
+**Endpoint:** `GET /api/staffs/{email}`
+
+**Description:** Retrieve staff information by email address.
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Path Parameter:**
+- `email` (string): Staff email address
+
+**Example:** `GET http://localhost:8080/api/staffs/nguyen1112894@gmail.com`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Get staff by user email successfully",
+  "data": {
+    "email": "nguyen1112894@gmail.com",
+    "stationName": "E-Motion Station Cầu Giấy",
+    "fullName": "Nguyen"
+  }
+}
+```
+
+---
+
+### 3. Find All Staffs
+
+**Endpoint:** `GET /api/staffs`
+
+**Description:** Retrieve a list of all staff members.
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Example:** `GET http://localhost:8080/api/staffs`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Get all staffs successfully",
+  "data": [
+    {
+      "email": "trungbeat7749@gmail.com",
+      "stationName": "E-Motion Station Hoàn Kiếm",
+      "fullName": "Hồ Thơm"
+    },
+    {
+      "email": "khangngoc3082005@gmail.com",
+      "stationName": "E-Motion Station Hoàn Kiếm",
+      "fullName": "Khang"
+    },
+    {
+      "email": "voquangtrungyb@gmail.com",
+      "stationName": "E-Motion Station Cầu Giấy",
+      "fullName": "vua Quang Trung"
+    }
+  ]
+}
+```
+
+---
+
+### 4. Delete Staff by Email
+
+**Endpoint:** `DELETE /api/staffs/{email}`
+
+**Description:** Remove a staff member from the system.
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Path Parameter:**
+- `email` (string): Staff email address
+
+**Example:** `DELETE http://localhost:8080/api/staffs/nguyen1112894@gmail.com`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Delete staff by email successfully",
+  "data": null
+}
+```
+
+---
+
+### 5. Update Staff by Email
+
+**Endpoint:** `PUT /api/staffs/{email}`
+
+**Description:** Update staff information (primarily station assignment).
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Path Parameter:**
+- `email` (string): Staff email address
+
+**Request Body:**
+```json
+{
+  "email": "voquangtrungtiktok@gmail.com",
+  "oldStationName": "E-Motion Station Cầu Giấy",
+  "newStationName": "E-Motion Station Thủ Đức"
+}
+```
+
+**Example:** `PUT http://localhost:8080/api/staffs/voquangtrungtiktok@gmail.com`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Update staff by id successfully",
+  "data": {
+    "email": "voquangtrungtiktok@gmail.com",
+    "stationName": "E-Motion Station Thủ Đức",
+    "fullName": "Võ Quang Trung"
+  }
+}
+```
+
+---
+
+## Station API (/api/stations)
+
+Base URL: `http://localhost:8080/api/stations`
+
+All responses are wrapped in:
+```json
+{
+  "status": 200,
+  "message": "success",
+  "data": { ... }
+}
+```
+
+### 1. Create Station
+
+**Endpoint:** `POST /api/stations`
+
+**Description:** Create a new station location.
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Request Body:**
+```json
+{
+  "name": "E-Motion Station Example6",
+  "address": "123 Example Street",
+  "city": "Hà Nội",
+  "status": "ACTIVE",
+  "latitude": 10.762622,
+  "longitude": 106.660172
+}
+```
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Create station successfully",
+  "data": {
+    "name": "E-Motion Station Example6",
+    "address": "123 Example Street",
+    "city": "HANOI",
+    "latitude": 10.762622,
+    "longitude": 106.660172,
+    "status": "ACTIVE"
+  }
+}
+```
+
+**Notes:**
+- `city` accepts values: "Hà Nội" or "TP HCM" (will be converted to enum: HANOI, TP_HCM)
+- `status` can be: ACTIVE, INACTIVE, MAINTENANCE
+
+---
+
+### 2. Find Station by Name
+
+**Endpoint:** `GET /api/stations/name/{name}`
+
+**Description:** Retrieve station information by name.
+
+**Authentication:** Requires JWT token.
+
+**Path Parameter:**
+- `name` (string): Station name
+
+**Example:** `GET http://localhost:8080/api/stations/name/E-Motion Station Example6`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Get station by name successfully",
+  "data": {
+    "name": "E-Motion Station Example6",
+    "address": "123 Example Street",
+    "city": "HANOI",
+    "latitude": 10.762622,
+    "longitude": 106.660172,
+    "status": "ACTIVE"
+  }
+}
+```
+
+---
+
+### 3. Find Station by Address
+
+**Endpoint:** `GET /api/stations/address/{address}`
+
+**Description:** Retrieve stations matching a specific address.
+
+**Authentication:** Requires JWT token.
+
+**Path Parameter:**
+- `address` (string): Station address
+
+**Example:** `GET http://localhost:8080/api/stations/address/123 Example Street`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Get stations by address successfully",
+  "data": [
+    {
+      "name": "E-Motion Station Example6",
+      "address": "123 Example Street",
+      "city": "HANOI",
+      "latitude": 10.762622,
+      "longitude": 106.660172,
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+---
+
+### 4. Find Station by City
+
+**Endpoint:** `GET /api/stations/city/{city}`
+
+**Description:** Retrieve all stations in a specific city.
+
+**Authentication:** Requires JWT token.
+
+**Path Parameter:**
+- `city` (string): City name (HANOI or TP_HCM)
+
+**Example:** `GET http://localhost:8080/api/stations/city/HANOI`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Get stations by city successfully",
+  "data": [
+    {
+      "name": "E-Motion Station Hoàn Kiếm",
+      "address": "66 Tràng Tiền, Hoàn Kiếm",
+      "city": "HANOI",
+      "latitude": 21.02552,
+      "longitude": 105.85335,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Cầu Giấy",
+      "address": "69 P. Vũ Phạm Hàm, Trung Hoà, Cầu Giấy",
+      "city": "HANOI",
+      "latitude": 21.0201,
+      "longitude": 105.80095,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Thanh Xuân",
+      "address": "183 Đ. Nguyễn Trãi, Thượng Đình, Thanh Xuân",
+      "city": "HANOI",
+      "latitude": 20.99851,
+      "longitude": 105.8139,
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+---
+
+### 5. Find All Stations
+
+**Endpoint:** `GET /api/stations`
+
+**Description:** Retrieve a list of all stations.
+
+**Authentication:** Requires JWT token.
+
+**Example:** `GET http://localhost:8080/api/stations`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Get all stations successfully",
+  "data": [
+    {
+      "name": "E-Motion Station Hoàn Kiếm",
+      "address": "66 Tràng Tiền, Hoàn Kiếm",
+      "city": "HANOI",
+      "latitude": 21.02552,
+      "longitude": 105.85335,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Tân Bình",
+      "address": "396 Đ. Lý Thường Kiệt, Phường 7, Tân Bình",
+      "city": "TP_HCM",
+      "latitude": 10.78463,
+      "longitude": 106.65434,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "E-Motion Station Thủ Đức",
+      "address": "5 Đ. Đỗ Xuân Hợp, Phước Long B, Thủ Đức",
+      "city": "TP_HCM",
+      "latitude": 10.82967,
+      "longitude": 106.7679,
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+---
+
+### 6. Delete Station by Name
+
+**Endpoint:** `DELETE /api/stations/{name}`
+
+**Description:** Remove a station from the system.
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Path Parameter:**
+- `name` (string): Station name
+
+**Example:** `DELETE http://localhost:8080/api/stations/E-Motion Station Example6`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Delete station successfully",
+  "data": null
+}
+```
+
+---
+
+### 7. Update Station by Name
+
+**Endpoint:** `PUT /api/stations/{name}`
+
+**Description:** Update station information.
+
+**Authentication:** Requires JWT token (ADMIN role).
+
+**Path Parameter:**
+- `name` (string): Station name
+
+**Request Body:**
+```json
+{
+  "name": "E-Motion Station Example6",
+  "address": "124 Example Street ",
+  "city": "Hà Nội",
+  "status": "ACTIVE",
+  "latitude": 10.762672,
+  "longitude": 106.660172
+}
+```
+
+**Example:** `PUT http://localhost:8080/api/stations/E-Motion Station Example6`
+
+**Success Response:**
+```json
+{
+  "status": 200,
+  "message": "Update station successfully",
+  "data": {
+    "name": "E-Motion Station Example6",
+    "address": "124 Example Street ",
+    "city": "HANOI",
+    "latitude": 10.762672,
+    "longitude": 106.660172,
+    "status": "ACTIVE"
+  }
+}
+```
+
+---
+
 ## RentalCheckList API (/api/rental-checklists)
 
 Base URL: `http://localhost:8080/api/rental-checklists`
 
 All responses are wrapped in:
 ```json
-{ 
-  "status": 200, 
-  "message": "success", 
+{
+  "status": 200,
+  "message": "success",
   "data": { ... }
 }
 ```
@@ -2708,229 +3159,4 @@ All responses are wrapped in:
   }
 }
 ```
-
----
-
-### 3. Get All Rental Checklists
-
-**Endpoint:** `GET /api/rental-checklists`
-
-**Description:** Retrieves all rental checklists.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role).
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get all rental checklists successfully",
-  "data": [
-    {
-      "id": 18,
-      "type": "CHECK_IN",
-      "fee": 0.0,
-      "currentBattery": 85.0,
-      "img": "http://example.com/checkin_image.png",
-      "rentalId": 3,
-      "staffEmail": "staff@example.com",
-      "createdAt": "2025-10-12T12:56:25"
-    },
-    {
-      "id": 19,
-      "type": "CHECK_OUT",
-      "fee": 7470000.0,
-      "currentBattery": 10.0,
-      "img": "http://example.com/checkout_image.png",
-      "rentalId": 3,
-      "staffEmail": "staff@example.com",
-      "createdAt": "2025-10-12T13:01:00"
-    }
-  ]
-}
-```
-
----
-
-### 4. Get Checklist by ID
-
-**Endpoint:** `GET /api/rental-checklists/{id}`
-
-**Description:** Retrieves a specific checklist by its ID.
-
-**Authentication:** Requires JWT token.
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get rental checklist successfully",
-  "data": {
-    "id": 19,
-    "type": "CHECK_OUT",
-    "fee": 7470000.0,
-    "currentBattery": 10.0,
-    "img": "http://example.com/checkout_image.png",
-    "rentalId": 3,
-    "staffEmail": "staff@example.com",
-    "createdAt": "2025-10-12T13:01:00"
-  }
-}
-```
-
----
-
-### 5. Get Checklists by Rental ID
-
-**Endpoint:** `GET /api/rental-checklists/rental/{rentalId}`
-
-**Description:** Retrieves all checklists for a specific rental.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `rentalId` (long): Rental ID
-
-**Example Request:**
-```http
-GET /api/rental-checklists/rental/3
-```
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get rental checklists by rental ID successfully",
-  "data": [
-    {
-      "id": 18,
-      "type": "CHECK_IN",
-      "fee": 0.0,
-      "currentBattery": 85.0,
-      "img": "http://example.com/checkin_image.png",
-      "rentalId": 3,
-      "staffEmail": "staff@example.com",
-      "createdAt": "2025-10-12T12:56:25"
-    },
-    {
-      "id": 19,
-      "type": "CHECK_OUT",
-      "fee": 7470000.0,
-      "currentBattery": 10.0,
-      "img": "http://example.com/checkout_image.png",
-      "rentalId": 3,
-      "staffEmail": "staff@example.com",
-      "createdAt": "2025-10-12T13:01:00"
-    }
-  ]
-}
-```
-
----
-
-### 6. Update Checklist
-
-**Endpoint:** `PUT /api/rental-checklists/{id}`
-
-**Description:** Updates an existing checklist.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role).
-
-**Request Body:**
-```json
-{
-  "currentBattery": 12.0,
-  "img": "http://example.com/updated_checkout_image.png"
-}
-```
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Update rental checklist successfully",
-  "data": {
-    "id": 19,
-    "type": "CHECK_OUT",
-    "fee": 7470000.0,
-    "currentBattery": 12.0,
-    "img": "http://example.com/updated_checkout_image.png",
-    "rentalId": 3,
-    "staffEmail": "staff@example.com",
-    "createdAt": "2025-10-12T13:01:00"
-  }
-}
-```
-
----
-
-### 7. Delete Checklist
-
-**Endpoint:** `DELETE /api/rental-checklists/{id}`
-
-**Description:** Deletes a checklist by its ID.
-
-**Authentication:** Requires JWT token (ADMIN role).
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Delete rental checklist successfully",
-  "data": null
-}
-```
-
----
-
-## Error Response Format
-
-All error responses follow this format:
-
-```json
-{
-  "status": 400,
-  "message": "Error message describing what went wrong",
-  "data": null
-}
-```
-
-Common HTTP status codes:
-- **200**: Success
-- **201**: Created
-- **204**: No Content (successful deletion)
-- **400**: Bad Request (validation error)
-- **401**: Unauthorized (authentication required)
-- **403**: Forbidden (insufficient permissions)
-- **404**: Not Found
-- **500**: Internal Server Error
-
----
-
-## Developer Notes
-
-1. **Authentication**: Most endpoints require JWT token in the Authorization header:
-   ```
-   Authorization: Bearer <your_jwt_token>
-   ```
-
-2. **Date Format**: All dates use ISO 8601 format: `yyyy-MM-ddTHH:mm:ss`
-
-3. **VNPay Integration**:
-   - After creating a reservation, redirect users to the payment URL returned
-   - VNPay will redirect back to `/api/payment/vnpay-return`
-   - The backend will then redirect to your frontend with status
-
-4. **Rental Flow**:
-   - Create Reservation → Pay Deposit → Staff Creates Rental from Reservation → Check-In → Check-Out → Final Payment
-
-5. **Payment Types**:
-   - **DEPOSIT**: Initial payment for reservation (usually vehicle deposit fee)
-   - **RENTAL**: Payment for rental fees
-   - **REFUND**: Refund of deposit or cancellation
-
-6. **Rental Status Flow**:
-   - PENDING → ACTIVE → COMPLETED (or CANCELLED, OVERDUE)
-
-7. **Reservation Status Flow**:
-   - PENDING → CONFIRMED → COMPLETED (or CANCELLED, EXPIRED)
 
