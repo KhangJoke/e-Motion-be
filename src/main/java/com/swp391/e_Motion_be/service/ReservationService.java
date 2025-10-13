@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -145,6 +146,12 @@ public class ReservationService {
 
     // Check if vehicle is unavailable due to existing reservations or rentals
     private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+        // Time minimum 4hours validation
+        long hour = Duration.between(startTime,endTime).toHours();
+        if(hour < 4){
+           return false;
+        }
+
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
                 startTime,
