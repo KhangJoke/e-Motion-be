@@ -86,6 +86,11 @@ public class RentalService {
     // Hàm tạo rental khi renter thuê trực tiếp tại trạm
     @Transactional
     public RentalResponse createRental(RentalCreateRequest request){
+        // Time minimum 4hours validation
+        long hour = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
+        if(hour < 4){
+            throw new AppException(ErrorCode.DURATION_MINIUM);
+        }
         // kiểm tra có tồn tại object ko
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
