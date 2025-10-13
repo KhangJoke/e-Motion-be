@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -82,6 +83,13 @@ public class RentalController {
     public ApiResponse<CheckOutProcessResponse> processCheckOutPayment(@PathVariable Long id, HttpServletRequest request){
         ApiResponse<CheckOutProcessResponse> response = new ApiResponse<>();
         response.setData(rentalService.processCheckOutPayment(id , request.getRemoteAddr()));
+        return response;
+    }
+
+    @PostMapping("/{id}/extend")
+    public ApiResponse<String> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
         return response;
     }
 }

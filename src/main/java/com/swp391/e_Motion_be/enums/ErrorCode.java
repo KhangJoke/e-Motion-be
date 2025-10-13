@@ -100,6 +100,7 @@ public enum ErrorCode {
     RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Reservation has already been cancelled"),
     VEHICLE_STATION_MISMATCH(HttpStatus.BAD_REQUEST, "Vehicle does not belong to the selected station"),
     TIME_MUST_BE_EXACT_HOUR(HttpStatus.BAD_REQUEST, "Reservation time must be in exact hour increments (e.g., 1:00 PM, 2:00 PM)"),
+    RESERVATION_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Extend reservation time must be after current end time"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),
@@ -124,6 +125,7 @@ public enum ErrorCode {
     USER_HAS_ONGOING_RENTAL(HttpStatus.CONFLICT, "User already rental vehicle"),
     USER_NEED_HAS_CCCD(HttpStatus.BAD_REQUEST, "Renter need to has CCCD"),
     USER_NEED_HAS_LICENSE(HttpStatus.BAD_REQUEST, "Renter need to has LICENSE"),
+    RENTAL_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Extend rental time must be after current end time"),
 
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),

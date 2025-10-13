@@ -19,7 +19,6 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -338,5 +336,73 @@ public class RentalService {
                     .rental(rentalMapper.toRentalResponse(rental))
                     .build();
         }
+    }
+
+    public String extendRentalReturnTime(Long id, LocalDateTime newReturnTime, String ipAddr) throws Exception {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        // Validate new return time
+        if (!isExactHour(newReturnTime) || !isExactHour(newReturnTime)) {
+            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        }
+        // New return time must be at least 1 hour after current end time
+        if (newReturnTime.isBefore(rental.getEndTime().plusHours(1))) {
+            throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
+        }
+        // Extension requests must be made at least 2 hours before current start time
+        if(rental.getStartTime().isAfter(LocalDateTime.now().plusHours(2))) {
+            throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
+        }
+        // Only CONFIRM reservations can be extended
+        if(rental.getStatus() != RentalStatus.CONFIRM) {
+            throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
+        }
+        // Check if vehicle is available for the extended period
+        if (isVehicleUnavailable(rental.getVehicle().getId(), rental.getEndTime(), newReturnTime)) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
+        }
+
+        // Calculate new fee with extended time
+        Rental tempRental = Rental.builder()
+                .startTime(rental.getStartTime())
+                .endTime(newReturnTime)
+                .vehicle(rental.getVehicle())
+                .build();
+        double newFee = calculateRentalFee(tempRental);
+
+        // Store pending values
+        rental.setPendingEndTime(newReturnTime);
+        rental.setPendingRentFee(newFee);
+        rental.setStatus(RentalStatus.PENDING_FEE);
+        rentalRepository.save(rental);
+
+        CreatePaymentUrlRequest request = CreatePaymentUrlRequest.builder()
+                .rentalId(rental.getId())
+                .type(PaymentType.RENTAL_EXTENSION)
+                .amount(newFee - rental.getRentFee())
+                .description("Extension Payment for Rental ID: " + rental.getId())
+                .userEmail(rental.getUser().getEmail())
+                .build();
+
+        return paymentService.createPaymentUrl(request, ipAddr);
+    }
+
+    // Check if vehicle is unavailable due to existing reservations or rentals
+    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+        int conflictCount = vehicleRepository.doesConflictExistForVehicle(
+                vehicleId,
+                startTime,
+                endTime,
+                List.of("PENDING", "CONFIRM"), // Trạng thái cần kiểm tra của Reservation
+                List.of("COMPLETED", "CANCELLED", "OVERDUE")   // Trạng thái cần loại trừ của Rental
+        );
+
+        return conflictCount > 0;
+    }
+
+    // Check if the time is on the exact hour (e.g., 1:00, 2:00)
+    private boolean isExactHour(LocalDateTime dateTime) {
+        return dateTime.getMinute() == 0 && dateTime.getSecond() == 0;
     }
 }

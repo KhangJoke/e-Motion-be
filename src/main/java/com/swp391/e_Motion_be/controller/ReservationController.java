@@ -128,10 +128,20 @@ public class ReservationController {
     }
 
     @PostMapping("/{code}/cancel")
-    public ApiResponse<Boolean> cancelReservation(@PathVariable String code, HttpServletRequest httpReq) throws Exception {
+    public ApiResponse<Boolean> cancelReservation(@PathVariable String code, HttpServletRequest httpReq) {
         ApiResponse<Boolean> response = new ApiResponse<>();
         response.setData(reservationService.cancelReservation(code, httpReq));
         response.setMessage("Cancelled reservation successfully");
+        response.setStatus(200);
+        return response;
+    }
+
+    @PostMapping("/{code}/extend/")
+    public ApiResponse<ReservationResponse> extendReservationReturnTime(@PathVariable String code, @RequestParam LocalDateTime newReturnTime)
+    {
+        ApiResponse<ReservationResponse> response = new ApiResponse<>();
+        response.setData(reservationService.extendReservationReturnTime(code, newReturnTime));
+        response.setMessage("Extended reservation return time successfully");
         response.setStatus(200);
         return response;
     }
