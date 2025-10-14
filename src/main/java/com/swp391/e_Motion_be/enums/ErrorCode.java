@@ -8,149 +8,148 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
     // Generic errors
-    UNEXPECTED_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected exception"),
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),
-    INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "Time range must be more or equal 4"),
+    UNEXPECTED_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi không mong muốn"),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Không có quyền truy cập"),
+    INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "Khoảng thời gian phải lớn hơn hoặc bằng 4"),
 
     // Update password errors
-    PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "New password and confirm new password do not match"),
-    OLD_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Old password does not match"),
-    CONFIRM_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Confirm password does not match"),
+    PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu mới và xác nhận mật khẩu mới không khớp"),
+    OLD_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu cũ không đúng"),
+    CONFIRM_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Xác nhận mật khẩu không khớp"),
 
     // Document errors
-    DOCUMENT_NUMBER_EXISTS(HttpStatus.CONFLICT, "Document number already exists"),
-    DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Document not found"),
+    DOCUMENT_NUMBER_EXISTS(HttpStatus.CONFLICT, "Số giấy tờ đã tồn tại"),
+    DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy giấy tờ"),
 
     // Vehicle errors
-    VEHICLE_EXIST(HttpStatus.CONFLICT, "Vehicle already exists"),
-    VEHICLE_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle does not exist"),
-    VEHICLE_NOT_AVAILABLE(HttpStatus.NOT_FOUND, "Vehicle is not available."),
-    VEHICLE_NOT_READY(HttpStatus.CONFLICT, "Vehicle is not ready to use"),
-    VEHICLE_STATUS_INVALID(HttpStatus.CONFLICT, "Vehicle status is invalid"),
-    INVALID_VEHICLE_BRAND(HttpStatus.CONFLICT, "Invalid vehicle brand"),
+    VEHICLE_EXIST(HttpStatus.CONFLICT, "Phương tiện đã tồn tại"),
+    VEHICLE_NOT_EXIST(HttpStatus.NOT_FOUND, "Phương tiện không tồn tại"),
+    VEHICLE_NOT_AVAILABLE(HttpStatus.NOT_FOUND, "Phương tiện không khả dụng"),
+    VEHICLE_NOT_READY(HttpStatus.CONFLICT, "Phương tiện chưa sẵn sàng sử dụng"),
+    VEHICLE_STATUS_INVALID(HttpStatus.CONFLICT, "Trạng thái phương tiện không hợp lệ"),
+    INVALID_VEHICLE_BRAND(HttpStatus.CONFLICT, "Thương hiệu phương tiện không hợp lệ"),
 
     // Vehicle Log errors
-    VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Vehicle Log does not exist"),
-    VEHICLE_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "Vehicle id not found"),
-    VEHICLE_LOG_LIST_EMPTY(HttpStatus.NO_CONTENT, "Vehicle log list is empty"),
-    VEHICLE_LOG_TYPE_EMPTY(HttpStatus.BAD_REQUEST, "Vehicle log type is empty"),
-    VEHICLE_LOG_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Vehicle log update failed"),
-    VEHICLE_LOG_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Vehicle log creation failed"),
+    VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Nhật ký phương tiện không tồn tại"),
+    VEHICLE_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy mã phương tiện"),
+    VEHICLE_LOG_LIST_EMPTY(HttpStatus.NO_CONTENT, "Danh sách nhật ký phương tiện trống"),
+    VEHICLE_LOG_TYPE_EMPTY(HttpStatus.BAD_REQUEST, "Loại nhật ký phương tiện trống"),
+    VEHICLE_LOG_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Cập nhật nhật ký phương tiện thất bại"),
+    VEHICLE_LOG_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tạo nhật ký phương tiện thất bại"),
 
     // Img Vehicle
-    IMG_VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND,"Img vehicle not found"),
+    IMG_VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy hình ảnh phương tiện"),
 
     //Rating
-    RATING_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "Rating id not found"),
+    RATING_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy mã đánh giá"),
 
     // Verify errors
-    VERIFY_EXPIRED(HttpStatus.BAD_REQUEST, "Verification code expired"),
-    VERIFY_CODE_NOT_MATCH(HttpStatus.BAD_REQUEST, "Verification code does not match"),
-    SEND_EMAIL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Send email failed"),
+    VERIFY_EXPIRED(HttpStatus.BAD_REQUEST, "Mã xác thực đã hết hạn"),
+    VERIFY_CODE_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mã xác thực không đúng"),
+    SEND_EMAIL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Gửi email thất bại"),
 
     // Register errors
-    USER_EXISTS(HttpStatus.CONFLICT, "User already exists"),
-    PHONE_ALREADY_EXISTS(HttpStatus.CONFLICT, "Phone number already exists"),
-    ACCOUNT_NOT_VERIFIED(HttpStatus.FORBIDDEN, "Account not verified, Please verify your account"),
-    ACCOUNT_ALREADY_VERIFIED(HttpStatus.BAD_REQUEST, "Account already verified, Please login"),
-    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "Invalid password"),
-    EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "Email already exists"),
+    USER_EXISTS(HttpStatus.CONFLICT, "Người dùng đã tồn tại"),
+    PHONE_ALREADY_EXISTS(HttpStatus.CONFLICT, "Số điện thoại đã tồn tại"),
+    ACCOUNT_NOT_VERIFIED(HttpStatus.FORBIDDEN, "Tài khoản chưa được xác thực, vui lòng xác thực tài khoản của bạn"),
+    ACCOUNT_ALREADY_VERIFIED(HttpStatus.BAD_REQUEST, "Tài khoản đã được xác thực, vui lòng đăng nhập"),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu không hợp lệ"),
+    EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "Email đã tồn tại"),
 
     // Login errors
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Token is invalid or expired. Please login again."),
-    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "Token is expired. Please login again."),
-    SIGNATURE_NOT_MATCH(HttpStatus.UNAUTHORIZED, "Signature not match"),
-    EXTRACT_USERNAME_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Extract username from token failed"),
-    NOT_LOGIN_YET(HttpStatus.UNAUTHORIZED, "You are not logged in. Please login to continue."),
-    USER_NOT_EXISTS(HttpStatus.NOT_FOUND, "User does not exist"),
-    REFRESH_TOKEN_IS_REUSED(HttpStatus.UNAUTHORIZED, "Refresh token is reused. Please login again."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại"),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "Token đã hết hạn. Vui lòng đăng nhập lại"),
+    SIGNATURE_NOT_MATCH(HttpStatus.UNAUTHORIZED, "Chữ ký không khớp"),
+    EXTRACT_USERNAME_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Trích xuất tên người dùng từ token thất bại"),
+    NOT_LOGIN_YET(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục"),
+    USER_NOT_EXISTS(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"),
+    REFRESH_TOKEN_IS_REUSED(HttpStatus.UNAUTHORIZED, "Refresh token đã được sử dụng. Vui lòng đăng nhập lại"),
 
     // Logout errors
-    USER_HAS_BEEN_LOGOUT(HttpStatus.UNAUTHORIZED, "Your Account has been logout. Please login to continue."),
+    USER_HAS_BEEN_LOGOUT(HttpStatus.UNAUTHORIZED, "Tài khoản của bạn đã đăng xuất. Vui lòng đăng nhập để tiếp tục"),
 
     // Check image document errors
-    DOCUMENT_NUMBER_MISMATCH(HttpStatus.BAD_REQUEST, "Document number mismatch with image"),
-    DOCUMENT_IMAGE_USED(HttpStatus.CONFLICT, "This image has already been used for another document"),
-    CREATE_DOCUMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create document"),
-    NOT_FOUND_CCCD_IN_IMAGE(HttpStatus.BAD_REQUEST, "Could not find valid CCCD number in the provided image"),
-    UPLOAD_IMAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload image"),
-    DELETE_IMAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete image"),
-    FAIL_OCR(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform OCR on the image"),
+    DOCUMENT_NUMBER_MISMATCH(HttpStatus.BAD_REQUEST, "Số giấy tờ không khớp với hình ảnh"),
+    DOCUMENT_IMAGE_USED(HttpStatus.CONFLICT, "Hình ảnh này đã được sử dụng cho giấy tờ khác"),
+    CREATE_DOCUMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tạo giấy tờ thất bại"),
+    NOT_FOUND_CCCD_IN_IMAGE(HttpStatus.BAD_REQUEST, "Không tìm thấy số CCCD hợp lệ trong hình ảnh"),
+    UPLOAD_IMAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tải lên hình ảnh thất bại"),
+    DELETE_IMAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Xóa hình ảnh thất bại"),
+    FAIL_OCR(HttpStatus.INTERNAL_SERVER_ERROR, "Thực hiện OCR trên hình ảnh thất bại"),
 
     // OCR service errors
-    NOT_FOUND_FOLDER_DATASET(HttpStatus.NOT_FOUND, "Dataset folder not found"),
-    FAIL_COPY_DATASET(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to copy dataset folder"),
-    CREATE_FOLDER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder"),
+    NOT_FOUND_FOLDER_DATASET(HttpStatus.NOT_FOUND, "Không tìm thấy thư mục dữ liệu"),
+    FAIL_COPY_DATASET(HttpStatus.INTERNAL_SERVER_ERROR, "Sao chép thư mục dữ liệu thất bại"),
+    CREATE_FOLDER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tạo thư mục thất bại"),
 
     // Station errors
-    STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Station not found"),
-    STATION_NAME_EXISTS(HttpStatus.CONFLICT, "Station name already exists"),
-    STATION_CITY_INVALID(HttpStatus.BAD_REQUEST, "Station city invalid"),
+    STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy trạm"),
+    STATION_NAME_EXISTS(HttpStatus.CONFLICT, "Tên trạm đã tồn tại"),
+    STATION_CITY_INVALID(HttpStatus.BAD_REQUEST, "Thành phố của trạm không hợp lệ"),
 
     // Staff errors
-    STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "Staff not found"),
-    USER_ALREADY_ASSIGNED_AS_STAFF(HttpStatus.CONFLICT, "User is already assigned as staff"),
-    USER_NOT_A_STAFF(HttpStatus.BAD_REQUEST, "User is not assigned as staff"),
+    STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"),
+    USER_ALREADY_ASSIGNED_AS_STAFF(HttpStatus.CONFLICT, "Người dùng đã được chỉ định làm nhân viên"),
+    USER_NOT_A_STAFF(HttpStatus.BAD_REQUEST, "Người dùng không phải là nhân viên"),
 
     // Reservation errors
-    RESERVATION_ENDTIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation end time must be in the future"),
-    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Reservation not found"),
-    RESERVATION_TIME_INVALID(HttpStatus.BAD_REQUEST, "Reservation time must be in the future"),
-    RESERVATION_TIME_INVALID_TO_CANCEL(HttpStatus.BAD_REQUEST, "You may cancel your reservation up to 5 days before your trip"),
-    RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Reservation has already been cancelled"),
-    VEHICLE_STATION_MISMATCH(HttpStatus.BAD_REQUEST, "Vehicle does not belong to the selected station"),
-    TIME_MUST_BE_EXACT_HOUR(HttpStatus.BAD_REQUEST, "Reservation time must be in exact hour increments (e.g., 1:00 PM, 2:00 PM)"),
-    RESERVATION_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Extend reservation time must be after current end time"),
+    RESERVATION_ENDTIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian kết thúc đặt chỗ phải trong tương lai"),
+    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy đặt chỗ"),
+    RESERVATION_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian đặt chỗ phải trong tương lai"),
+    RESERVATION_TIME_INVALID_TO_CANCEL(HttpStatus.BAD_REQUEST, "Bạn chỉ có thể hủy đặt chỗ trước 5 ngày so với chuyến đi"),
+    RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "Đặt chỗ đã được hủy"),
+    VEHICLE_STATION_MISMATCH(HttpStatus.BAD_REQUEST, "Phương tiện không thuộc trạm đã chọn"),
+    TIME_MUST_BE_EXACT_HOUR(HttpStatus.BAD_REQUEST, "Thời gian đặt chỗ phải theo giờ chính xác (ví dụ: 1:00, 2:00)"),
+    RESERVATION_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian gia hạn đặt chỗ phải sau thời gian kết thúc hiện tại"),
 
     // Deposit errors
-    DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Deposit not found"),
+    DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tiền đặt cọc"),
 
     // Refresh token errors
-    SENDED_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "The sent refresh token was not found"),
-    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh token not found"),
+    SENDED_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy refresh token đã gửi"),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy refresh token"),
 
     // RentalCheckList errors
-    CHECKIN_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental check-in not found"),
-    CHECKOUT_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental check-out not found"),
-    CHECKLIST_UNAUTHORIZED(HttpStatus.FORBIDDEN, "You are not authorized to modify this checklist"),
-    ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "Vehicle has already been checked in for this rental"),
-    ALREADY_CHECKED_OUT(HttpStatus.BAD_REQUEST, "Vehicle has already been checked out for this rental"),
-    CHECKLIST_TYPE_INVALID(HttpStatus.BAD_REQUEST, "check list type is invalid"),
-    RENTAL_CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental checklist not found"),
-    DURATION_MINIUM(HttpStatus.BAD_REQUEST, "The minium of duration of the rental is 4 hours"),
+    CHECKIN_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin nhận xe"),
+    CHECKOUT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin trả xe"),
+    CHECKLIST_UNAUTHORIZED(HttpStatus.FORBIDDEN, "Bạn không có quyền chỉnh sửa danh sách kiểm tra này"),
+    ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "Xe đã được nhận cho lần thuê này"),
+    ALREADY_CHECKED_OUT(HttpStatus.BAD_REQUEST, "Xe đã được trả cho lần thuê này"),
+    CHECKLIST_TYPE_INVALID(HttpStatus.BAD_REQUEST, "Loại danh sách kiểm tra không hợp lệ"),
+    RENTAL_CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy danh sách kiểm tra thuê xe"),
+    DURATION_MINIUM(HttpStatus.BAD_REQUEST, "Thời gian thuê tối thiểu là 4 giờ"),
 
     // Rental errors
-    RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Rental not found"),
-    RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "This vehicle has rental in this range time, please choose other time"),
-    INVALID_RENTAL_STATUS(HttpStatus.BAD_REQUEST, "Invalid Rental Status"),
-    USER_HAS_ONGOING_RENTAL(HttpStatus.CONFLICT, "User already rental vehicle"),
-    USER_NEED_HAS_CCCD(HttpStatus.BAD_REQUEST, "Renter need to has CCCD"),
-    USER_NEED_HAS_LICENSE(HttpStatus.BAD_REQUEST, "Renter need to has LICENSE"),
-    RENTAL_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Extend rental time must be after current end time"),
+    RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin thuê xe"),
+    RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "Phương tiện đã có lịch thuê trong khoảng thời gian này, vui lòng chọn thời gian khác"),
+    INVALID_RENTAL_STATUS(HttpStatus.BAD_REQUEST, "Trạng thái thuê xe không hợp lệ"),
+    USER_HAS_ONGOING_RENTAL(HttpStatus.CONFLICT, "Người dùng đã thuê phương tiện"),
+    USER_NEED_HAS_CCCD(HttpStatus.BAD_REQUEST, "Người thuê cần có CCCD"),
+    USER_NEED_HAS_LICENSE(HttpStatus.BAD_REQUEST, "Người thuê cần có bằng lái xe"),
+    RENTAL_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian gia hạn thuê xe phải sau thời gian kết thúc hiện tại"),
 
     // Payment errors
-    PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "The payment was not found"),
-    DEPOSIT_PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "The deposit payment was not found"),
-    REFUND_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The refund response was not found"),
-    REFUND_RESPONSE_INVALID(HttpStatus.NOT_FOUND, "The refund response was invalid"),
-    VNPAY_KEY_INVALID(HttpStatus.BAD_REQUEST, "The VnPay Key was invalid"),
-    REFUND_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Refund Failed"),
-    PAYMENT_CANNOT_BE_REFUNDED(HttpStatus.BAD_REQUEST, "The VnPay cannot be refunded"),
-    REFUND_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "The refund has already been processed"),
-    QUERY_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "The query response was not found"),
-    QUERY_FAILED(HttpStatus.BAD_REQUEST, "The VnPay Query Failed"),
-    PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "The payment is processing failed"),
-    RENTAL_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "The rental cannot be paid"),
-    DEPOSIT_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "The deposit cannot be paid"),
-    CREATE_PAYMENT_URL_FAILED(HttpStatus.BAD_REQUEST, "Create payment url failed"),
+    PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "Không tìm thấy thanh toán"),
+    DEPOSIT_PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thanh toán đặt cọc"),
+    REFUND_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phản hồi hoàn tiền"),
+    REFUND_RESPONSE_INVALID(HttpStatus.NOT_FOUND, "Phản hồi hoàn tiền không hợp lệ"),
+    VNPAY_KEY_INVALID(HttpStatus.BAD_REQUEST, "Khóa VnPay không hợp lệ"),
+    REFUND_FAILED(HttpStatus.BAD_REQUEST, "Hoàn tiền VnPay thất bại"),
+    PAYMENT_CANNOT_BE_REFUNDED(HttpStatus.BAD_REQUEST, "Thanh toán không thể hoàn tiền"),
+    REFUND_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "Hoàn tiền đã được xử lý"),
+    QUERY_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phản hồi truy vấn"),
+    QUERY_FAILED(HttpStatus.BAD_REQUEST, "Truy vấn VnPay thất bại"),
+    PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "Xử lý thanh toán thất bại"),
+    RENTAL_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán thuê xe"),
+    DEPOSIT_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán đặt cọc"),
+    CREATE_PAYMENT_URL_FAILED(HttpStatus.BAD_REQUEST, "Tạo đường dẫn thanh toán thất bại"),
 
     //Cloudinary errors
-    DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Delete image failed"),
+    DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Xóa hình ảnh thất bại"),
 
     //Reservation email
-    RESERVATION_EMAIL(HttpStatus.EXPECTATION_FAILED, "Fail sending email");
+    RESERVATION_EMAIL(HttpStatus.EXPECTATION_FAILED, "Gửi email thất bại");
 
     private final HttpStatus statusCode;
     private final String message;
 }
-

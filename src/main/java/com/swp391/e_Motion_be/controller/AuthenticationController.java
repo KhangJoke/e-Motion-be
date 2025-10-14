@@ -13,7 +13,6 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.service.auth.AuthenticationService;
 import com.swp391.e_Motion_be.service.auth.JwtService;
 import com.swp391.e_Motion_be.service.auth.RefreshTokenService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -48,9 +47,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginUserDto loginUserDto,
-                                                            HttpServletResponse response,
-                                                            HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginUserDto loginUserDto, HttpServletResponse response) {
         User loginUser = authenticationService.authenticate(loginUserDto);
         String accessToken = jwtService.generateToken(loginUser);
         LoginResponse loginResponse = new LoginResponse(accessToken, jwtService.extractExpiration(accessToken).getTime());
@@ -144,7 +141,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/resend")
-    public ResponseEntity<ApiResponse<String>> resendVerificationCode(@RequestParam String email ) {
+    public ResponseEntity<ApiResponse<String>> resendVerificationCode(@RequestBody String email ) {
         authenticationService.resendVerificationCode(email);
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setStatus(200);
