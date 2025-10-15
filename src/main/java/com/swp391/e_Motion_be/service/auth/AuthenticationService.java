@@ -48,7 +48,13 @@ public class AuthenticationService {
         if(oldUser != null && oldUser.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_ALREADY_VERIFIED);
         }else if(oldUser != null && !oldUser.isEnabled()){
-            return oldUser;
+            oldUser.setFullName(input.getFullName());
+            oldUser.setPhone(input.getPhone());
+            oldUser.setVerificationCode(generateVerificationCode());
+            oldUser.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+            oldUser.setPassword(passwordEncoder.encode(input.getUserPassword()));
+            sendVerificationEmail(oldUser);
+            return userRepository.save(oldUser);
         }
         if(userRepository.existsByEmail(input.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);

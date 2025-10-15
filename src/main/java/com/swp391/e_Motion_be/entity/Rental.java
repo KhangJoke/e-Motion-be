@@ -3,6 +3,7 @@ package com.swp391.e_Motion_be.entity;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,6 +15,7 @@ import java.util.List;
 @Table(name = "rentals")
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class Rental {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +37,10 @@ public class Rental {
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     LocalDateTime createdAt;
+    @Column(name = "pending_end_time")
+    private LocalDateTime pendingEndTime;
+    @Column(name = "pending_rent_fee")
+    private Double pendingRentFee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

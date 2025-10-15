@@ -220,81 +220,165 @@ public class PaymentService {
 
     @Transactional
     protected void processSuccessfulPayment(Payment payment) {
-        Deposit deposit = payment.getDeposit();
+        PaymentType type = payment.getType();
 
-        if (payment.getType() == PaymentType.RESERVATION) {
-            processReservationPayment(deposit);
-        } else if (payment.getType() == PaymentType.RENTAL &&
-                payment.getRental() != null &&
-                deposit != null)
-        {
-            processRentalPayment(deposit, payment.getRental());
-        } else if (payment.getType() == PaymentType.PENALTY_FEE_RENTAL) {
-            Rental rental = payment.getRental();
-            if (rental != null) {
-                rental.setStatus(RentalStatus.COMPLETED);
-                rentalRepository.save(rental);
-            }
-            log.info("Penalty fee rental payment processed: {}", payment.getId());
-        } else {
-            log.warn("No associated action for payment type: {}", payment.getType());
+        switch (type) {
+            case RESERVATION:
+                handleSuccessfulReservation(payment);
+                break;
+
+            case RENTAL:
+                handleSuccessfulRental(payment);
+                break;
+
+            case PENALTY_FEE_RENTAL:
+                handleSuccessfulPenaltyFee(payment);
+                break;
+
+            case RENTAL_EXTENSION:
+                handleSuccessfulExtension(payment);
+                break;
+
+            default:
+                log.warn("No associated action for payment type: {}", type);
         }
     }
 
     @Transactional
     protected void processFailedPayment(Payment payment) {
-        try {
-            Deposit deposit = payment.getDeposit();
-            Reservation reservation = null;
-            Rental rental = null;
+        PaymentType type = payment.getType();
 
-            if (deposit != null) {
-                reservation = deposit.getReservation();
-                rental = deposit.getRental();
-            }
+        switch (type) {
+            case RENTAL_EXTENSION:
+                handleFailedExtension(payment);
+                break;
 
-            paymentRepository.delete(payment);
-            if (deposit != null) {
-                depositRepository.delete(deposit);
-                if (reservation != null) {
-                    reservationRepository.delete(reservation);
-                }
-                if (rental != null) {
-                    rentalRepository.delete(rental);
-                }
-            }
+            case PENALTY_FEE_RENTAL:
+                handleFailedPenaltyFee(payment);
+                break;
 
-        } catch (Exception e) {
-            log.error("Error processing failed payment: {}", payment.getId(), e);
-            throw new AppException(ErrorCode.PAYMENT_PROCESSING_FAILED);
+            case RESERVATION:
+                handleFailedReservation(payment);
+                break;
+
+            case RENTAL:
+                handleFailedRental(payment);
+                break;
+
+            default:
+                log.warn("Unhandled payment type for failed payment: {}", type);
+                payment.setStatus(PaymentStatus.FAILED);
+                paymentRepository.save(payment);
         }
     }
 
-    @Transactional
-    protected void processReservationPayment(Deposit deposit) {
-        deposit.setStatus(DepositStatus.HOLD);
-        depositRepository.save(deposit);
+    // Success handlers
+    private void handleSuccessfulReservation(Payment payment) {
+        Deposit deposit = payment.getDeposit();
+        if (deposit != null) {
+            deposit.setStatus(DepositStatus.HOLD);
+            depositRepository.save(deposit);
 
-        Reservation reservation = deposit.getReservation();
-        if (reservation != null) {
-            reservation.setStatus(ReservationStatus.CONFIRM);
-            if (reservation.getCode() == null || reservation.getCode().isEmpty()) {
-                reservation.setCode(generateCode());
+            Reservation reservation = deposit.getReservation();
+            if (reservation != null) {
+                reservation.setStatus(ReservationStatus.CONFIRM);
+                if (reservation.getCode() == null || reservation.getCode().isEmpty()) {
+                    reservation.setCode(generateCode());
+                }
+                reservationRepository.save(reservation);
+                emailService.sendReservationCodeEmail(reservation);
+                log.info("Reservation confirmed: {}", reservation.getCode());
             }
-            reservationRepository.save(reservation);
-            emailService.sendReservationCodeEmail(reservation);
-            log.info("Reservation confirmed: {}", reservation.getCode());
+            log.info("Reservation payment processed: {}", payment.getId());
         }
     }
 
-    @Transactional
-    protected void processRentalPayment(Deposit deposit, Rental rental) {
-        deposit.setStatus(DepositStatus.HOLD);
-        depositRepository.save(deposit);
+    private void handleSuccessfulRental(Payment payment) {
+        Deposit deposit = payment.getDeposit();
+        Rental rental = payment.getRental();
+        if (deposit != null && rental != null) {
+            deposit.setStatus(DepositStatus.HOLD);
+            depositRepository.save(deposit);
+            rental.setStatus(RentalStatus.CONFIRM);
+            rentalRepository.save(rental);
+            log.info("Rental confirmed: {}", rental.getId());
+            log.info("Rental payment processed: {}", payment.getId());
+        }
+    }
 
-        rental.setStatus(RentalStatus.CONFIRM);
-        rentalRepository.save(rental);
-        log.info("Rental confirmed: {}", rental.getId());
+    private void handleSuccessfulPenaltyFee(Payment payment) {
+        Rental rental = payment.getRental();
+        if (rental != null) {
+            rental.setStatus(RentalStatus.COMPLETED);
+            rentalRepository.save(rental);
+            log.info("Penalty fee rental payment processed: {}", payment.getId());
+        }
+    }
+
+    private void handleSuccessfulExtension(Payment payment) {
+        Rental rental = payment.getRental();
+        if (rental != null && rental.getPendingEndTime() != null) {
+            rental.setEndTime(rental.getPendingEndTime());
+            rental.setRentFee(rental.getPendingRentFee());
+            rental.setPendingEndTime(null);
+            rental.setPendingRentFee(null);
+            rental.setStatus(RentalStatus.CONFIRM);
+            rentalRepository.save(rental);
+            log.info("Rental extension payment processed: {}", payment.getId());
+        }
+    }
+
+    // Failure handlers
+    private void handleFailedExtension(Payment payment) {
+        Rental rental = payment.getRental();
+        if (rental != null) {
+            rental.setPendingEndTime(null);
+            rental.setPendingRentFee(null);
+            rental.setStatus(RentalStatus.CONFIRM);
+            rentalRepository.save(rental);
+            log.info("Reverted failed extension for rental: {}", rental.getId());
+        }
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
+    }
+
+    private void handleFailedPenaltyFee(Payment payment) {
+        Rental rental = payment.getRental();
+        if (rental != null) {
+            rental.setStatus(RentalStatus.PENDING_FEE);
+            rentalRepository.save(rental);
+            log.info("Reverted penalty fee payment for rental: {}", rental.getId());
+        }
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
+    }
+
+    private void handleFailedReservation(Payment payment) {
+        Deposit deposit = payment.getDeposit();
+
+        paymentRepository.delete(payment);
+        if (deposit != null) {
+            Reservation reservation = deposit.getReservation();
+            depositRepository.delete(deposit);
+            if (reservation != null) {
+                reservationRepository.delete(reservation);
+                log.info("Deleted failed reservation: {}", reservation.getId());
+            }
+        }
+    }
+
+    private void handleFailedRental(Payment payment) {
+        Deposit deposit = payment.getDeposit();
+
+        paymentRepository.delete(payment);
+        if (deposit != null) {
+            Rental rental = deposit.getRental();
+            depositRepository.delete(deposit);
+            if (rental != null) {
+                rentalRepository.delete(rental);
+                log.info("Deleted failed rental: {}", rental.getId());
+            }
+        }
     }
 
     @Transactional
@@ -329,7 +413,7 @@ public class PaymentService {
             String vnp_Version = "2.1.0";
             String vnp_Command = "refund";
             String vnp_CreateBy = "system";
-            String vnp_TransactionType = request.isFullRefund() ? "03" : "03";
+            String vnp_TransactionType = "03";
 
             String vnp_TransactionDate = originalPayment.getCreatedAt()
                     .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));

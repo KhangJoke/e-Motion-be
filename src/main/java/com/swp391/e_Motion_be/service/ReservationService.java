@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -145,6 +146,12 @@ public class ReservationService {
 
     // Check if vehicle is unavailable due to existing reservations or rentals
     private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+        // Time minimum 4hours validation
+        long hour = Duration.between(startTime,endTime).toHours();
+        if(hour < 4){
+           return false;
+        }
+
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
                 startTime,
@@ -361,5 +368,36 @@ public class ReservationService {
                 throw new  AppException(ErrorCode.RESERVATION_EMAIL);
             }
         }
+    }
+
+    public ReservationResponse extendReservationReturnTime(String code, LocalDateTime newReturnTime) {
+        Reservation reservation = reservationRepository.findByCode(code)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        // Validate new return time
+        if (!isExactHour(newReturnTime) || !isExactHour(newReturnTime)) {
+            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        }
+        // New return time must be at least 1 hour after current end time
+        if (newReturnTime.isBefore(reservation.getEndTime().plusHours(1))) {
+            throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
+        }
+        // Extension requests must be made at least 2 hours before current start time
+        if(reservation.getStartTime().isAfter(LocalDateTime.now().plusHours(2))) {
+            throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
+        }
+        // Only CONFIRM reservations can be extended
+        if(reservation.getStatus() != ReservationStatus.CONFIRM) {
+            throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
+        }
+        // Check if vehicle is available for the extended period
+        if (isVehicleUnavailable(reservation.getVehicle().getId(), reservation.getEndTime(), newReturnTime)) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
+        }
+
+        reservation.setEndTime(newReturnTime);
+        Reservation updatedReservation = reservationRepository.save(reservation);
+
+        return reservationMapper.toReservationResponse(updatedReservation);
     }
 }
