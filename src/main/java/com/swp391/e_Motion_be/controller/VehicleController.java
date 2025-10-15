@@ -4,10 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleScheduleResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleSearchResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.*;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +79,15 @@ public class VehicleController {
     public ApiResponse<List<VehicleScheduleResponse>> scheduleVehicles(@PathVariable Long vid){
         ApiResponse<List<VehicleScheduleResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.getVehicleSchedule(vid));
+        return response;
+    }
+
+    @GetMapping("/booking")
+    public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestParam("id") Long vid,
+                                                            @RequestParam("startTime") String start,
+                                                            @RequestParam("endTime") String end){
+        ApiResponse<List<FeeResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.getListFeeBooking(vid, start, end));
         return response;
     }
 }

@@ -131,7 +131,7 @@ public class RentalService {
         // save rental
         // set status của xe sang đang thuê
         vehicle.setStatus(VehicleStatus.UNAVAILABLE);
-        rental.setRentFee(calculateRentalFee(rental)); // Tiền thuê
+        rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime())); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
@@ -165,12 +165,10 @@ public class RentalService {
         return  rentalMapper.toRentalResponse(rental);
     }
 
-    private double calculateRentalFee(Rental rental) {
-        LocalDateTime start = rental.getStartTime();
-        LocalDateTime end = rental.getEndTime();
-        long hours = Duration.between(start, end).toHours();
+    public double calculateRentalFee(Vehicle vehicle, LocalDateTime startTime, LocalDateTime endTime) {
+        long hours = Duration.between(startTime, endTime).toHours();
         double fee = 0;
-        double pricePer4Hours = rental.getVehicle().getPricePer4Hours();
+        double pricePer4Hours = vehicle.getPricePer4Hours();
 
         if(hours < 4){
             throw new AppException(ErrorCode.INVALID_TIME_RANGE);
@@ -374,7 +372,7 @@ public class RentalService {
                 .endTime(newReturnTime)
                 .vehicle(rental.getVehicle())
                 .build();
-        double newFee = calculateRentalFee(tempRental);
+        double newFee = calculateRentalFee(tempRental.getVehicle(), tempRental.getStartTime(), tempRental.getEndTime());
 
         // Store pending values
         rental.setPendingEndTime(newReturnTime);

@@ -3,16 +3,13 @@ package com.swp391.e_Motion_be.service;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleScheduleResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleSearchResponse;
-import com.swp391.e_Motion_be.entity.Rental;
+import com.swp391.e_Motion_be.dto.responses.vehicle.*;
 import com.swp391.e_Motion_be.entity.Reservation;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.enums.vehicle.FeeType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
@@ -23,9 +20,11 @@ import com.swp391.e_Motion_be.repository.StationRepository;
 import com.swp391.e_Motion_be.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +38,15 @@ public class VehicleService {
     private final StationRepository stationRepository;
     private final RentalRepository rentalRepository;
     private final ReservationRepository reservationRepository;
+
+    private final RentalService rentalService;
+
+    @Value("${vat.percentage}")
+    private double vatPercentage;
+
+    @Value("${hold.fee.value}")
+    private double holdCarFee;
+
 
     // Find by ID
     public VehicleDetailResponse findVehicleById(Long id) {
@@ -185,5 +193,29 @@ public class VehicleService {
     public boolean isAvailable(long id) {
         List<Vehicle> availableVehicle = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
         return availableVehicle.stream().anyMatch(v -> v.getId() == id);
+    }
+
+    public List<FeeResponse> getListFeeBooking(Long vid, String start, String end){
+        Vehicle vehicle = vehicleRepository.findById(vid)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        List<FeeResponse> fees = new ArrayList<>();
+
+        double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
+        double vatValue = bookingFeeValue * vatPercentage;
+
+        FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
+        FeeResponse vat = new FeeResponse("Thuế VAT", FeeType.VAT, vatValue);
+        FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
+        FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
+        FeeResponse total = new FeeResponse("Tổng cộng tiền thuê", FeeType.TOTAL_AMOUNT_TO_PAY,
+                bookingFeeValue + vatValue);
+
+        fees.add(bookingFee);
+        fees.add(vat);
+        fees.add(deposit);
+        fees.add(holdCar);
+        fees.add(total);
+
+        return fees;
     }
 }

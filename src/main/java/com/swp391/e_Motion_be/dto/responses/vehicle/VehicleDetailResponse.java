@@ -15,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleDetailResponse {
-
     private Long id;
     private String name;
     private String description;
