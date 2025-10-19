@@ -261,6 +261,16 @@ public class ReservationService {
         return reservationMapper.toReservationResponse(reservation);
     }
 
+    public List<ReservationResponse> getReservationByCodeContain(String code) {
+        List<Reservation> reservation = reservationRepository.findByCodeContains(code);
+        if (reservation == null || reservation.isEmpty()) {
+            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
+        }
+        return reservation.stream()
+                .map(reservationMapper::toReservationResponse)
+                .toList();
+    }
+
     public ReservationResponse updateReservationStatus(UpdateReservationStatusRequest request) {
         Reservation reservation = reservationRepository.findByCode(request.getReservationCode())
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
