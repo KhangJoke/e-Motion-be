@@ -355,16 +355,18 @@ public class PaymentService {
 
     private void handleFailedReservation(Payment payment) {
         Deposit deposit = payment.getDeposit();
-
-        paymentRepository.delete(payment);
         if (deposit != null) {
+            deposit.setStatus(DepositStatus.FAILED);
+            paymentRepository.save(payment);
             Reservation reservation = deposit.getReservation();
-            depositRepository.delete(deposit);
             if (reservation != null) {
-                reservationRepository.delete(reservation);
+                reservation.setStatus(ReservationStatus.FAILED);
+                reservationRepository.save(reservation);
                 log.info("Deleted failed reservation: {}", reservation.getId());
             }
         }
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
     }
 
     private void handleFailedRental(Payment payment) {

@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
+import com.swp391.e_Motion_be.repository.StaffRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final StaffRepository staffRepository;
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
