@@ -338,46 +338,34 @@ public class ReservationService {
     }
 
     @Transactional
-    public void notificationReservation(){
-
+    public void notifyExpiringReservations() {
         LocalDateTime now = LocalDateTime.now();
-
-        List<Reservation> reservations = reservationRepository.findByStatusWithUser(
-                List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM)
+        LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
+        List<Reservation> expiringReservation = reservationRepository.findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(
+                ReservationStatus.CONFIRM,
+                now,
+                threshold
         );
-        // or optimized query
+        expiringReservation.forEach(reservation -> {
+            emailService.sendReservationExpiringEmail(reservation);
+            reservation.setExpiringNotified(true);
+            reservationRepository.save(reservation);
+        });
+    }
 
-        String subject;
-        String htmlMessage;
-
-        for (Reservation reservation : reservations) {
-            try {
-                LocalDateTime startTime = reservation.getStartTime();
-                ReservationStatus status = reservation.getStatus();
-                // Confirmed reservations flow
-                if (status == ReservationStatus.CONFIRM && reservation.getOverdueNotified().equals(Boolean.FALSE)) {
-                    if (startTime.isBefore(now.plusDays(3)) && startTime.isAfter(now)) {
-                        subject = "⏰ Your Reservation is Coming Up Soon!";
-                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
-                                "Your confirmed reservation is approaching. Get ready!");
-                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-                        reservation.setOverdueNotified(Boolean.TRUE);
-                    } else if (startTime.isBefore(now)  && reservation.getExpiringNotified().equals(Boolean.FALSE)) {
-                        subject = "⚠️ Your Reservation is Late/Expired!";
-                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
-                                "Your reservation time has passed. Please contact support if needed.");
-                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-
-                        reservation.setStatus(ReservationStatus.OVERDUE);
-                        reservation.setExpiringNotified(Boolean.TRUE);
-                        reservationRepository.save(reservation);
-                    }
-                }
-
-            } catch (Exception e) {
-                throw new  AppException(ErrorCode.RESERVATION_EMAIL);
-            }
-        }
+    @Transactional
+    public void notifyOverdueReservations() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndEndTimeBeforeAndOverdueNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING),
+                now
+        );
+        overdueReservations.forEach(reservation -> {
+            emailService.sendReservationOverdueEmail(reservation);
+            reservation.setStatus(ReservationStatus.OVERDUE);
+            reservation.setOverdueNotified(true);
+            reservationRepository.save(reservation);
+        });
     }
 
     public ReservationResponse extendReservationReturnTime(String code, LocalDateTime newReturnTime) {
