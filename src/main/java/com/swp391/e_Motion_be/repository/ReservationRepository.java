@@ -3,8 +3,6 @@ package com.swp391.e_Motion_be.repository;
 import com.swp391.e_Motion_be.entity.Reservation;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -22,7 +20,6 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByEndTimeBefore(LocalDateTime time);
     List<Reservation> findByVehicle_IdAndStatusIn(Long vehicleId, List<ReservationStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String email, List<ReservationStatus> statuses);
-    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status IN (:statuses)")
-    List<Reservation> findByStatusWithUser(@Param("statuses") List<ReservationStatus> statuses);
-
+    List<Reservation> findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(ReservationStatus status, LocalDateTime from, LocalDateTime to);
+    List<Reservation> findByStatusInAndEndTimeBeforeAndOverdueNotifiedFalse(List<ReservationStatus> status, LocalDateTime time);
 }

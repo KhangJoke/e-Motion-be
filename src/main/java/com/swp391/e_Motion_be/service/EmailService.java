@@ -424,5 +424,53 @@ public class EmailService {
         }
     }
 
+    public void sendReservationOverdueEmail(Reservation reservation) {
+        String subject = "Your Reservation is Overdue";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = reservation.getEndTime() != null
+                ? reservation.getEndTime().format(formatter)
+                : "Not specified";
 
+
+        Context context = new Context();
+        context.setVariable("userFullName", reservation.getUser().getFullName());
+        context.setVariable("reservationCode", reservation.getCode());
+        context.setVariable("vehicleName", reservation.getVehicle().getName());
+        context.setVariable("endTime", endTimeFormatted);
+        context.setVariable("stationName", reservation.getStation().getName());
+        context.setVariable("contactLink", "https://e-motion.vn/support");
+
+        String htmlMessage = templateEngine.process("rental-overdue-email", context);
+
+        try {
+            sendVerificationEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
+    public void sendReservationExpiringEmail(Reservation reservation) {
+        String subject = "Your Reservation is About to Coming to an End";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = reservation.getEndTime() != null
+                ? reservation.getEndTime().format(formatter)
+                : "Not specified";
+
+
+        Context context = new Context();
+        context.setVariable("userFullName", reservation.getUser().getFullName());
+        context.setVariable("reservationCode", reservation.getCode());
+        context.setVariable("vehicleName", reservation.getVehicle().getName());
+        context.setVariable("endTime", endTimeFormatted);
+        context.setVariable("stationName", reservation.getStation().getName());
+        context.setVariable("contactLink", "https://e-motion.vn/support");
+
+        String htmlMessage = templateEngine.process("rental-expiring-email", context);
+
+        try {
+            sendVerificationEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
 }

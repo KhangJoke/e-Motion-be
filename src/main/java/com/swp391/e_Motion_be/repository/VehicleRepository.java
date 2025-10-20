@@ -24,7 +24,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     @Query(value = """
         SELECT EXISTS (
-            -- Phần 1: Kiểm tra xung đột trong bảng reservations
+            -- Kiểm tra xung đột trong bảng reservations
             SELECT 1
             FROM reservations r
             WHERE r.vehicle_id = :vehicleId
@@ -35,7 +35,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
             UNION
 
-            -- Phần 2: Kiểm tra xung đột trong bảng rentals
+            -- Kiểm tra xung đột trong bảng rentals
             SELECT 1
             FROM rentals rent
             WHERE rent.vehicle_id = :vehicleId

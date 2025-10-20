@@ -12,8 +12,14 @@ public class ReservationScheduler {
 
     private final ReservationService reservationService;
 
-    @Scheduled(fixedRate = 6000000) // every hour
-    public void notifyReservations() {
-        reservationService.notificationReservation();
+    // Chạy mỗi 5 phút
+    @Scheduled(fixedRate = 300000)
+    public void checkExpiringReservations() {
+        reservationService.notifyExpiringReservations();
+    }
+
+    @Scheduled(fixedRate = 300000)
+    public void checkOverdueReservations() {
+        reservationService.notifyOverdueReservations();
     }
 }

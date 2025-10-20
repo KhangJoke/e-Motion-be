@@ -10,10 +10,7 @@ import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
-import com.swp391.e_Motion_be.enums.DepositStatus;
-import com.swp391.e_Motion_be.enums.DocumentType;
-import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.RentalStatus;
+import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
@@ -327,6 +324,11 @@ public class RentalService {
             }
 
             rental.setStatus(RentalStatus.COMPLETED);
+            if(rental.getReservation()!=null){
+                Reservation reservation = rental.getReservation();
+                reservation.setStatus(ReservationStatus.COMPLETED);
+                reservationRepository.save(reservation);
+            }
             Rental updatedRental = rentalRepository.save(rental);
             Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElseThrow(
                     () -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS)

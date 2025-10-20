@@ -17,4 +17,5 @@ public class UserResponse {
     private String phone;
     private Role role;
     private List<DocumentResponse> documents;
+    private long staffId;
 }
