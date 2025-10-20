@@ -14,15 +14,12 @@ import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
 import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
-import com.swp391.e_Motion_be.util.CurrencyFee;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -56,6 +53,10 @@ public class RentalCheckListService {
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
         Staff staff = staffRepository.findByUser_Email(request.getStaffEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+
+        if(!rental.getStatus().equals(RentalStatus.CONFIRM) && !rental.getStatus().equals(RentalStatus.ONGOING)){
+            throw new AppException(ErrorCode.RENTAL_NOT_IN_VALID_STATUS_FOR_CHECK);
+        }
 
         RentalCheckList checkList = rentalCheckListMapper.toCheckListEntity(request);
         checkList.setRental(rental);
