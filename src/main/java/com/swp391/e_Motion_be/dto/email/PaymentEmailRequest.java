@@ -18,7 +18,9 @@ public class PaymentEmailRequest {
     private List<PaymentItem> items;
     private Map<String, Double> vehicleDamages;
     private double vehicleDamagesTotal;
+    private double penaltyTotal;
     private double total;
+    private double rentalFee;
     private double totalDeposit;
     private double refundAmount;
 }

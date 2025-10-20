@@ -174,12 +174,12 @@
         </table>
     </div>
 
-    <!-- Grand Total -->
+    <!-- Penalty Total -->
     <div class="total-section">
         <table>
             <tr>
-                <td>Grand Total</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(total, 1, 2)} + 'đ'">0.00đ</td>
+                <td>Total Penalty</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(penaltyTotal, 1, 2)} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
@@ -190,6 +190,26 @@
             <tr>
                 <td>Total Deposit</td>
                 <td class="total-amount" th:text="${#numbers.formatDecimal(totalDeposit, 1, 2)} + 'đ'">0.00đ</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Rental Fee -->
+    <div class="total-section" th:if="${rentalFee!=0}">
+        <table>
+            <tr>
+                <td>Rental Fee</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(rentalFee, 1, 2)} + 'đ'">0.00đ</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Total -->
+    <div class="total-section">
+        <table>
+            <tr>
+                <td>Total</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(total, 1, 2)} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>

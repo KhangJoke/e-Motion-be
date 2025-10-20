@@ -102,7 +102,7 @@ public class ReservationService {
         if(!vehicle.getStation().getId().equals(station.getId())) {
             throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
         }
-        if(vehicle.getStatus().equals(VehicleStatus.CHECKING)){
+        if(vehicle.getStatus().equals(VehicleStatus.CHECKING) || vehicle.getStatus().equals(VehicleStatus.MAINTAINED)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_READY);
         }
         // Create reservation

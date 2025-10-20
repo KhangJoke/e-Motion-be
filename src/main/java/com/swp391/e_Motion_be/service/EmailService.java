@@ -97,6 +97,8 @@ public class EmailService {
         context.setVariable("items", emailModel.getItems());
         context.setVariable("vehicleDamages", emailModel.getVehicleDamages());
         context.setVariable("vehicleDamagesTotal", emailModel.getVehicleDamagesTotal());
+        context.setVariable("penaltyTotal", emailModel.getPenaltyTotal());
+        context.setVariable("rentalFee", emailModel.getRentalFee());
         context.setVariable("total", emailModel.getTotal());
         context.setVariable("url", url);
         context.setVariable("totalDeposit", emailModel.getTotalDeposit());
@@ -184,8 +186,11 @@ public class EmailService {
     private PaymentEmailRequest createPenaltyFeeEmail(Payment payment) {
         Rental rental = payment.getRental();
         List<PaymentItem> items = new ArrayList<>();
-        double total = 0;
+        double penaltyTotal = 0;
         double damageTotal = 0;
+        double totalDeposit = rental.getDeposit() != null ? rental.getDeposit().getAmount() : 0;
+        double rentalFee = rental.getRentFee();
+        double total = 0;
 
         // Lấy rental checklist (check-out)
         RentalCheckList checkOut = rental.getRentalCheckLists().stream()
@@ -202,7 +207,7 @@ public class EmailService {
                     .label("Late Return And Pin Penalty")
                     .amount(checkOut.getFee())
                     .build());
-            total += checkOut.getFee();
+            penaltyTotal += checkOut.getFee();
         }
 
         // Thêm các damage charges (sẽ hiển thị chi tiết ở bảng riêng)
@@ -212,8 +217,10 @@ public class EmailService {
             damageTotal = vehicleDamages.values().stream()
                     .mapToDouble(Double::doubleValue)
                     .sum();
-            total += damageTotal;
+            penaltyTotal += damageTotal;
         }
+
+        total = penaltyTotal -totalDeposit - rentalFee;
 
         return PaymentEmailRequest.builder()
                 .subject("Rental Completed - Final Payment Receipt")
@@ -224,7 +231,10 @@ public class EmailService {
                 .items(items)
                 .vehicleDamages(vehicleDamages)
                 .vehicleDamagesTotal(damageTotal)
+                .totalDeposit(totalDeposit)
+                .rentalFee(rentalFee)
                 .total(total)
+                .penaltyTotal(penaltyTotal)
                 .build();
     }
 
