@@ -82,7 +82,7 @@ public class ReservationService {
 
         // Check reservation time validity
         if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
-        request.getStartTime().isAfter(LocalDateTime.now().minusYears(1))) {
+        request.getStartTime().isAfter(LocalDateTime.now().plusYears(1))) {
             throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
         }
 
@@ -102,7 +102,7 @@ public class ReservationService {
         if(!vehicle.getStation().getId().equals(station.getId())) {
             throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
         }
-        if(!vehicle.getStatus().equals(VehicleStatus.CHECKING)){
+        if(vehicle.getStatus().equals(VehicleStatus.CHECKING)){
             throw new AppException(ErrorCode.VEHICLE_NOT_READY);
         }
         // Create reservation
