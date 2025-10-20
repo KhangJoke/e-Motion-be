@@ -34,10 +34,6 @@ public class VehicleDetailResponse {
     private Double batteryCapacity;
     private String plateNumber;
     private LocalDateTime lastMaintenance;
-    private Long stationId;
     private StationResponse station;
-    private StationCity city;
-    private String address;
     private List<String> images;
-
 }
