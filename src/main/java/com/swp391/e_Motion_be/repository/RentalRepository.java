@@ -16,4 +16,5 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     List<Rental> findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(RentalStatus status, LocalDateTime time);
     boolean existsByUser_IdAndStatusNotIn(long userId, List<RentalStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String user_email, List<RentalStatus> status);
+    List<Rental> findByStation_Id(long stationId);
 }

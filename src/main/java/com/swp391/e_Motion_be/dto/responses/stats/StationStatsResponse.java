@@ -12,7 +12,8 @@ import java.util.List;
 public class StationStatsResponse {
     String stationName;
     double revenue;
-    long totalBookings;
+    long cars;
+    long bookings;
     double usageRate;
     List<Integer> peakHours;
 }

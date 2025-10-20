@@ -19,6 +19,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByStation_CityAndStatusIn(StationCity city, List<VehicleStatus> statuses);
     List<Vehicle> findByStatus(VehicleStatus status);
     List<Vehicle> findByBrandAndStatus(VehicleBrand brand,VehicleStatus status);
+    long countByStation_Id(Long stationId);
+    List<Vehicle> findByStation_Id(Long stationId);
 
     @Query(value = """
         SELECT EXISTS (
