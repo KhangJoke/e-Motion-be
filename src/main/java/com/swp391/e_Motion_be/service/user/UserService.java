@@ -2,20 +2,20 @@ package com.swp391.e_Motion_be.service.user;
 
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
+import com.swp391.e_Motion_be.dto.responses.stats.StationStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.TotalStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
 import com.swp391.e_Motion_be.entity.Rental;
+import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.User;
+import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
-import com.swp391.e_Motion_be.repository.RentalRepository;
-import com.swp391.e_Motion_be.repository.ReservationRepository;
-import com.swp391.e_Motion_be.repository.UserRepository;
-import com.swp391.e_Motion_be.repository.VehicleRepository;
+import com.swp391.e_Motion_be.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +36,7 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final StationRepository stationRepository;
 
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
@@ -103,28 +104,71 @@ public class UserService {
     }
 
     public TotalStatsResponse getDataAdminDashboard(){
-        long totalUsers = userRepository.countByRole(Role.ROLE_USER);
-        long totalVehicles = vehicleRepository.count();
-        long totalBookings = rentalRepository.count();
-        long totalReservations = reservationRepository.count();
-        double totalRevenue = rentalRepository.findAll().stream()// tính doanh thu các đơn thuê xe đã hoàn thành
-                .filter(rental -> rental.getStatus() == RentalStatus.COMPLETED)
-                .mapToDouble(Rental::getRentFee)
-                .sum();
-        double usageRate = ((double) vehicleRepository.findAll().stream()
-                .filter(vehicle -> vehicle.getStatus() == VehicleStatus.ONGOING).count()
-                / totalVehicles)*100; // tỷ lệ xe đang sử dụng / tổng số xe
+        List<Rental> rentals = rentalRepository.findAll();
+        List<Vehicle> vehicles = vehicleRepository.findAll();
 
-        Map<Integer, Long> hourFrequency = rentalRepository.findAll().stream()
-                .filter(rental -> rental.getStatus() == RentalStatus.COMPLETED || rental.getStatus() == RentalStatus.ONGOING)
+        long totalUsers = userRepository.countByRole(Role.ROLE_USER);
+        long totalVehicles = vehicles.size();
+        long totalReservations = reservationRepository.count();
+        double totalRevenue = calculateRevenue(rentals);
+        double usageRate = calculateUsageRate(vehicles); // tỷ lệ xe đang sử dụng / tổng số xe
+        List<Integer> peakHours = getPeakHours(rentals);
+
+        return new TotalStatsResponse(
+                totalUsers,
+                totalVehicles,
+                totalReservations,
+                rentals.size(),
+                totalRevenue,
+                usageRate,
+                peakHours);
+    }
+
+    public List<StationStatsResponse> getStationDetailDashboard(){
+        List<Station> stations = stationRepository.findAll();
+        return stations.stream().map(station -> {
+            List<Rental> rentals = rentalRepository.findByStation_Id(station.getId());
+
+            long totalVehicles = vehicleRepository.countByStation_Id(station.getId());
+            double usageRate = calculateUsageRate(vehicleRepository.findByStation_Id(station.getId()));
+            double revenue = calculateRevenue(rentals);
+            List<Integer> peakHours = getPeakHours(rentals);
+
+            return new StationStatsResponse(
+                    station.getName(),
+                    revenue,
+                    totalVehicles,
+                    rentals.size(),
+                    usageRate,
+                    peakHours
+            );
+        }).toList();
+    }
+
+    private List<Integer> getPeakHours(List<Rental> rentals){
+        Map<Integer, Long> hourFrequency = rentals.stream()
+                .filter(rental -> (rental.getStatus() == RentalStatus.COMPLETED || rental.getStatus() == RentalStatus.ONGOING))
                 .collect(Collectors.groupingBy(rental -> rental.getStartTime().getHour(), Collectors.counting()));
         long maxCount = hourFrequency.values().stream()
                 .max(Long::compareTo).orElse(0L);
-        List<Integer> peakHours = hourFrequency.entrySet().stream()
+        return hourFrequency.entrySet().stream()
                 .filter(entry -> entry.getValue() == maxCount)
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+                .toList();
+    }
 
-        return new TotalStatsResponse(totalUsers, totalVehicles, totalReservations, totalBookings, totalRevenue, usageRate, peakHours);
+    // Helper để tính tỷ lệ sử dụng
+    private double calculateUsageRate(List<Vehicle> vehicles) {
+        if (vehicles.isEmpty()) return 0;
+        long inUse = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.ONGOING || v.getStatus() == VehicleStatus.CHECKING).count();
+        return ((double) inUse / vehicles.size()) * 100;
+    }
+
+    // Helper để tính tổng doanh thu
+    private double calculateRevenue(List<Rental> rentals) {
+        return rentals.stream()
+                .filter(r -> r.getStatus() == RentalStatus.COMPLETED)
+                .mapToDouble(Rental::getRentFee)
+                .sum();
     }
 }
