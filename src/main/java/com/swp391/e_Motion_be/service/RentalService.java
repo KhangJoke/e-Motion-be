@@ -77,6 +77,8 @@ public class RentalService {
         Rental rental = rentalMapper.fromReservationToRental(reservation);
         rental.setReservation(reservation);
         rental.setStaff(staff);
+        reservation.setStatus(ReservationStatus.COMPLETED);
+        reservationRepository.save(reservation);
         return createRentalCommon(rental, reservation.getUser().getId() ,reservation.getVehicle(), reservation.getStation().getId());
     }
 
@@ -324,11 +326,6 @@ public class RentalService {
             }
 
             rental.setStatus(RentalStatus.COMPLETED);
-            if(rental.getReservation()!=null){
-                Reservation reservation = rental.getReservation();
-                reservation.setStatus(ReservationStatus.COMPLETED);
-                reservationRepository.save(reservation);
-            }
             Rental updatedRental = rentalRepository.save(rental);
             Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElseThrow(
                     () -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS)
