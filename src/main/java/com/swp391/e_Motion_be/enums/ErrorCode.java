@@ -122,6 +122,7 @@ public enum ErrorCode {
     CHECKLIST_TYPE_INVALID(HttpStatus.BAD_REQUEST, "Loại danh sách kiểm tra không hợp lệ"),
     RENTAL_CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy danh sách kiểm tra thuê xe"),
     DURATION_MINIUM(HttpStatus.BAD_REQUEST, "Thời gian thuê tối thiểu là 4 giờ"),
+    RENTAL_NOT_IN_VALID_STATUS_FOR_CHECK(HttpStatus.BAD_REQUEST, "Trạng thái thuê xe không hợp lệ để thực hiện kiểm tra"),
 
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin thuê xe"),

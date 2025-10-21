@@ -11,6 +11,7 @@ import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.repository.*;
@@ -61,18 +62,18 @@ public class ReservationService {
 
         // Check có đang thuê hoặc đặt trước xe khác không
         boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
-        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED));
         if(hasOngoingRental || hasOngoingReservation) {
             throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
         }
 
         // Kiểm tra CCCD và GPLX của renter
-//        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.CCCD)){
-//            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
-//        }
-//        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.LICENSE)){
-//            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
-//        }
+        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocumentType.CCCD)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
+        }
+        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocumentType.LICENSE)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
+        }
 
         // Check if start and end times are exact hours
         if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
@@ -80,7 +81,8 @@ public class ReservationService {
         }
 
         // Check reservation time validity
-        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
+        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
+        request.getStartTime().isAfter(LocalDateTime.now().plusYears(1))) {
             throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
         }
 
@@ -100,7 +102,9 @@ public class ReservationService {
         if(!vehicle.getStation().getId().equals(station.getId())) {
             throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
         }
-
+        if(vehicle.getStatus().equals(VehicleStatus.CHECKING) || vehicle.getStatus().equals(VehicleStatus.MAINTAINED)) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_READY);
+        }
         // Create reservation
         Reservation reservation = reservationMapper.toReservationEntity(request);
         reservation.setUser(user);

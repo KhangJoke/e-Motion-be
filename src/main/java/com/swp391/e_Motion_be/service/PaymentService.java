@@ -311,11 +311,6 @@ public class PaymentService {
         if (rental != null) {
             rental.setStatus(RentalStatus.COMPLETED);
             rentalRepository.save(rental);
-            if(rental.getReservation()!=null){
-                Reservation reservation = rental.getReservation();
-                reservation.setStatus(ReservationStatus.COMPLETED);
-                reservationRepository.save(reservation);
-            }
             log.info("Penalty fee rental payment processed: {}", payment.getId());
         }
     }

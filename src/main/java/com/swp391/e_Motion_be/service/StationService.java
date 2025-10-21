@@ -54,6 +54,10 @@ public class StationService {
                 .toList();
     }
 
+    public List<String> findAllCity() {
+        return stationRepository.findAllCityNames();
+    }
+
     public StationResponse getStationByName(String name) {
         return stationMapper.toStationResponse(stationRepository.findByNameIgnoreCase(name.trim()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND)));
     }
