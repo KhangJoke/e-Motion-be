@@ -15,11 +15,10 @@ public enum ErrorCode {
     // User errors
     ROLE_INVALID(HttpStatus.BAD_REQUEST, "Vai trò người dùng không hợp lệ"),
     PHONE_EXITS(HttpStatus.CONFLICT, "Số điện thoại đã tồn tại"),
+    NEW_PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "Mật khẩu mới phải khác mật khẩu cũ"),
 
     // Update password errors
-    PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu mới và xác nhận mật khẩu mới không khớp"),
     OLD_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu cũ không đúng"),
-    CONFIRM_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Xác nhận mật khẩu không khớp"),
 
     // Document errors
     DOCUMENT_NUMBER_EXISTS(HttpStatus.CONFLICT, "Số giấy tờ đã tồn tại"),

@@ -193,9 +193,6 @@ public class AuthenticationService {
         Optional<User> optionalUser = userRepository.findByEmail(input.getEmail());
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(!input.getNewPassword().equals(input.getConfirmNewPassword())) {
-                throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
-            }
             if(user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }

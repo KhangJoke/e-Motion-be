@@ -80,9 +80,8 @@ public class UserService {
             throw new AppException(ErrorCode.OLD_PASSWORD_NOT_MATCH);
         }
 
-        // Check confirm password
-        if (!input.getNewPassword().equals(input.getConfirmNewPassword())) {
-            throw new AppException(ErrorCode.CONFIRM_PASSWORD_NOT_MATCH);
+        if(input.getOldPassword().equals(input.getNewPassword())) {
+            throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
         }
 
         // Save encoded new password
