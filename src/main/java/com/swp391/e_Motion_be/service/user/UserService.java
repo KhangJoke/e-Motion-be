@@ -2,8 +2,7 @@ package com.swp391.e_Motion_be.service.user;
 
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
-import com.swp391.e_Motion_be.dto.responses.stats.StationStatsResponse;
-import com.swp391.e_Motion_be.dto.responses.stats.TotalStatsResponse;
+import com.swp391.e_Motion_be.dto.responses.stats.*;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.Station;
@@ -22,9 +21,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -94,6 +97,10 @@ public class UserService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+        // Check phone mới có tồn tại chưa
+        if(!user.getPhone().equals(input.getPhone()) && userRepository.existsByPhone(input.getPhone())) {
+            throw new AppException(ErrorCode.PHONE_EXITS);
+        }
 
         user.setFullName(input.getFullName());
         user.setPhone(input.getPhone());
@@ -103,7 +110,7 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    public TotalStatsResponse getDataAdminDashboard(){
+    public TotalStatsResponse getTotalStatsDashboard(){
         List<Rental> rentals = rentalRepository.findAll();
         List<Vehicle> vehicles = vehicleRepository.findAll();
 
@@ -145,9 +152,42 @@ public class UserService {
         }).toList();
     }
 
+    public List<RevenueInYearResponse> getRevenueInYearDashboard(){
+        List<Rental> rentals = rentalRepository.findAll().stream()
+                .filter(r -> r.getStatus() == RentalStatus.COMPLETED)
+                .filter(r -> r.getEndTime().getYear() == LocalDateTime.now().getYear())
+                .toList();
+
+        Map<Integer, Double> revenueByMonth = rentals.stream()
+                .collect(Collectors.groupingBy(r -> r.getEndTime().getMonth().getValue(),
+                        Collectors.summingDouble(Rental::getRentFee)));
+
+        return IntStream.rangeClosed(1, 12)
+                .mapToObj(month -> new RevenueInYearResponse(
+                        Month.of(month).getValue(), // tên tháng (JANUARY, FEBRUARY,...)
+                        revenueByMonth.getOrDefault(month, 0.0)
+                ))
+                .toList();
+    }
+
+    public List<PeakHourResponse> getPeakHoursInDayDashboard(){
+        Map<Integer, Long> hourFrequency = rentalRepository.findAll().stream()
+                .filter(rental -> (rental.getStatus() == RentalStatus.COMPLETED || rental.getStatus() == RentalStatus.ONGOING))
+                .filter(r -> r.getStartTime().toLocalDate().isEqual(LocalDate.now()))
+                .collect(Collectors.groupingBy(rental -> rental.getStartTime().getHour(), Collectors.counting()));
+
+        return IntStream.rangeClosed(1, 23)
+                .mapToObj(hour -> new PeakHourResponse(
+                        hour,
+                        hourFrequency.getOrDefault(hour, 0L)
+                ))
+                .toList();
+    }
+
     private List<Integer> getPeakHours(List<Rental> rentals){
         Map<Integer, Long> hourFrequency = rentals.stream()
                 .filter(rental -> (rental.getStatus() == RentalStatus.COMPLETED || rental.getStatus() == RentalStatus.ONGOING))
+                .filter(r -> r.getEndTime().getYear() == LocalDateTime.now().getYear())
                 .collect(Collectors.groupingBy(rental -> rental.getStartTime().getHour(), Collectors.counting()));
         long maxCount = hourFrequency.values().stream()
                 .max(Long::compareTo).orElse(0L);
@@ -168,7 +208,17 @@ public class UserService {
     private double calculateRevenue(List<Rental> rentals) {
         return rentals.stream()
                 .filter(r -> r.getStatus() == RentalStatus.COMPLETED)
+                .filter(r -> r.getEndTime().getYear() == LocalDateTime.now().getYear())
                 .mapToDouble(Rental::getRentFee)
                 .sum();
+    }
+
+    public DataAdminDashboard getDataAdminDashboard(){
+        TotalStatsResponse totalStats = getTotalStatsDashboard();
+        List<StationStatsResponse> stationDetails = getStationDetailDashboard();
+        List<RevenueInYearResponse> revenueInYear = getRevenueInYearDashboard();
+        List<PeakHourResponse> peakHours = getPeakHoursInDayDashboard();
+
+        return new DataAdminDashboard(totalStats, stationDetails, revenueInYear, peakHours);
     }
 }

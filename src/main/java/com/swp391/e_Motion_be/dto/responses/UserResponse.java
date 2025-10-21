@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -16,6 +17,7 @@ public class UserResponse {
     private String email;
     private String phone;
     private Role role;
+    private LocalDate createdAt;
     private List<DocumentResponse> documents;
-    private long staffId;
+    private Long staffId;
 }
