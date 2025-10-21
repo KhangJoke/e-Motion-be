@@ -207,8 +207,8 @@ public class VehicleService {
         FeeResponse vat = new FeeResponse("Thuế VAT", FeeType.VAT, vatValue);
         FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
         FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
-        FeeResponse total = new FeeResponse("Tổng cộng tiền thuê", FeeType.TOTAL_AMOUNT_TO_PAY,
-                bookingFeeValue + vatValue);
+        FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
+                bookingFeeValue + vatValue + vehicle.getDepositFee() + holdCarFee);
 
         fees.add(bookingFee);
         fees.add(vat);

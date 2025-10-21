@@ -11,7 +11,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "rentals")
-@Data
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @NoArgsConstructor

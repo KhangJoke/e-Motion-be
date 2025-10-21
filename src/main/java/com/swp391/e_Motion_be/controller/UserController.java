@@ -3,6 +3,7 @@ package com.swp391.e_Motion_be.controller;
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
 import com.swp391.e_Motion_be.dto.responses.stats.StationStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.TotalStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
@@ -74,19 +75,11 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/admin-dashboard/summary")
-    public ResponseEntity<ApiResponse<TotalStatsResponse>> getSummaryDashboard(){
-        ApiResponse<TotalStatsResponse> apiResponse = new ApiResponse<>();
+    @GetMapping("/admin-dashboard")
+    public ResponseEntity<ApiResponse<DataAdminDashboard>> getDataAdminDashboard(){
+        ApiResponse<DataAdminDashboard> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get data admin dashboard successfully");
         apiResponse.setData(userService.getDataAdminDashboard());
-        return ResponseEntity.ok(apiResponse);
-    }
-
-    @GetMapping("/admin-dashboard/station-detail")
-    public ResponseEntity<ApiResponse<List<StationStatsResponse>>> getStationDetailDashboard(){
-        ApiResponse<List<StationStatsResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Get data admin dashboard successfully");
-        apiResponse.setData(userService.getStationDetailDashboard());
         return ResponseEntity.ok(apiResponse);
     }
 

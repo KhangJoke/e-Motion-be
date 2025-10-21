@@ -27,10 +27,6 @@ public abstract class VehicleMapper {
     @Mapping(source = "brand", target = "brand")
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
-    @Mapping(source = "type", target = "type")
-    @Mapping(source = "status", target = "status")
-    @Mapping(source = "category", target = "category")
-    @Mapping(source = "brand", target = "brand")
     @Mapping(source = "station", target = "station") // map Station -> station
     @Mapping(target = "images", expression = "java(getImageUrls(vehicle))")
     @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")

@@ -12,6 +12,10 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Không có quyền truy cập"),
     INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "Khoảng thời gian phải lớn hơn hoặc bằng 4"),
 
+    // User errors
+    ROLE_INVALID(HttpStatus.BAD_REQUEST, "Vai trò người dùng không hợp lệ"),
+    PHONE_EXITS(HttpStatus.CONFLICT, "Số điện thoại đã tồn tại"),
+
     // Update password errors
     PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu mới và xác nhận mật khẩu mới không khớp"),
     OLD_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu cũ không đúng"),
