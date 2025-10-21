@@ -34,7 +34,7 @@ public class StationController {
         return response;
     }
 
-    @GetMapping
+    @GetMapping("/cities")
     public ApiResponse<List<String>> getAllCity() {
         ApiResponse<List<String>> response = new ApiResponse<>();
         response.setData(stationService.findAllCity());
