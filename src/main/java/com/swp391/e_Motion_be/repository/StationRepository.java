@@ -12,4 +12,5 @@ public interface StationRepository extends JpaRepository<Station, Long> {
     Optional<Station> findByNameIgnoreCase(String name);
     List<Station> findByAddressIgnoreCase(String address);
     List<Station> findByCity(StationCity city);
+    List<String> findAllCityNames();
 }

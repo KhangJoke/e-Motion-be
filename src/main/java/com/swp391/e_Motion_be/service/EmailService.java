@@ -150,6 +150,7 @@ public class EmailService {
     // Email cho thanh toán thuê xe (Check-in)
     private PaymentEmailRequest createRentalEmail(Payment payment) {
         Rental rental = payment.getRental();
+        Reservation reservation = rental.getReservation();
         Deposit deposit = payment.getDeposit();
         List<PaymentItem> items = new ArrayList<>();
         double total = 0;
@@ -168,6 +169,14 @@ public class EmailService {
                     .amount(rental.getRentFee())
                     .build());
             total += rental.getRentFee();
+        }
+
+        if(reservation != null && reservation.getDeposit().getAmount() > 0) {
+            items.add(PaymentItem.builder()
+                    .label("Reservation Deposit Fee")
+                    .amount(reservation.getDeposit().getAmount())
+                    .build());
+            total -= reservation.getDeposit().getAmount();
         }
 
         return PaymentEmailRequest.builder()
@@ -220,7 +229,7 @@ public class EmailService {
             penaltyTotal += damageTotal;
         }
 
-        total = penaltyTotal -totalDeposit - rentalFee;
+        total = (totalDeposit  + rentalFee) - penaltyTotal;
 
         return PaymentEmailRequest.builder()
                 .subject("Rental Completed - Final Payment Receipt")
@@ -272,11 +281,9 @@ public class EmailService {
                     .build();
         }
 
-        double rentalDeposit = rental.getDeposit() != null ? rental.getDeposit().getAmount() : 0;
-        double reservationDeposit = payment.getDeposit() != null ? payment.getDeposit().getAmount() : 0;
-        double totalDeposit = rentalDeposit + reservationDeposit;
+        double totalDeposit = rental.getDeposit() != null ? rental.getDeposit().getAmount() : 0;
         List<PaymentItem> items = new ArrayList<>();
-        double totalDeductions = 0;
+        double penaltyTotal = 0;
         double damageTotal = 0;
 
         // Get rental checklist (check-out)
@@ -297,7 +304,7 @@ public class EmailService {
                     .label("Late Return And Pin Penalty")
                     .amount(checkOut.getFee())
                     .build());
-            totalDeductions += checkOut.getFee();
+            penaltyTotal += checkOut.getFee();
         }
 
         // Add damage charges
@@ -307,11 +314,11 @@ public class EmailService {
             damageTotal = vehicleDamages.values().stream()
                     .mapToDouble(Double::doubleValue)
                     .sum();
-            totalDeductions += damageTotal;
+            penaltyTotal += damageTotal;
         }
 
         // Calculate actual refund amount
-        double actualRefundAmount = totalDeposit - totalDeductions;
+        double actualRefundAmount = totalDeposit - penaltyTotal;
 
         // Validation: refund shouldn't be negative
         if (actualRefundAmount < 0) {
@@ -327,8 +334,9 @@ public class EmailService {
                 .items(items)
                 .vehicleDamages(vehicleDamages)
                 .vehicleDamagesTotal(damageTotal)
-                .total(totalDeductions)
+                .penaltyTotal(penaltyTotal)
                 .totalDeposit(totalDeposit)
+                .total(0)
                 .refundAmount(actualRefundAmount)
                 .build();
     }

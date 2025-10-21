@@ -281,9 +281,8 @@ public class RentalService {
 
         RentalOverviewResponse overview = getRentalOverviewById(id);
         double totalCharges = overview.getVehicleDamageFee() + overview.getCheckListFee();
-        double totalDeposits = overview.getReservationDeposit() + overview.getRentalDeposit();
-        double rentFee = rental.getRentFee();
-        double balance = totalCharges - totalDeposits - rentFee;
+        double totalDeposits = overview.getRentalDeposit();
+        double balance = totalCharges - totalDeposits;
 
         // TRƯỜNG HỢP 1: Khách hàng cần trả thêm tiền
         if (balance > 0) {

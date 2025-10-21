@@ -87,7 +87,7 @@
             border-left: 5px solid #2b6cb0;
             border-radius: 6px;
         }
-        .total-section:nth-of-type(6) {
+        .total-section-pay-and-refund {
             border-left-color: #10b981;
         }
         .total-section:nth-of-type(7) {
@@ -175,7 +175,7 @@
     </div>
 
     <!-- Penalty Total -->
-    <div class="total-section">
+    <div class="total-section" th:if="${penaltyTotal!=0}">
         <table>
             <tr>
                 <td>Total Penalty</td>
@@ -205,17 +205,17 @@
     </div>
 
     <!-- Total -->
-    <div class="total-section">
+    <div class="total-section total-section-pay-and-refund">
         <table>
             <tr>
-                <td>Total</td>
+                <td>Total Pay</td>
                 <td class="total-amount" th:text="${#numbers.formatDecimal(total, 1, 2)} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
 
     <!-- Refund Amount -->
-    <div class="total-section" th:if="${refundAmount!=0}">
+    <div class="total-section total-section-pay-and-refund" th:if="${refundAmount!=0}">
         <table>
             <tr>
                 <td>Refund Amount</td>

@@ -62,7 +62,7 @@ public class ReservationService {
 
         // Check có đang thuê hoặc đặt trước xe khác không
         boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
-        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED));
         if(hasOngoingRental || hasOngoingReservation) {
             throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
         }
