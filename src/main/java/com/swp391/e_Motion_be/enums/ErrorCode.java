@@ -74,11 +74,8 @@ public enum ErrorCode {
 
     // Check image document errors
     DOCUMENT_NUMBER_MISMATCH(HttpStatus.BAD_REQUEST, "Số giấy tờ không khớp với hình ảnh"),
-    DOCUMENT_IMAGE_USED(HttpStatus.CONFLICT, "Hình ảnh này đã được sử dụng cho giấy tờ khác"),
-    CREATE_DOCUMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tạo giấy tờ thất bại"),
     NOT_FOUND_CCCD_IN_IMAGE(HttpStatus.BAD_REQUEST, "Không tìm thấy số CCCD hợp lệ trong hình ảnh"),
     UPLOAD_IMAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tải lên hình ảnh thất bại"),
-    DELETE_IMAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Xóa hình ảnh thất bại"),
     FAIL_OCR(HttpStatus.INTERNAL_SERVER_ERROR, "Thực hiện OCR trên hình ảnh thất bại"),
 
     // OCR service errors

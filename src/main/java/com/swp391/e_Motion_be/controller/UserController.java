@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.dto.responses.stats.StationStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.TotalStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
 import com.swp391.e_Motion_be.service.user.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,7 @@ public class UserController {
     }
 
     @PostMapping("/me/change-password")
-    public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordUserRequest request){
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody @Valid ChangePasswordUserRequest request){
         userService.changePassword(request);
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setStatus(204);
@@ -67,7 +68,7 @@ public class UserController {
     }
 
     @PostMapping("/me/update-profile")
-    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestBody UpdateProfileRequest request){
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestBody @Valid UpdateProfileRequest request){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.updateProfile(request);
         apiResponse.setMessage("Update profile successfully");

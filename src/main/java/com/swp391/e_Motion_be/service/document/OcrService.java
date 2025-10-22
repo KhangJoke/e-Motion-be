@@ -42,7 +42,6 @@ public class OcrService {
         copyTessDataFolder(tempTessDataDir.toPath());
         // Khởi tạo Tesseract
         Tesseract tesseract = new Tesseract();
-        tesseract.setVariable("tessedit_char_whitelist", "0123456789");
         tesseract.setDatapath(tempTessDataDir.getAbsolutePath());
         tesseract.setLanguage("eng");
         return tesseract;
@@ -65,27 +64,18 @@ public class OcrService {
         int w = img.getWidth();
         int h = img.getHeight();
 
+        // Chuyển ảnh sang grayscale (đen trắng)
         BufferedImage gray = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g = gray.createGraphics();
         g.drawImage(img, 0, 0, null);
         g.dispose();
 
-        // Resize lớn hơn để Tesseract nhận diện rõ
-        int targetWidth = Math.max(1200, w);
-        int targetHeight = (int) ((double) h / w * targetWidth);
-        BufferedImage resized = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_BYTE_GRAY);
+        // resize nếu width nhỏ hơn 1000px
+        int targetWidth = Math.max(1000, w);
+        BufferedImage resized = new BufferedImage(targetWidth, targetWidth * h / w, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g2 = resized.createGraphics();
-        g2.drawImage(gray, 0, 0, targetWidth, targetHeight, null);
+        g2.drawImage(gray, 0, 0, resized.getWidth(), resized.getHeight(), null);
         g2.dispose();
-
-        // Binarization (threshold)
-        for (int x = 0; x < resized.getWidth(); x++) {
-            for (int y = 0; y < resized.getHeight(); y++) {
-                int rgb = resized.getRGB(x, y) & 0xFF;
-                if (rgb > 120) resized.setRGB(x, y, 0xFFFFFF);
-                else resized.setRGB(x, y, 0x000000);
-            }
-        }
 
         return resized;
     }

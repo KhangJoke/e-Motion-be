@@ -11,6 +11,7 @@ import com.swp391.e_Motion_be.mapper.DocumentMapper;
 import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import com.swp391.e_Motion_be.service.CloudinaryService;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,24 +31,27 @@ public class DocumentService {
     CloudinaryService cloudinaryService;
 
     public DocumentResponse createDocument(DocumentCreationRequest request) {
-        String extractedCccd = ocrService.extractCccdFromUrl(request.getImgUrl());
-        // 0. Check user đã có document type này chưa
-        boolean alreadyHasDocument = documentRepository.existsByUser_EmailAndType(request.getEmail(), request.getType());
-        if (alreadyHasDocument) {
+        // 1. lấy ra user
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_EXISTS));
+        // 2. Check user đã có document type này chưa
+        if (documentRepository.existsByUser_EmailAndType(request.getEmail(), request.getType())) {
             cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
             throw new AppException(ErrorCode.USER_ALREADY_HAS_DOCUMENT_OF_TYPE);
         }
-        // 1. Verify OCR
-        if(extractedCccd.equals(request.getNumber())){
-            // 2. Check trùng số CCCD - nếu trùng thì xóa ảnh vừa up lên cloudinary và throw lỗi
-            if(documentRepository.existsByNumber(request.getNumber())){
-                cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-                throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
-            }
+        String extractedCccd = ocrService.extractCccdFromUrl(request.getImgUrl());
+        // 3. Kiểm tra số CCCD có khớp với số trong ảnh ko
+        if(!extractedCccd.equals(request.getNumber())){
+            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
+            throw new AppException(ErrorCode.DOCUMENT_NUMBER_MISMATCH);
         }
-        // 3. lấy ra user
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        // 4. Kiểm tra số CCCD đã tồn tại chưa
+        if(documentRepository.existsByNumber(request.getNumber())){
+            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
+            throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
+        }
+
         Document document = documentMapper.toDocumentEntity(request);
         document.setUser(user);
         documentRepository.save(document);
@@ -78,11 +82,11 @@ public class DocumentService {
         return documentMapper.toDocumentResponse(documentRepository.save(document));
     }
 
+    @Transactional
     public void deleteDocumentById(long docId){
-        if(documentRepository.existsById(docId)){
-            documentRepository.deleteById(docId);
-        } else {
-            throw new RuntimeException("Document not found");
-        }
+        Document document = documentRepository.findById(docId)
+                .orElseThrow(() -> new AppException(ErrorCode.DOCUMENT_NOT_FOUND));
+        documentRepository.deleteById(docId);
+        cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(document.getImgUrl()));
     }
 }
