@@ -149,33 +149,24 @@ public class VehicleService {
     }
 
     // Search bằng thanh tìm kiếm
-    public VehicleSearchResponse searchVehicles(VehicleFindRequest request) {
-        // lấy ra tất cả các xe có thể sử dụng
-        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatusIn(request.getCity(), List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING));
-
-        List<Vehicle> availables = new ArrayList<>();
-        List<Vehicle> unavailables = new ArrayList<>();
-
-        // duyệt qua từng xe và chia vào list phù hợp
-        for(Vehicle v : vehicles) {
-            boolean hasConflic = v.getReservations().stream()
-                    .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime()))
-                    ||
-                    v.getRentals().stream()
-                            .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime()));
-
-            if (hasConflic) {
-                unavailables.add(v);
-            } else {
-                availables.add(v);
-            }
-        }
+    public List<VehicleListResponse> searchVehicles(VehicleFindRequest request) {
         long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
 
-        return new VehicleSearchResponse(
-                availables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList(),
-                unavailables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList()
-        );
+        return vehicleRepository
+                .findByStation_CityAndStatusIn(
+                        request.getCity(),
+                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
+                ).stream()
+                .filter(v -> v.getReservations().stream()
+                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) &&
+                                r.getEndTime().isAfter(request.getStartTime()))
+                        &&
+                        v.getRentals().stream()
+                                .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) &&
+                                        r.getEndTime().isAfter(request.getStartTime()))
+                )
+                .map(v -> vehicleMapper.toVehicleListResponse(v, hours))
+                .toList();
     }
 
     public List<VehicleScheduleResponse> getVehicleSchedule(Long vid){

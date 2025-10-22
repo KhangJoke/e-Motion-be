@@ -31,20 +31,18 @@ public class DocumentService {
 
     public DocumentResponse createDocument(DocumentCreationRequest request) {
         String extractedCccd = ocrService.extractCccdFromUrl(request.getImgUrl());
+        // 0. Check user đã có document type này chưa
+        boolean alreadyHasDocument = documentRepository.existsByUser_EmailAndType(request.getEmail(), request.getType());
+        if (alreadyHasDocument) {
+            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
+            throw new AppException(ErrorCode.USER_ALREADY_HAS_DOCUMENT_OF_TYPE);
+        }
         // 1. Verify OCR
         if(extractedCccd.equals(request.getNumber())){
-            // 2. Check trùng số CCCD
+            // 2. Check trùng số CCCD - nếu trùng thì xóa ảnh vừa up lên cloudinary và throw lỗi
             if(documentRepository.existsByNumber(request.getNumber())){
-                throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
-            }
-        }else{
-            // Nếu mismatch → check ảnh đã dùng chưa
-            if(documentRepository.existsByNumber(extractedCccd)){
-                throw new AppException(ErrorCode.DOCUMENT_IMAGE_USED);
-            }else{
-                // Nếu chưa dùng → xóa ảnh trên Cloudinary
                 cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-                throw new AppException(ErrorCode.DOCUMENT_NUMBER_MISMATCH);
+                throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
             }
         }
         // 3. lấy ra user

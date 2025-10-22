@@ -68,8 +68,8 @@ public class VehicleController {
 
     // Search bằng thanh tìm kiếm
     @PostMapping("/search")
-    public ApiResponse<VehicleSearchResponse> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
-        ApiResponse<VehicleSearchResponse> response = new ApiResponse<>();
+    public ApiResponse<List<VehicleListResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.searchVehicles(request));
         return response;
     }

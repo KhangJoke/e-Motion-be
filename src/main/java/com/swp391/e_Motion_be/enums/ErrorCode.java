@@ -23,6 +23,7 @@ public enum ErrorCode {
     // Document errors
     DOCUMENT_NUMBER_EXISTS(HttpStatus.CONFLICT, "Số giấy tờ đã tồn tại"),
     DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy giấy tờ"),
+    USER_ALREADY_HAS_DOCUMENT_OF_TYPE(HttpStatus.CONFLICT, "Người dùng đã có giấy tờ của loại này"),
 
     // Vehicle errors
     VEHICLE_EXIST(HttpStatus.CONFLICT, "Phương tiện đã tồn tại"),
