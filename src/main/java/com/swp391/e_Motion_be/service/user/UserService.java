@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.service.user;
 
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
+import com.swp391.e_Motion_be.dto.requests.user.CreateUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.stats.*;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
@@ -15,6 +16,7 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -219,5 +221,34 @@ public class UserService {
         List<PeakHourResponse> peakHours = getPeakHoursInDayDashboard();
 
         return new DataAdminDashboard(totalStats, stationDetails, revenueInYear, peakHours);
+    }
+
+    public UserResponse createUserByAdmin(@Valid CreateUserRequest request) {
+        if(userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+        if(userRepository.existsByPhone(request.getPhone())) {
+            throw new AppException(ErrorCode.PHONE_EXITS);
+        }
+
+        User newUser = new User();
+        newUser.setFullName(request.getFullName());
+        newUser.setEmail(request.getEmail());
+        newUser.setPhone(request.getPhone());
+        newUser.setPassword(passwordEncoder.encode(request.getUserPassword()));
+        newUser.setRole(request.getRole());
+        newUser.setEnabled(true);
+        newUser.setBlocked(false);
+
+        userRepository.save(newUser);
+
+        return userMapper.toUserResponse(newUser);
+    }
+
+    public void blockUserByAdmin(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+        user.setBlocked(true);
+        userRepository.save(user);
     }
 }

@@ -38,6 +38,8 @@ public class User implements UserDetails {
     private Role role;
     @Column(nullable = false, name = "enabled")
     private boolean enabled;
+    @Column(nullable = false, name = "blocked")
+    private boolean blocked;
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;

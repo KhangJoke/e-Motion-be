@@ -1,12 +1,11 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
+import com.swp391.e_Motion_be.dto.requests.user.CreateUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
-import com.swp391.e_Motion_be.dto.responses.stats.StationStatsResponse;
-import com.swp391.e_Motion_be.dto.responses.stats.TotalStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
+import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -84,4 +83,21 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @PostMapping("/admin/create-user")
+    public ResponseEntity<ApiResponse<UserResponse>> createUserByAdmin(@RequestBody @Valid CreateUserRequest request){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        UserResponse userResponse = userService.createUserByAdmin(request);
+        apiResponse.setMessage("Create user by admin successfully");
+        apiResponse.setData(userResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+    @PostMapping("/admin/block-user/{email}")
+    public ResponseEntity<ApiResponse<String>> blockUserByAdmin(@PathVariable String email){
+        userService.blockUserByAdmin(email);
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus(204);
+        apiResponse.setMessage("Block user by admin successfully");
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
+    }
 }
