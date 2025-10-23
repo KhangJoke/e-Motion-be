@@ -18,6 +18,7 @@ import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.LuhnCheck;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -120,6 +122,21 @@ public class UserService {
         userRepository.save(user);
 
         return userMapper.toUserResponse(user);
+    }
+
+    public List<UserResponse> findByBlockedInAndRoleIn(List<Boolean> blocked,List<Role> roles) {
+        List<Role> roleList = (roles == null || roles.isEmpty())
+                ? List.of(Role.ROLE_USER, Role.ROLE_ADMIN, Role.ROLE_STAFF)
+                : roles;
+
+        List<Boolean> blockedList = (blocked == null || blocked.isEmpty())
+                ? List.of(true, false)
+                : blocked;
+
+        return userRepository.findByBlockedInAndRoleIn(blockedList, roleList).stream()
+                .map(userMapper::toUserResponse)
+                .toList();
+
     }
 
     public TotalStatsResponse getTotalStatsDashboard(){
