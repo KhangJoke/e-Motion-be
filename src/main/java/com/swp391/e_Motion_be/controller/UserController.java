@@ -43,8 +43,17 @@ public class UserController {
     @GetMapping("/search/{email}")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getUserByEmailContains(@PathVariable String email){
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Get user by email contains successfully");
         apiResponse.setData(userService.getUserByEmailContains(email));
+        apiResponse.setMessage("Get user by email contains successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getUserByBlockedInAndRoleIn(@RequestParam(required = false)  List<Boolean> blocked,
+                                                                                       @RequestParam(required = false) List<Role> role){
+        ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setData(userService.findByBlockedInAndRoleIn(blocked,role));
+        apiResponse.setMessage("Get user successfully");
         return ResponseEntity.ok(apiResponse);
     }
 
