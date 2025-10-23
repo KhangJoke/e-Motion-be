@@ -417,4 +417,14 @@ public class RentalService {
                 .map(rentalMapper::toRentalResponse)
                 .toList();
     }
+
+    public List<RentalResponse> getRentalByEmailUserContainAndStatus(String email, RentalStatus status) {
+        List<Rental> rentals = rentalRepository.findByUserEmailContainsAndStatus(email, status);
+        if (rentals == null || rentals.isEmpty()) {
+            throw new AppException(ErrorCode.RENTAL_NOT_FOUND);
+        }
+        return rentals.stream()
+                .map(rentalMapper::toRentalResponse)
+                .toList();
+    }
 }
