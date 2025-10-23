@@ -413,8 +413,8 @@ public class ReservationService {
         return reservationMapper.toReservationResponse(updatedReservation);
     }
 
-    public List<ReservationResponse> getReservationByUserEmailContainAndStatus(String keyword, ReservationStatus status) {
-        List<Reservation> reservation = reservationRepository.findByUserEmailContainsAndStatus(keyword, status);
+    public List<ReservationResponse> getReservationByUserEmailContainAndStatus(String keyword, List<ReservationStatus> status) {
+        List<Reservation> reservation = reservationRepository.findByUserEmailContainsAndStatusIn(keyword, status);
         if (reservation == null || reservation.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }
@@ -423,8 +423,8 @@ public class ReservationService {
                 .toList();
     }
 
-    public List<ReservationResponse> getReservationByCodeContainAndStatus(String keyword, ReservationStatus status) {
-        List<Reservation> reservation = reservationRepository.findByCodeContainsAndStatus(keyword, status);
+    public List<ReservationResponse> getReservationByCodeContainAndStatus(String keyword, List<ReservationStatus> status) {
+        List<Reservation> reservation = reservationRepository.findByCodeContainsAndStatusIn(keyword, status);
         if (reservation == null || reservation.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }

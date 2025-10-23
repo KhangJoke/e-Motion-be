@@ -56,7 +56,7 @@ public class ReservationController {
 
         @GetMapping("/search")
         public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam String keyword,
-                                                                         @RequestParam (required = false) ReservationStatus status) {
+                                                                         @RequestParam (required = false) List<ReservationStatus> status) {
             List<ReservationResponse> reservationResponse = null;
             if(status == null) {
                 if (keyword!=null && (keyword.contains("@") || keyword.contains(".com") || keyword.contains("gmail"))) {
