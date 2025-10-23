@@ -92,6 +92,12 @@ public class UserService {
     }
 
 
+    public List<UserResponse> getUserByEmailContains(String email) {
+        return userRepository.findByEmailContains(email).stream()
+                .map(userMapper::toUserResponse)
+                .toList();
+    }
+
     public UserResponse updateProfile(UpdateProfileRequest input) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = ((User) authentication.getPrincipal()).getEmail();

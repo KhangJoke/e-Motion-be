@@ -6,6 +6,7 @@ import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
+import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,14 @@ public class UserController {
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get all users successfully");
         apiResponse.setData(userService.getAllUsers());
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/search/{email}")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getUserByEmailContains(@PathVariable String email){
+        ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Get user by email contains successfully");
+        apiResponse.setData(userService.getUserByEmailContains(email));
         return ResponseEntity.ok(apiResponse);
     }
 
