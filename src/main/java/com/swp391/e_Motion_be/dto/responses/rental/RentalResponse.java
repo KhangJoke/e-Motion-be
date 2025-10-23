@@ -21,7 +21,8 @@ public class RentalResponse {
     LocalDateTime createdAt;
     long vehicleId;
     Long reservationId;
-    long userId;
+    String userEmail;
+    long depositId;
     long stationId;
     long staffId;
 }

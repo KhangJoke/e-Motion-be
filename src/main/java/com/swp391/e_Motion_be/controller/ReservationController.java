@@ -55,9 +55,14 @@ public class ReservationController {
     }
 
     @GetMapping("/search")
-    public ApiResponse<List<ReservationResponse>> getReservationByCodeContain(@RequestParam String code) {
-        List<ReservationResponse> reservationResponse = reservationService.getReservationByCodeContain(code);
-
+    public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam String keyword) {
+        List<ReservationResponse> reservationResponse = null;
+        if (keyword!=null && (keyword.contains("@") || keyword.contains(".com") || keyword.contains("gmail"))) {
+            reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
+        }
+        else {
+            reservationResponse =  reservationService.getReservationByCodeContain(keyword);
+        }
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(reservationResponse);
         response.setMessage("Fetched reservation successfully");

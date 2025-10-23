@@ -407,4 +407,14 @@ public class RentalService {
     private boolean isExactHour(LocalDateTime dateTime) {
         return dateTime.getMinute() == 0 && dateTime.getSecond() == 0;
     }
+
+    public List<RentalResponse> getRentalByEmailUserContain(String email) {
+        List<Rental> rentals = rentalRepository.findByUserEmailContains(email);
+        if (rentals == null || rentals.isEmpty()) {
+            throw new AppException(ErrorCode.RENTAL_NOT_FOUND);
+        }
+        return rentals.stream()
+                .map(rentalMapper::toRentalResponse)
+                .toList();
+    }
 }

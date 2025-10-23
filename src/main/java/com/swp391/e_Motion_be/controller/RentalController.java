@@ -92,4 +92,15 @@ public class RentalController {
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
         return response;
     }
+
+    @GetMapping("/search")
+    public ApiResponse<List<RentalResponse>> searchRentals (@RequestParam String email) {
+        List<RentalResponse> rentalResponses =  rentalService.getRentalByEmailUserContain(email);
+        ApiResponse<List<RentalResponse>> response = new ApiResponse<>();
+        response.setData(rentalResponses);
+        response.setMessage("Fetched reservation successfully");
+        response.setStatus(200);
+
+        return response;
+    }
 }
