@@ -59,18 +59,18 @@ public class ReservationController {
                                                                          @RequestParam (required = false) List<ReservationStatus> status) {
             List<ReservationResponse> reservationResponse = null;
             if(status == null) {
-                if (keyword!=null && (keyword.contains("@") || keyword.contains(".com") || keyword.contains("gmail"))) {
-                    reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
-                }
-                else {
+                if (keyword != null && !keyword.matches(".*[A-Za-z].*")) {
                     reservationResponse =  reservationService.getReservationByCodeContain(keyword);
                 }
+                else {
+                    reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
+                }
             } else {
-                if (keyword!=null && (keyword.contains("@") || keyword.contains(".com") || keyword.contains("gmail"))) {
-                    reservationResponse = reservationService.getReservationByUserEmailContainAndStatus(keyword, status);
+                if (keyword != null && !keyword.matches(".*[A-Za-z].*")) {
+                    reservationResponse =  reservationService.getReservationByCodeContainAndStatus(keyword, status);
                 }
                 else {
-                    reservationResponse =  reservationService.getReservationByCodeContainAndStatus(keyword, status);
+                    reservationResponse = reservationService.getReservationByUserEmailContainAndStatus(keyword, status);
                 }
             }
             ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();

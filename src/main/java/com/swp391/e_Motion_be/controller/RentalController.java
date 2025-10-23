@@ -96,10 +96,10 @@ public class RentalController {
 
     @GetMapping("/search")
     public ApiResponse<List<RentalResponse>> searchRentals (@RequestParam String email,
-                                                            @RequestParam (required = false) RentalStatus status) {
+                                                            @RequestParam (required = false) List<RentalStatus> status) {
         List<RentalResponse> rentalResponses = null;
         if(status != null ) {
-            rentalResponses = rentalService.getRentalByEmailUserContainAndStatus(email, status);
+            rentalResponses = rentalService.getRentalByEmailUserContainAndStatusIn(email, status);
         }else{
             rentalResponses =  rentalService.getRentalByEmailUserContain(email);
         }

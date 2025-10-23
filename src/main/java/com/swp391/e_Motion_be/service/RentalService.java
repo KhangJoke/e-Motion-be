@@ -418,8 +418,8 @@ public class RentalService {
                 .toList();
     }
 
-    public List<RentalResponse> getRentalByEmailUserContainAndStatus(String email, RentalStatus status) {
-        List<Rental> rentals = rentalRepository.findByUserEmailContainsAndStatus(email, status);
+    public List<RentalResponse> getRentalByEmailUserContainAndStatusIn(String email, List<RentalStatus> status) {
+        List<Rental> rentals = rentalRepository.findByUserEmailContainsAndStatusIn(email, status);
         if (rentals == null || rentals.isEmpty()) {
             throw new AppException(ErrorCode.RENTAL_NOT_FOUND);
         }
