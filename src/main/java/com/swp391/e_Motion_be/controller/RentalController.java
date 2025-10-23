@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -90,6 +91,23 @@ public class RentalController {
     public ApiResponse<String> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
         ApiResponse<String> response = new ApiResponse<>();
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
+        return response;
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<List<RentalResponse>> searchRentals (@RequestParam String email,
+                                                            @RequestParam (required = false) RentalStatus status) {
+        List<RentalResponse> rentalResponses = null;
+        if(status != null ) {
+            rentalResponses = rentalService.getRentalByEmailUserContainAndStatus(email, status);
+        }else{
+            rentalResponses =  rentalService.getRentalByEmailUserContain(email);
+        }
+        ApiResponse<List<RentalResponse>> response = new ApiResponse<>();
+        response.setData(rentalResponses);
+        response.setMessage("Fetched reservation successfully");
+        response.setStatus(200);
+
         return response;
     }
 }

@@ -54,17 +54,32 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/search")
-    public ApiResponse<List<ReservationResponse>> getReservationByCodeContain(@RequestParam String code) {
-        List<ReservationResponse> reservationResponse = reservationService.getReservationByCodeContain(code);
+        @GetMapping("/search")
+        public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam String keyword,
+                                                                         @RequestParam (required = false) ReservationStatus status) {
+            List<ReservationResponse> reservationResponse = null;
+            if(status == null) {
+                if (keyword!=null && (keyword.contains("@") || keyword.contains(".com") || keyword.contains("gmail"))) {
+                    reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
+                }
+                else {
+                    reservationResponse =  reservationService.getReservationByCodeContain(keyword);
+                }
+            } else {
+                if (keyword!=null && (keyword.contains("@") || keyword.contains(".com") || keyword.contains("gmail"))) {
+                    reservationResponse = reservationService.getReservationByUserEmailContainAndStatus(keyword, status);
+                }
+                else {
+                    reservationResponse =  reservationService.getReservationByCodeContainAndStatus(keyword, status);
+                }
+            }
+            ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
+            response.setData(reservationResponse);
+            response.setMessage("Fetched reservation successfully");
+            response.setStatus(200);
 
-        ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
-        response.setData(reservationResponse);
-        response.setMessage("Fetched reservation successfully");
-        response.setStatus(200);
-
-        return response;
-    }
+            return response;
+        }
 
     @PatchMapping("/update-status")
     public ApiResponse<ReservationResponse> updateReservationStatus(@RequestBody @Valid UpdateReservationStatusRequest request) {

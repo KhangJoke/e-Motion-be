@@ -22,4 +22,7 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     boolean existsByUser_EmailAndStatusNotIn(String email, List<ReservationStatus> statuses);
     List<Reservation> findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(ReservationStatus status, LocalDateTime from, LocalDateTime to);
     List<Reservation> findByStatusInAndEndTimeBeforeAndOverdueNotifiedFalse(List<ReservationStatus> status, LocalDateTime time);
+    List<Reservation> findByUserEmailContains(String userEmail);
+    List<Reservation> findByUserEmailContainsAndStatus(String keyword, ReservationStatus status);
+    List<Reservation> findByCodeContainsAndStatus(String keyword, ReservationStatus status);
 }

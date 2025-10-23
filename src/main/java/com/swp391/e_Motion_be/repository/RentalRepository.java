@@ -17,4 +17,6 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     boolean existsByUser_IdAndStatusNotIn(long userId, List<RentalStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String user_email, List<RentalStatus> status);
     List<Rental> findByStation_Id(long stationId);
+    List<Rental> findByUserEmailContains(String email);
+    List<Rental> findByUserEmailContainsAndStatus(String email, RentalStatus status);
 }

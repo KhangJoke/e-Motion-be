@@ -69,6 +69,11 @@ public class UserService {
     public void deleteUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserEmail = ((User) authentication.getPrincipal()).getEmail();
+        if(user.getEmail().equals(currentUserEmail)) {
+            throw new AppException(ErrorCode.CANNOT_DELETE_OWN_ACCOUNT);
+        }
         userRepository.delete(user);
     }
 

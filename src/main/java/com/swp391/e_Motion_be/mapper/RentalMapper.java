@@ -19,9 +19,10 @@ public interface RentalMapper {
     Rental toRentalEntity(RentalCreateRequest request, Vehicle vehicle, Station station, User user, Staff staff);
     @Mapping(source = "vehicle.id", target = "vehicleId")
     @Mapping(source = "reservation.id", target = "reservationId")
-    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.email", target = "userEmail")
     @Mapping(source = "staff.id", target = "staffId")
     @Mapping(source = "station.id", target = "stationId")
+    @Mapping(source = "deposit.id", target = "depositId")
     RentalResponse toRentalResponse(Rental rental);
     @Mapping(target = "id", ignore = true) //bỏ qua id vì rental có id riêng
     @Mapping(target = "status", constant = "PENDING") // set cứng
