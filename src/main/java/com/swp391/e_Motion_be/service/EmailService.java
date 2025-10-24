@@ -458,7 +458,7 @@ public class EmailService {
         context.setVariable("stationName", reservation.getStation().getName());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
-        String htmlMessage = templateEngine.process("rental-overdue-email", context);
+        String htmlMessage = templateEngine.process("reservation-overdue-email", context);
 
         try {
             sendVerificationEmail(reservation.getUser().getEmail(), subject, htmlMessage);
@@ -483,7 +483,7 @@ public class EmailService {
         context.setVariable("stationName", reservation.getStation().getName());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
-        String htmlMessage = templateEngine.process("rental-expiring-email", context);
+        String htmlMessage = templateEngine.process("reservation-expiring-email", context);
 
         try {
             sendVerificationEmail(reservation.getUser().getEmail(), subject, htmlMessage);

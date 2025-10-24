@@ -355,13 +355,14 @@ public class ReservationService {
     public void notifyExpiringReservations() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
-        List<Reservation> expiringReservation = reservationRepository.findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(
-                ReservationStatus.CONFIRM,
+        List<Reservation> expiringReservation = reservationRepository.findByStatusInAndEndTimeBetweenAndExpiringNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING),
                 now,
                 threshold
         );
         expiringReservation.forEach(reservation -> {
             emailService.sendReservationExpiringEmail(reservation);
+            reservation.setStatus(ReservationStatus.CANCELLED);
             reservation.setExpiringNotified(true);
             reservationRepository.save(reservation);
         });
@@ -370,8 +371,8 @@ public class ReservationService {
     @Transactional
     public void notifyOverdueReservations() {
         LocalDateTime now = LocalDateTime.now();
-        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndEndTimeBeforeAndOverdueNotifiedFalse(
-                List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING),
+        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM),
                 now
         );
         overdueReservations.forEach(reservation -> {
