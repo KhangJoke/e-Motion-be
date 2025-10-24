@@ -123,8 +123,10 @@ public class PaymentService {
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
 
-        for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext();) {
-            String fieldName = itr.next();
+        int count = 0; // dùng để kiểm tra phần tử cuối cùng
+        int size = fieldNames.size();
+
+        for (String fieldName : fieldNames) {
             String fieldValue = vnp_Params.get(fieldName);
 
             if (fieldValue != null && !fieldValue.isEmpty()) {
@@ -135,12 +137,14 @@ public class PaymentService {
                         .append('=')
                         .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
 
-                if (itr.hasNext()) {
+                count++;
+                if (count < size) { // thêm & nếu chưa phải phần tử cuối
                     hashData.append('&');
                     query.append('&');
                 }
             }
         }
+
 
         String vnp_SecureHash = vnPayConfig.hmacSHA512(vnPayConfig.getVnp_HashSecret(), hashData.toString());
         query.append("&vnp_SecureHash=").append(vnp_SecureHash);
