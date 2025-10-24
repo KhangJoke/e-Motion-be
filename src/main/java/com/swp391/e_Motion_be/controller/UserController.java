@@ -53,7 +53,11 @@ public class UserController {
                                                                                        @RequestParam(required = false) List<Role> role){
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setData(userService.findByBlockedInAndRoleIn(blocked,role));
-        apiResponse.setMessage("Get user successfully");
+        if(apiResponse.getData().isEmpty()) {
+            apiResponse.setMessage("No users found");
+        }else {
+            apiResponse.setMessage("Get user successfully");
+        }
         return ResponseEntity.ok(apiResponse);
     }
 

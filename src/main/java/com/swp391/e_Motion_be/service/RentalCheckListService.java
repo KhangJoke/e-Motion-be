@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.entity.Staff;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
+import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
@@ -124,4 +125,29 @@ public class RentalCheckListService {
                 .toList();
     }
 
+
+    public List<RentalCheckListResponse>  getCheckListByRentalId(Long rentalId){
+        return rentalCheckListRepository.findByRental_Id(rentalId)
+                .stream()
+                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .toList();
+    }
+
+    //Search by type and rental id + staff email
+    public  List<RentalCheckListResponse> getCheckListByFilter(String keyword, List<CheckType> type){
+        List<CheckType> typeList = (type == null || type.isEmpty())
+                ? List.of(CheckType.CHECK_IN,CheckType.CHECK_OUT)
+                : type;
+
+        List<RentalCheckList> checkLists = (keyword == null || keyword.isBlank())
+                ? rentalCheckListRepository.findByTypeIn(typeList)
+                : (keyword.matches(".*[a-zA-Z@._].*")
+                ? rentalCheckListRepository.findByStaff_User_EmailContainsAndTypeIn(keyword, typeList)
+                : rentalCheckListRepository.findByRental_IdAndTypeIn(Long.parseLong(keyword), typeList));
+
+        return checkLists
+                .stream()
+                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .toList();
+    }
 }
