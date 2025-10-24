@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,8 +21,8 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByEndTimeBefore(LocalDateTime time);
     List<Reservation> findByVehicle_IdAndStatusIn(Long vehicleId, List<ReservationStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String email, List<ReservationStatus> statuses);
-    List<Reservation> findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(ReservationStatus status, LocalDateTime from, LocalDateTime to);
-    List<Reservation> findByStatusInAndEndTimeBeforeAndOverdueNotifiedFalse(List<ReservationStatus> status, LocalDateTime time);
+    List<Reservation> findByStatusInAndEndTimeBetweenAndExpiringNotifiedFalse(Collection<ReservationStatus> status, LocalDateTime endTime, LocalDateTime endTime2);
+    List<Reservation> findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(List<ReservationStatus> status, LocalDateTime time);
     List<Reservation> findByUserEmailContains(String userEmail);
     List<Reservation> findByUserEmailContainsAndStatusIn(String keyword, List<ReservationStatus> status);
     List<Reservation> findByCodeContainsAndStatusIn(String keyword, List<ReservationStatus> status);
