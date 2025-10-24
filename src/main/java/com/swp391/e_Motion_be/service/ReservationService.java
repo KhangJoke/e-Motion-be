@@ -301,8 +301,8 @@ public class ReservationService {
         reservationRepository.delete(reservation);
     }
 
-    public List<ReservationResponse> getReservationsByStatus(ReservationStatus status) {
-        List<Reservation> reservations = reservationRepository.findByStatus(status);
+    public List<ReservationResponse> getReservationsByStatus(List<ReservationStatus> status) {
+        List<Reservation> reservations = reservationRepository.findByStatusIn(status);
         if (reservations == null || reservations.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }

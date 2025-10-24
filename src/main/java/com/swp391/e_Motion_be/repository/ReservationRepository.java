@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     Optional<Reservation> findByCode(String code);
     List<Reservation> findByCodeContains(String code);
-    List<Reservation> findByStatus(ReservationStatus status);
+    List<Reservation> findByStatusIn(List<ReservationStatus> status);
     List<Reservation> findByUserEmail(String email);
     List<Reservation> findByStationName(String stationName);
     List<Reservation> findByVehicleId(Long vehicleId);
