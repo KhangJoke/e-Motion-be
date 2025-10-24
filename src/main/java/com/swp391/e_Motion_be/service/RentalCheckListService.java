@@ -117,4 +117,11 @@ public class RentalCheckListService {
         return fee;
     }
 
+    public List<RentalCheckListResponse> getAllCheckLists(){
+        List<RentalCheckList> checkLists = rentalCheckListRepository.findAll();
+        return checkLists.stream()
+                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .toList();
+    }
+
 }
