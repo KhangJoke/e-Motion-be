@@ -65,7 +65,7 @@ public class ReservationController {
                 else {
                     reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
                 }
-            } else if(keyword == null) {
+            } else if(keyword == null || keyword.isEmpty()) {
                 reservationResponse = reservationService.getReservationsByStatus(status);
             } else {
                 if (!keyword.matches(".*[A-Za-z].*")) {
