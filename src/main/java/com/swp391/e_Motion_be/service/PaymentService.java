@@ -371,16 +371,18 @@ public class PaymentService {
 
     private void handleFailedRental(Payment payment) {
         Deposit deposit = payment.getDeposit();
-
-        paymentRepository.delete(payment);
         if (deposit != null) {
+            deposit.setStatus(DepositStatus.FAILED);
             Rental rental = deposit.getRental();
-            depositRepository.delete(deposit);
+            depositRepository.save(deposit);
             if (rental != null) {
-                rentalRepository.delete(rental);
+                rental.setStatus(RentalStatus.PENDING);
+                rentalRepository.save(rental);
                 log.info("Deleted failed rental: {}", rental.getId());
             }
         }
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
     }
 
     @Transactional

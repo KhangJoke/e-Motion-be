@@ -83,7 +83,7 @@ public class ReservationService {
         // Check reservation time validity
         if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
         request.getStartTime().isAfter(LocalDateTime.now().plusYears(1))) {
-            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
+            throw new AppException(ErrorCode.RESERVATION_TIME_MUST_AFTER_NOW_3HOURS);
         }
 
         // Check vehicle availability - combine both checks for efficiency
@@ -153,7 +153,7 @@ public class ReservationService {
         // Time minimum 4hours validation
         long hour = Duration.between(startTime,endTime).toHours();
         if(hour < 4){
-           return false;
+           throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
         }
 
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
