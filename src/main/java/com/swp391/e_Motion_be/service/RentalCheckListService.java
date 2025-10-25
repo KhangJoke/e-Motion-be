@@ -54,9 +54,18 @@ public class RentalCheckListService {
         Staff staff = staffRepository.findByUser_Email(request.getStaffEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
-        if(!rental.getStatus().equals(RentalStatus.CONFIRM) && !rental.getStatus().equals(RentalStatus.ONGOING) && !rental.getStatus().equals(RentalStatus.OVERDUE)){
-            throw new AppException(ErrorCode.RENTAL_NOT_IN_VALID_STATUS_FOR_CHECK);
+        // check if check in and rental is confirmed
+        if (request.getType() == CheckType.CHECK_IN) {
+            if (!rental.getStatus().equals(RentalStatus.CONFIRM)) {
+                throw new AppException(ErrorCode.RENTAL_IS_NOT_CONFIRM_FOR_CHECK_IN);
+            }
         }
+        // check if check out and rental is ongoing or overdue
+        else if (request.getType() == CheckType.CHECK_OUT) {
+                if (!rental.getStatus().equals(RentalStatus.ONGOING) && !rental.getStatus().equals(RentalStatus.OVERDUE)) {
+                    throw new AppException(ErrorCode.RENTAL_IS_NOT_ONGOING_OR_OVERDUE_FOR_CHECK_OUT);
+                }
+            }
 
         RentalCheckList checkList = rentalCheckListMapper.toCheckListEntity(request);
         checkList.setRental(rental);
