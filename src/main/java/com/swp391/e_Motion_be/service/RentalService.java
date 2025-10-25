@@ -319,7 +319,9 @@ public class RentalService {
             if (balance < 0) {
                 RefundRequest refundRequest = new RefundRequest();
                 refundRequest.setIpAddr(remoteAddr);
-                refundRequest.setTxnRef(rental.getPayments().get(0).getTxnRef());
+                refundRequest.setTxnRef(
+                        rental.getPayments().get(rental.getPayments().size() - 1).getTxnRef()
+                );
                 refundRequest.setAmount(Math.abs(balance));
                 refundRequest.setFullRefund(false);
 

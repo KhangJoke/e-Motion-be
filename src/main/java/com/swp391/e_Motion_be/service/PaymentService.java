@@ -76,7 +76,7 @@ public class PaymentService {
         if (request.getDepositId() != null) {
             deposit = depositRepository.findById(request.getDepositId())
                     .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
-            if(deposit.getStatus() != DepositStatus.PENDING){
+            if(deposit.getStatus() != DepositStatus.PENDING && deposit.getStatus() != DepositStatus.FAILED){
                 throw new AppException(ErrorCode.DEPOSIT_CANNOT_BE_PAID);
             }
         }
@@ -216,7 +216,6 @@ public class PaymentService {
             processFailedPayment(payment);
             log.warn("Payment failed for txnRef: {} with code: {}", vnp_TxnRef, responseCode);
             emailService.sendPaymentStatusToEmail(payment, null);
-            return null;
         }
 
         return paymentMapper.toPaymentResponse(payment);
