@@ -14,6 +14,7 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     List<Rental> findByVehicle_IdAndStatusNotIn(Long vehicleId, List<RentalStatus> status);
     List<Rental> findByStatus(RentalStatus status);
     List<Rental> findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(RentalStatus status, LocalDateTime time);
+    List<Rental> findByStatusAndStartTimeBeforeAndCancelNotifiedFalse(RentalStatus status, LocalDateTime time);
     boolean existsByUser_IdAndStatusNotIn(long userId, List<RentalStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String user_email, List<RentalStatus> status);
     List<Rental> findByStation_Id(long stationId);

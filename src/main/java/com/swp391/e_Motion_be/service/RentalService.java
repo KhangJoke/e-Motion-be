@@ -72,6 +72,9 @@ public class RentalService {
     public RentalResponse createRentalFromReservation(RentalCreateFromReservationRequest request){
         Reservation reservation = reservationRepository.findByCode(request.getReservationCode())
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+        if(!reservation.getStatus().equals(ReservationStatus.CONFIRM) && !reservation.getStatus().equals(ReservationStatus.OVERDUE)){
+            throw new AppException(ErrorCode.RESERVATION_STATUS_INVALID);
+        }
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
         Rental rental = rentalMapper.fromReservationToRental(reservation);
@@ -243,6 +246,21 @@ public class RentalService {
             emailService.sendRentalOverdueEmail(rental);
             rental.setStatus(RentalStatus.OVERDUE);
             rental.setOverdueNotified(true);
+            rentalRepository.save(rental);
+        });
+    }
+
+    @Transactional
+    public void notifyCancelRentals() {
+        LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
+        List<Rental> cancelRentals = rentalRepository.findByStatusAndStartTimeBeforeAndCancelNotifiedFalse(
+                RentalStatus.PENDING,
+                limitTime
+        );
+        cancelRentals.forEach(rental -> {
+            emailService.sendRentalCancelEmail(rental);
+            rental.setStatus(RentalStatus.CANCELLED);
+            rental.setCancelNotified(true);
             rentalRepository.save(rental);
         });
     }

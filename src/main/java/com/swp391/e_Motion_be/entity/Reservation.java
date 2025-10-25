@@ -24,6 +24,9 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
 
+    @Column(name = "cancel_notified")
+    private Boolean cancelNotified = false;
+
     @Column(name = "overdue_notified")
     private Boolean overdueNotified = false;
 

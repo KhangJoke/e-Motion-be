@@ -491,4 +491,54 @@ public class EmailService {
             throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
         }
     }
+
+    public void sendReservationCancelEmail(Reservation reservation) {
+        String subject = "Your Reservation is Cancelled";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = reservation.getEndTime() != null
+                ? reservation.getEndTime().format(formatter)
+                : "Not specified";
+
+
+        Context context = new Context();
+        context.setVariable("userFullName", reservation.getUser().getFullName());
+        context.setVariable("reservationCode", reservation.getCode());
+        context.setVariable("vehicleName", reservation.getVehicle().getName());
+        context.setVariable("endTime", endTimeFormatted);
+        context.setVariable("stationName", reservation.getStation().getName());
+        context.setVariable("contactLink", "https://e-motion.vn/support");
+
+        String htmlMessage = templateEngine.process("reservation-cancel-email", context);
+
+        try {
+            sendVerificationEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
+    public void sendRentalCancelEmail(Rental rental) {
+        String subject = "Your Rental is Cancelled";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String endTimeFormatted = rental.getEndTime() != null
+                ? rental.getEndTime().format(formatter)
+                : "Not specified";
+
+
+        Context context = new Context();
+        context.setVariable("userFullName", rental.getUser().getFullName());
+        context.setVariable("rentalId", rental.getId());
+        context.setVariable("vehicleName", rental.getVehicle().getName());
+        context.setVariable("endTime", endTimeFormatted);
+        context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("contactLink", "https://e-motion.vn/support");
+
+        String htmlMessage = templateEngine.process("rental-cancel-email", context);
+
+        try {
+            sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
 }
