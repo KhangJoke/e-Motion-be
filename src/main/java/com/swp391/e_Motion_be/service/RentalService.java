@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -181,6 +183,9 @@ public class RentalService {
         } else {
             fee += (pricePer4Hours*priceDayRate/24) * hours;
         }
+        fee = BigDecimal.valueOf(fee)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
         return fee;
     }
 
