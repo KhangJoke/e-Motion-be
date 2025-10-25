@@ -8,7 +8,6 @@ import com.swp391.e_Motion_be.entity.Staff;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
-import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
@@ -55,7 +54,7 @@ public class RentalCheckListService {
         Staff staff = staffRepository.findByUser_Email(request.getStaffEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
-        if(!rental.getStatus().equals(RentalStatus.CONFIRM) && !rental.getStatus().equals(RentalStatus.ONGOING)){
+        if(!rental.getStatus().equals(RentalStatus.CONFIRM) && !rental.getStatus().equals(RentalStatus.ONGOING) && !rental.getStatus().equals(RentalStatus.OVERDUE)){
             throw new AppException(ErrorCode.RENTAL_NOT_IN_VALID_STATUS_FOR_CHECK);
         }
 
