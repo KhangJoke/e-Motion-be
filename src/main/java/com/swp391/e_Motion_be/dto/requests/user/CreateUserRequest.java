@@ -15,13 +15,14 @@ public class CreateUserRequest {
     private String email;
 
     @NotBlank(message = "Password must not be blank")
-    private String userPassword;
+    private String password;
 
     @NotBlank(message = "Full name must not be blank")
     private String fullName;
 
     @Pattern(regexp = "^(84|0[3|5|7|8|9])[0-9]{8}$", message = "Invalid phone number")
     private String phone;
+
     @NotNull(message = "Role must not be null")
     private Role role;
 }

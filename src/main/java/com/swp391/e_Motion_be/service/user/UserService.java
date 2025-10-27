@@ -2,9 +2,11 @@ package com.swp391.e_Motion_be.service.user;
 
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.CreateUserRequest;
+import com.swp391.e_Motion_be.dto.requests.user.PageAndFilterUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.stats.*;
-import com.swp391.e_Motion_be.dto.responses.UserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.User;
@@ -18,7 +20,10 @@ import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.LuhnCheck;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +32,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -124,18 +128,22 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    public List<UserResponse> findByBlockedInAndRoleIn(List<Boolean> blocked,List<Role> roles) {
-        List<Role> roleList = (roles == null || roles.isEmpty())
+    public FilterUserResponse findByPageAndFilter(PageAndFilterUserRequest request) {
+        List<Role> roleList = (request.getRoleList() == null || request.getRoleList().isEmpty())
                 ? List.of(Role.ROLE_USER, Role.ROLE_ADMIN, Role.ROLE_STAFF)
-                : roles;
+                : request.getRoleList();
 
-        List<Boolean> blockedList = (blocked == null || blocked.isEmpty())
+        List<Boolean> blockedList = (request.getBlockedList() == null || request.getBlockedList().isEmpty())
                 ? List.of(true, false)
-                : blocked;
+                : request.getBlockedList();
 
-        return userRepository.findByBlockedInAndRoleIn(blockedList, roleList).stream()
-                .map(userMapper::toUserResponse)
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+        Page<User> userPage = userRepository.findByBlockedInAndRoleIn(blockedList, roleList, pageable);
+        List<UserResponse> users = userPage.getContent().stream()
+                .map(userMapper::toUserResponseWithoutDocument)
                 .toList();
+
+        return new FilterUserResponse(users, userPage.getTotalPages());
 
     }
 
@@ -263,7 +271,7 @@ public class UserService {
         newUser.setFullName(request.getFullName());
         newUser.setEmail(request.getEmail());
         newUser.setPhone(request.getPhone());
-        newUser.setPassword(passwordEncoder.encode(request.getUserPassword()));
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setRole(request.getRole());
         newUser.setEnabled(true);
         newUser.setBlocked(false);

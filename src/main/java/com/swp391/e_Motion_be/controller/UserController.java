@@ -2,11 +2,12 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.CreateUserRequest;
+import com.swp391.e_Motion_be.dto.requests.user.PageAndFilterUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.UserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
-import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +49,10 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/filter")
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getUserByBlockedInAndRoleIn(@RequestParam(required = false)  List<Boolean> blocked,
-                                                                                       @RequestParam(required = false) List<Role> role){
-        ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setData(userService.findByBlockedInAndRoleIn(blocked,role));
+    @PostMapping("/filter")
+    public ResponseEntity<ApiResponse<FilterUserResponse>> getUserByBlockedInAndRoleIn(@RequestBody PageAndFilterUserRequest request){
+        ApiResponse<FilterUserResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(userService.findByPageAndFilter(request));
         apiResponse.setMessage("Get user successfully");
         return ResponseEntity.ok(apiResponse);
     }

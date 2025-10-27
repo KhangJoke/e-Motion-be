@@ -1,5 +1,6 @@
-package com.swp391.e_Motion_be.dto.responses;
+package com.swp391.e_Motion_be.dto.responses.user;
 
+import com.swp391.e_Motion_be.dto.responses.DocumentResponse;
 import com.swp391.e_Motion_be.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;

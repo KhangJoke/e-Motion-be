@@ -2,6 +2,8 @@ package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,5 +18,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByPhone(String phone);
     long countByRole(Role role);
     List<User> findByEmailContains(String email);
-    List<User> findByBlockedInAndRoleIn(List<Boolean> blockedIn, List<Role> roles);
+    Page<User> findByBlockedInAndRoleIn(List<Boolean> blockedIn, List<Role> roles, Pageable pageable);
 }
