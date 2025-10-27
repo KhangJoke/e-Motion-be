@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
 import com.swp391.e_Motion_be.service.ImgVehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/imgVehicles")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class ImgVehicleController {
 
     private final ImgVehicleService imgVehicleService;
@@ -34,6 +36,7 @@ public class ImgVehicleController {
 
     // Find by Vehicle ID
     @GetMapping("/vehicle/{vehicleId}")
+    @PreAuthorize("permitAll()")
     public ApiResponse<List<ImgVehicleResponse>> findByVehicleId(@PathVariable Long vehicleId) {
         List<ImgVehicleResponse> response = imgVehicleService.findByVehicleId(vehicleId);
         return new ApiResponse<>(200, "Success", response);

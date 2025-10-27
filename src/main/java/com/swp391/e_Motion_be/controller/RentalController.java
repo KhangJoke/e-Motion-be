@@ -12,6 +12,7 @@ import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rentals")
+@PreAuthorize("hasAnyRole('ADMIN','STAFF')")
 @RequiredArgsConstructor
 public class RentalController {
 
@@ -87,7 +89,9 @@ public class RentalController {
         return response;
     }
 
+    //Chưa làm phân quyền
     @PostMapping("/{id}/extend")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<String> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
         ApiResponse<String> response = new ApiResponse<>();
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));

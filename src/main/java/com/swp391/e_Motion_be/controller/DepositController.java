@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.service.DepositService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/deposits")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class DepositController {
     private final DepositService depositService;
 

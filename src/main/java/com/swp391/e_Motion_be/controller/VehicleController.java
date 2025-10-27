@@ -4,10 +4,14 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.*;
+import com.swp391.e_Motion_be.dto.responses.vehicle.FeeResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleScheduleResponse;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,24 +19,28 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicles")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class VehicleController {
 
     private final VehicleService vehicleService;
 
     // Find by ID
     @GetMapping("/id/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<VehicleDetailResponse> findById(@PathVariable Long id) {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleById(id));
     }
 
     // Find by PlateNumber
     @GetMapping("/plate/{plateNumber}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<VehicleDetailResponse> findByPlateNumber(@PathVariable String plateNumber) {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleByPlateNumber(plateNumber));
     }
 
     // Find all available
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<VehicleListResponse>> getAllVehicles() {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findAllVehicles());
@@ -41,6 +49,7 @@ public class VehicleController {
 
     // Find by brand
     @GetMapping("/brand/{brand}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<VehicleListResponse>> getVehiclesByBrand(@PathVariable String brand) {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findVehicleByBrand(brand));
@@ -68,6 +77,7 @@ public class VehicleController {
 
     // Search bằng thanh tìm kiếm
     @PostMapping("/search")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<VehicleListResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.searchVehicles(request));
@@ -76,6 +86,7 @@ public class VehicleController {
 
     // Get ra danh sách đang thuê và đặt trước của xe
     @GetMapping("/schedule/{vid}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<VehicleScheduleResponse>> scheduleVehicles(@PathVariable Long vid){
         ApiResponse<List<VehicleScheduleResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.getVehicleSchedule(vid));
@@ -83,6 +94,7 @@ public class VehicleController {
     }
 
     @GetMapping("/booking")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestParam("id") Long vid,
                                                             @RequestParam("startTime") String start,
                                                             @RequestParam("endTime") String end){

@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.service.StaffService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/staffs")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class StaffController {
     private final StaffService staffService;
 
@@ -26,6 +28,7 @@ public class StaffController {
     }
 
     @GetMapping("/{email}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<StaffResponse> getStaffByUserEmail(@PathVariable String email) {
         ApiResponse<StaffResponse> response = new ApiResponse<>();
         response.setData(staffService.getStaffByUserEmail(email));

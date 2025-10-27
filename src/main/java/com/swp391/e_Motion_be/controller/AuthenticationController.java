@@ -18,6 +18,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -69,6 +70,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@CookieValue(name="refresh_token", required = false) String refreshToken,
                                                             HttpServletResponse response) {
         if (refreshToken == null || refreshToken.isEmpty()) {
@@ -98,6 +100,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> logout(@CookieValue(name="refresh_token", required=false) String refreshToken,
                                                     @RequestHeader("Authorization") String authHeader,
                                                     HttpServletResponse response)
@@ -121,6 +124,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<String>> verifyUser(@RequestBody VerifyUserDto verifyUserDto ) {
         authenticationService.verifyUser(verifyUserDto);
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -131,6 +135,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forgotPassword/verify")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<String>> verifyForgotPasswordUser(@RequestBody VerifyUserDto verifyUserDto ) {
         authenticationService.verifyForgotPasswordUser(verifyUserDto);
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -141,6 +146,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/resend")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<String>> resendVerificationCode(@RequestBody String email ) {
         authenticationService.resendVerificationCode(email);
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -151,6 +157,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forgotPassword/sendVerify/{email}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<String>> verifyForgotPasswordUser(@PathVariable String email) {
         authenticationService.sendVerificationEmailToUpdatePassword(email);
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -161,6 +168,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forgotPassword/update")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<String>> updatePassword(@RequestBody ForgotPasswordUserDto input) {
         authenticationService.updatePassword(input);
         ApiResponse<String> apiResponse = new ApiResponse<>();
