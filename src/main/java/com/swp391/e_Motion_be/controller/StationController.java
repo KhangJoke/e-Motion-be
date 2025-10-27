@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.dto.responses.StationResponse;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.service.StationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/stations")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class StationController {
 
     private final StationService stationService;
@@ -27,6 +29,7 @@ public class StationController {
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<StationResponse>> getAllStations() {
         ApiResponse<List<StationResponse>> response = new ApiResponse<>();
         response.setData(stationService.findAllStations());
@@ -35,6 +38,7 @@ public class StationController {
     }
 
     @GetMapping("/cities")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<String>> getAllCity() {
         ApiResponse<List<String>> response = new ApiResponse<>();
         response.setData(stationService.findAllCity());
@@ -43,6 +47,7 @@ public class StationController {
     }
 
     @GetMapping("/name/{name}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<StationResponse> getStationByName(@PathVariable String name) {
         ApiResponse<StationResponse> response = new ApiResponse<>();
         response.setData(stationService.getStationByName(name));
@@ -51,6 +56,7 @@ public class StationController {
     }
 
     @GetMapping("/address/{address}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<StationResponse>> getStationsByAddress(@PathVariable String address) {
         ApiResponse<List<StationResponse>> response = new ApiResponse<>();
         response.setData(stationService.getStationsByAddress(address));
@@ -59,6 +65,7 @@ public class StationController {
     }
 
     @GetMapping("/city/{city}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<StationResponse>> getStationsByCity(@PathVariable("city") StationCity stationCity) {
         ApiResponse<List<StationResponse>> response = new ApiResponse<>();
         response.setData(stationService.getStationsByCity(stationCity));

@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -18,11 +19,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class ReservationController {
 
     private final ReservationService reservationService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, Object>> createReservation(HttpServletRequest httpReq, @RequestBody @Valid CreateReservationRequest request) throws Exception {
         ApiResponse<Map<String, Object>> response = new ApiResponse<>();
         response.setData(reservationService.createReservation(request, httpReq));
@@ -54,34 +57,34 @@ public class ReservationController {
         return response;
     }
 
-        @GetMapping("/search")
-        public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam (required = false) String keyword,
+    @GetMapping("/search")
+    public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam (required = false) String keyword,
                                                                          @RequestParam (required = false) List<ReservationStatus> status) {
-            List<ReservationResponse> reservationResponse = null;
-            if(status == null) {
-                if (keyword != null && !keyword.matches(".*[A-Za-z].*")) {
-                    reservationResponse =  reservationService.getReservationByCodeContain(keyword);
-                }
-                else {
-                    reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
-                }
-            } else if(keyword == null || keyword.isEmpty()) {
-                reservationResponse = reservationService.getReservationsByStatus(status);
-            } else {
-                if (!keyword.matches(".*[A-Za-z].*")) {
-                    reservationResponse =  reservationService.getReservationByCodeContainAndStatus(keyword, status);
-                }
-                else {
-                    reservationResponse = reservationService.getReservationByUserEmailContainAndStatus(keyword, status);
-                }
+        List<ReservationResponse> reservationResponse = null;
+        if(status == null) {
+            if (keyword != null && !keyword.matches(".*[A-Za-z].*")) {
+                reservationResponse =  reservationService.getReservationByCodeContain(keyword);
             }
-            ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
-            response.setData(reservationResponse);
-            response.setMessage("Fetched reservation successfully");
-            response.setStatus(200);
-
-            return response;
+            else {
+                reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
+            }
+        } else if(keyword == null || keyword.isEmpty()) {
+            reservationResponse = reservationService.getReservationsByStatus(status);
+        } else {
+            if (!keyword.matches(".*[A-Za-z].*")) {
+                reservationResponse =  reservationService.getReservationByCodeContainAndStatus(keyword, status);
+            }
+            else {
+                reservationResponse = reservationService.getReservationByUserEmailContainAndStatus(keyword, status);
+            }
         }
+        ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
+        response.setData(reservationResponse);
+        response.setMessage("Fetched reservation successfully");
+        response.setStatus(200);
+
+        return response;
+    }
 
     @PatchMapping("/update-status")
     public ApiResponse<ReservationResponse> updateReservationStatus(@RequestBody @Valid UpdateReservationStatusRequest request) {
@@ -165,7 +168,9 @@ public class ReservationController {
         return response;
     }
 
+    //Chua lam phan quyen
     @PostMapping("/{code}/extend/")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<ReservationResponse> extendReservationReturnTime(@PathVariable String code, @RequestParam LocalDateTime newReturnTime)
     {
         ApiResponse<ReservationResponse> response = new ApiResponse<>();

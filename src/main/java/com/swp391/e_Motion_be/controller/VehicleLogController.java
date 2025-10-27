@@ -7,6 +7,7 @@ import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
 import com.swp391.e_Motion_be.service.VehicleLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicleLogs")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class VehicleLogController {
 
     private final VehicleLogService vehicleLogService;
@@ -64,9 +66,10 @@ public class VehicleLogController {
     }
 
     // Find logs by userId
-    @GetMapping("/user/{userId}")
-    public ApiResponse<List<VehicleLogResponse>> getVehicleLogsByUser(@PathVariable Long userId) {
-        List<VehicleLogResponse> response = vehicleLogService.findVehicleLogByStaffId(userId);
+    @GetMapping("/user/{id}")
+    @PreAuthorize("#id == authentication.principal.id or hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<List<VehicleLogResponse>> getVehicleLogsByUser(@PathVariable Long id) {
+        List<VehicleLogResponse> response = vehicleLogService.findVehicleLogByStaffId(id);
         return new ApiResponse<>(200, "Success", response);
     }
 }

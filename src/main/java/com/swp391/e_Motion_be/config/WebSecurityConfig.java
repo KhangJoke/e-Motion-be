@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
@@ -60,14 +62,11 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable()) // disable CSRF nếu xài JWT
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Cấu hình CORS
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/api/payment/vnpay-return").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/vehicles/**", "/api/stations/**", "/api/ratings/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/search").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/vehicles/create").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/vehicles/**").permitAll()
-                        .requestMatchers("/api/vehicles/**").authenticated()
-                        .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/chat/**").permitAll()
                         .anyRequest().authenticated()
                 )
