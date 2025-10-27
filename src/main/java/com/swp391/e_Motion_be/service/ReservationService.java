@@ -370,7 +370,7 @@ public class ReservationService {
     @Transactional
     public void notifyOverdueReservations() {
         LocalDateTime now = LocalDateTime.now();
-        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndStartTimeAfterAndOverdueNotifiedFalse(
+        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(
                 List.of(ReservationStatus.CONFIRM),
                 now
         );
