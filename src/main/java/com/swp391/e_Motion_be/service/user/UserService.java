@@ -290,10 +290,10 @@ public class UserService {
         return userMapper.toUserResponse(newUser);
     }
 
-    public void blockUserByAdmin(String email) {
+    public void toggleStatusUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-        user.setBlocked(true);
+        user.setBlocked(!user.isBlocked());
         userRepository.save(user);
     }
 

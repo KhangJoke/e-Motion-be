@@ -73,9 +73,9 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @DeleteMapping("/delete/{email}")
-    public ResponseEntity<ApiResponse<UserResponse>> deleteUserByEmail(@PathVariable String email){
-        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+    @DeleteMapping("/admin/delete/{email}")
+    public ResponseEntity<ApiResponse<String>> deleteUserByEmail(@PathVariable String email){
+        ApiResponse<String> apiResponse = new ApiResponse<>();
         userService.deleteUserByEmail(email);
         apiResponse.setStatus(204);
         apiResponse.setMessage("Delete user by email successfully");
@@ -117,9 +117,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @PostMapping("/admin/block-user/{email}")
-    public ResponseEntity<ApiResponse<String>> blockUserByAdmin(@PathVariable String email){
-        userService.blockUserByAdmin(email);
+    @GetMapping("/admin/block-user/{email}")
+    public ResponseEntity<ApiResponse<String>> toggleStatusUser(@PathVariable String email){
+        userService.toggleStatusUser(email);
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setStatus(204);
         apiResponse.setMessage("Block user by admin successfully");
