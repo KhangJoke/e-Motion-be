@@ -327,8 +327,6 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
-        user.setEnabled(true);
-        user.setBlocked(false);
 
         userRepository.save(user);
 
