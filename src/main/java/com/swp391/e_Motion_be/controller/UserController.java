@@ -1,16 +1,12 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
-import com.swp391.e_Motion_be.dto.requests.user.CreateUserRequest;
-import com.swp391.e_Motion_be.dto.requests.user.PageAndFilterUserRequest;
-import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
+import com.swp391.e_Motion_be.dto.requests.user.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
-import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
-
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
+import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -126,6 +122,16 @@ public class UserController {
         apiResponse.setMessage("Create user by admin successfully");
         apiResponse.setData(userResponse);
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+    @PostMapping("/admin/update-user")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserByAdmin(@RequestBody @Valid UpdateUserRequest request){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        UserResponse userResponse = userService.updateUserByAdmin(request);
+        apiResponse.setMessage("update user by admin successfully");
+        apiResponse.setData(userResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     @GetMapping("/admin/block-user/{email}")

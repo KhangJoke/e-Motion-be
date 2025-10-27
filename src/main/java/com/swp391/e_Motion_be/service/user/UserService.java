@@ -1,9 +1,8 @@
 package com.swp391.e_Motion_be.service.user;
 
-import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
-import com.swp391.e_Motion_be.dto.requests.user.CreateUserRequest;
-import com.swp391.e_Motion_be.dto.requests.user.PageAndFilterUserRequest;
-import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
+import com.swp391.e_Motion_be.dto.requests.user.*;
+import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.*;
 import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
@@ -11,10 +10,6 @@ import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.entity.Vehicle;
-import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
-import com.swp391.e_Motion_be.dto.responses.stats.*;
-import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.Role;
@@ -38,7 +33,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -319,5 +313,25 @@ public class UserService {
         return rentalRepository.findByUser_Id(user.getId()).stream()
                 .map(rentalMapper::toRentalResponse)
                 .toList();
+    }
+
+    public UserResponse updateUserByAdmin(@Valid UpdateUserRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        if(userRepository.existsByPhone(request.getPhone())) {
+            throw new AppException(ErrorCode.PHONE_EXITS);
+        }
+
+        user.setFullName(request.getFullName());
+        user.setPhone(request.getPhone());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
+        user.setEnabled(true);
+        user.setBlocked(false);
+
+        userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
     }
 }
