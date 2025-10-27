@@ -769,7 +769,10 @@ public class PaymentService {
 
     private String generateCode() {
         Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
+        int code = 0;
+        do{
+            code = random.nextInt(900000) + 100000;
+        }while(reservationRepository.findByCode(String.valueOf(code)).isPresent());
         return String.valueOf(code);
     }
 }
