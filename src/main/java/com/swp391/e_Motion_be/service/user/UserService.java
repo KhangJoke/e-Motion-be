@@ -3,22 +3,22 @@ package com.swp391.e_Motion_be.service.user;
 import com.swp391.e_Motion_be.dto.requests.user.ChangePasswordUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.CreateUserRequest;
 import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
-import com.swp391.e_Motion_be.dto.responses.stats.*;
+import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
 import com.swp391.e_Motion_be.dto.responses.UserResponse;
-import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.Station;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.stats.*;
+import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.mapper.RentalMapper;
+import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.LuhnCheck;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +43,8 @@ public class UserService {
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StationRepository stationRepository;
+    private final ReservationMapper reservationMapper;
+    private final RentalMapper rentalMapper;
 
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
@@ -278,5 +279,29 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
         user.setBlocked(true);
         userRepository.save(user);
+    }
+
+    public List<ReservationResponse> getReservationHistory() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = ((User) authentication.getPrincipal()).getEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        return reservationRepository.findByUser_Id(user.getId()).stream()
+                .map(reservationMapper::toReservationResponse)
+                .toList();
+    }
+
+    public List<RentalResponse> getRentalHistory() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = ((User) authentication.getPrincipal()).getEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        return rentalRepository.findByUser_Id(user.getId()).stream()
+                .map(rentalMapper::toRentalResponse)
+                .toList();
     }
 }

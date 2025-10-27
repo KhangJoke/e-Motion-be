@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation,Long> {
+    List<Reservation> findByUser_Id(Long id);
     Optional<Reservation> findByCode(String code);
     List<Reservation> findByCodeContains(String code);
     List<Reservation> findByStatusIn(List<ReservationStatus> status);
