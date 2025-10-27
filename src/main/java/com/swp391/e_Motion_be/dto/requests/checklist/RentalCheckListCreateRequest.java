@@ -28,6 +28,4 @@ public class RentalCheckListCreateRequest {
 
     @NotBlank(message = "Img is required")
     private String img;
-
-    private boolean maintain;
 }

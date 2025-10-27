@@ -125,7 +125,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 
-    @PostMapping("/me/history/reservations")
+    @GetMapping("/me/history/reservations")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getReservationHistory(){
         ApiResponse<List<ReservationResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get user reservation history successfully");
@@ -133,7 +133,7 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PostMapping("/me/history/rentals")
+    @GetMapping("/me/history/rentals")
     public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalHistory(){
         ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get user rental history successfully");
