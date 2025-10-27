@@ -117,7 +117,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @GetMapping("/admin/block-user/{email}")
+    @GetMapping("/admin/toggle-status/{email}")
     public ResponseEntity<ApiResponse<String>> toggleStatusUser(@PathVariable String email){
         userService.toggleStatusUser(email);
         ApiResponse<String> apiResponse = new ApiResponse<>();
