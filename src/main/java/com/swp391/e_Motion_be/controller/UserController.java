@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserResponse>> authenticateUser(){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.getCurrentUser();
@@ -37,6 +39,7 @@ public class UserController {
     }
 
     @GetMapping()
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers(){
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get all users successfully");
@@ -45,6 +48,7 @@ public class UserController {
     }
 
     @GetMapping("/search/{email}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getUserByEmailContains(@PathVariable String email){
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setData(userService.getUserByEmailContains(email));
@@ -53,6 +57,7 @@ public class UserController {
     }
 
     @PostMapping("/filter")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<FilterUserResponse>> getUserByBlockedInAndRoleIn(@RequestBody PageAndFilterUserRequest request){
         ApiResponse<FilterUserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(userService.findByPageAndFilter(request));
@@ -65,6 +70,7 @@ public class UserController {
     }
 
     @GetMapping("/{email}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable String email){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.getUserByEmail(email);
@@ -74,6 +80,7 @@ public class UserController {
     }
 
     @DeleteMapping("/admin/delete/{email}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteUserByEmail(@PathVariable String email){
         ApiResponse<String> apiResponse = new ApiResponse<>();
         userService.deleteUserByEmail(email);
@@ -83,6 +90,7 @@ public class UserController {
     }
 
     @PostMapping("/me/change-password")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody @Valid ChangePasswordUserRequest request){
         userService.changePassword(request);
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -92,6 +100,7 @@ public class UserController {
     }
 
     @PostMapping("/me/update-profile")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestBody @Valid UpdateProfileRequest request){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.updateProfile(request);
@@ -101,6 +110,7 @@ public class UserController {
     }
 
     @GetMapping("/admin-dashboard")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<DataAdminDashboard>> getDataAdminDashboard(){
         ApiResponse<DataAdminDashboard> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get data admin dashboard successfully");
@@ -109,6 +119,7 @@ public class UserController {
     }
 
     @PostMapping("/admin/create-user")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> createUserByAdmin(@RequestBody @Valid CreateUserRequest request){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.createUserByAdmin(request);
@@ -118,6 +129,7 @@ public class UserController {
     }
 
     @GetMapping("/admin/block-user/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> toggleStatusUser(@PathVariable String email){
         userService.toggleStatusUser(email);
         ApiResponse<String> apiResponse = new ApiResponse<>();
@@ -127,6 +139,7 @@ public class UserController {
     }
 
     @GetMapping("/me/history/reservations")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getReservationHistory(){
         ApiResponse<List<ReservationResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get user reservation history successfully");
@@ -135,6 +148,7 @@ public class UserController {
     }
 
     @GetMapping("/me/history/rentals")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalHistory(){
         ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get user rental history successfully");
