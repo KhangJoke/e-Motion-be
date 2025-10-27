@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -72,6 +74,9 @@ public class RentalService {
     public RentalResponse createRentalFromReservation(RentalCreateFromReservationRequest request){
         Reservation reservation = reservationRepository.findByCode(request.getReservationCode())
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+        if(!reservation.getStatus().equals(ReservationStatus.CONFIRM) && !reservation.getStatus().equals(ReservationStatus.OVERDUE)){
+            throw new AppException(ErrorCode.RESERVATION_STATUS_INVALID);
+        }
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
         Rental rental = rentalMapper.fromReservationToRental(reservation);
@@ -181,6 +186,9 @@ public class RentalService {
         } else {
             fee += (pricePer4Hours*priceDayRate/24) * hours;
         }
+        fee = BigDecimal.valueOf(fee)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
         return fee;
     }
 
@@ -243,6 +251,21 @@ public class RentalService {
             emailService.sendRentalOverdueEmail(rental);
             rental.setStatus(RentalStatus.OVERDUE);
             rental.setOverdueNotified(true);
+            rentalRepository.save(rental);
+        });
+    }
+
+    @Transactional
+    public void notifyCancelRentals() {
+        LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
+        List<Rental> cancelRentals = rentalRepository.findByStatusAndStartTimeBeforeAndCancelNotifiedFalse(
+                RentalStatus.PENDING,
+                limitTime
+        );
+        cancelRentals.forEach(rental -> {
+            emailService.sendRentalCancelEmail(rental);
+            rental.setStatus(RentalStatus.CANCELLED);
+            rental.setCancelNotified(true);
             rentalRepository.save(rental);
         });
     }
@@ -314,7 +337,9 @@ public class RentalService {
             if (balance < 0) {
                 RefundRequest refundRequest = new RefundRequest();
                 refundRequest.setIpAddr(remoteAddr);
-                refundRequest.setTxnRef(rental.getPayments().get(0).getTxnRef());
+                refundRequest.setTxnRef(
+                        rental.getPayments().get(rental.getPayments().size() - 1).getTxnRef()
+                );
                 refundRequest.setAmount(Math.abs(balance));
                 refundRequest.setFullRefund(false);
 

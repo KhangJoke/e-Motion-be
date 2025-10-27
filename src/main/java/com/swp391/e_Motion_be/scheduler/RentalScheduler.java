@@ -21,4 +21,9 @@ public class RentalScheduler {
     public void checkOverdueRentals() {
         rentalService.notifyOverdueRentals();
     }
+
+    @Scheduled(fixedRate = 300000)
+    public void checkCancelRentals() {
+        rentalService.notifyCancelRentals();
+    }
 }

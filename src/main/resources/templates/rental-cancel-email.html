@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Reservation is Overdue</title>
+    <title>Your Rental is Cancelled</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; color: #333333;">
 
@@ -16,20 +16,19 @@
             <img src="https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931450/navxfjt05woc38qvpbtw.png"
                  alt="Company Logo" width="100" height="70">
         </div>
-        <h1 style="margin: 0; font-size: 24px;">Important Notice: Your reservation is Overdue</h1>
+        <h1 style="margin: 0; font-size: 24px;">Important Notice: Your Rental is Cancelled</h1>
     </div>
 
     <!-- Content -->
     <div style="padding: 20px 30px; line-height: 1.6; color: #333333;">
         <p>Dear: <strong th:text="${userFullName}"></strong>,</p>
-        <p>We would like to inform you that your car reservation has <strong style="color:#ff0000;">Overdue</strong>.
-            Please review the reservation details below:</p>
+        <p>We would like to inform you that your rental period is Cancelled.</p>
 
         <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 20px 0; border-collapse: collapse;">
             <tr>
                 <th style="width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee;
-            background-color:#f9f9f9; font-weight:bold; color:#555;">Reservation Code:</th>
-                <td style="padding:10px; border-bottom:1px solid #eee;"><strong th:text="${reservationCode}"></strong></td>
+            background-color:#f9f9f9; font-weight:bold; color:#555;">Rental ID:</th>
+                <td style="padding:10px; border-bottom:1px solid #eee;"><strong th:text="${rentalId}"></strong></td>
             </tr>
             <tr>
                 <th style="width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee;
@@ -48,14 +47,14 @@
             </tr>
         </table>
 
-        <p>Please make sure to <strong style="color:#0080ff;">come</strong> or
-            <strong style="color:#0080ff;">extend</strong> your reservation before 1 more hour to
-            <strong style="color:#ff0000;">avoid service interruptions</strong>.</p>
+        <p>If you have any questions or would like to
+            <strong style="color:#ff8c1a;">create new rental</strong>,
+            please click the <strong style="color:#3B82F6;">button</strong> below or contact us immediately.</p>
 
         <a th:href="${contactLink}"
            style="display:block; width:80%; margin:30px auto; padding:15px 25px; background-color:#3B82F6;
        color:#ffffff !important; text-align:center; text-decoration:none; border-radius:5px; font-size:16px; font-weight:bold;">
-            Gia Hạn Thuê Trước Xe Hoặc Liên Hệ Hỗ Trợ
+            Gia Hạn Thuê Xe Hoặc Liên Hệ Hỗ Trợ
         </a>
 
         <p>Thank you very much for using our service.</p>

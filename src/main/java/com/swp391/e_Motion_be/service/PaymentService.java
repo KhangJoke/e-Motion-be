@@ -76,7 +76,7 @@ public class PaymentService {
         if (request.getDepositId() != null) {
             deposit = depositRepository.findById(request.getDepositId())
                     .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
-            if(deposit.getStatus() != DepositStatus.PENDING){
+            if(deposit.getStatus() != DepositStatus.PENDING && deposit.getStatus() != DepositStatus.FAILED){
                 throw new AppException(ErrorCode.DEPOSIT_CANNOT_BE_PAID);
             }
         }
@@ -123,8 +123,10 @@ public class PaymentService {
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
 
-        for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext();) {
-            String fieldName = itr.next();
+        int count = 0; // dùng để kiểm tra phần tử cuối cùng
+        int size = fieldNames.size();
+
+        for (String fieldName : fieldNames) {
             String fieldValue = vnp_Params.get(fieldName);
 
             if (fieldValue != null && !fieldValue.isEmpty()) {
@@ -135,12 +137,14 @@ public class PaymentService {
                         .append('=')
                         .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
 
-                if (itr.hasNext()) {
+                count++;
+                if (count < size) { // thêm & nếu chưa phải phần tử cuối
                     hashData.append('&');
                     query.append('&');
                 }
             }
         }
+
 
         String vnp_SecureHash = vnPayConfig.hmacSHA512(vnPayConfig.getVnp_HashSecret(), hashData.toString());
         query.append("&vnp_SecureHash=").append(vnp_SecureHash);
@@ -212,7 +216,6 @@ public class PaymentService {
             processFailedPayment(payment);
             log.warn("Payment failed for txnRef: {} with code: {}", vnp_TxnRef, responseCode);
             emailService.sendPaymentStatusToEmail(payment, null);
-            return null;
         }
 
         return paymentMapper.toPaymentResponse(payment);
@@ -371,16 +374,18 @@ public class PaymentService {
 
     private void handleFailedRental(Payment payment) {
         Deposit deposit = payment.getDeposit();
-
-        paymentRepository.delete(payment);
         if (deposit != null) {
+            deposit.setStatus(DepositStatus.FAILED);
             Rental rental = deposit.getRental();
-            depositRepository.delete(deposit);
+            depositRepository.save(deposit);
             if (rental != null) {
-                rentalRepository.delete(rental);
+                rental.setStatus(RentalStatus.PENDING);
+                rentalRepository.save(rental);
                 log.info("Deleted failed rental: {}", rental.getId());
             }
         }
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
     }
 
     @Transactional

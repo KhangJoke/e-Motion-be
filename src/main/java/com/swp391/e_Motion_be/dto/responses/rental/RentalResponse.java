@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses.rental;
 
+import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +23,7 @@ public class RentalResponse {
     long vehicleId;
     Long reservationId;
     String userEmail;
-    long depositId;
+    DepositResponse deposit;
     long stationId;
     long staffId;
 }

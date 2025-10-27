@@ -54,9 +54,18 @@ public class RentalCheckListService {
         Staff staff = staffRepository.findByUser_Email(request.getStaffEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
-        if(!rental.getStatus().equals(RentalStatus.CONFIRM) && !rental.getStatus().equals(RentalStatus.ONGOING)){
-            throw new AppException(ErrorCode.RENTAL_NOT_IN_VALID_STATUS_FOR_CHECK);
+        // check if check in and rental is confirmed
+        if (request.getType() == CheckType.CHECK_IN) {
+            if (!rental.getStatus().equals(RentalStatus.CONFIRM)) {
+                throw new AppException(ErrorCode.RENTAL_IS_NOT_CONFIRM_FOR_CHECK_IN);
+            }
         }
+        // check if check out and rental is ongoing or overdue
+        else if (request.getType() == CheckType.CHECK_OUT) {
+                if (!rental.getStatus().equals(RentalStatus.ONGOING) && !rental.getStatus().equals(RentalStatus.OVERDUE)) {
+                    throw new AppException(ErrorCode.RENTAL_IS_NOT_ONGOING_OR_OVERDUE_FOR_CHECK_OUT);
+                }
+            }
 
         RentalCheckList checkList = rentalCheckListMapper.toCheckListEntity(request);
         checkList.setRental(rental);
@@ -117,4 +126,36 @@ public class RentalCheckListService {
         return fee;
     }
 
+    public List<RentalCheckListResponse> getAllCheckLists(){
+        List<RentalCheckList> checkLists = rentalCheckListRepository.findAll();
+        return checkLists.stream()
+                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .toList();
+    }
+
+
+    public List<RentalCheckListResponse>  getCheckListByRentalId(Long rentalId){
+        return rentalCheckListRepository.findByRental_Id(rentalId)
+                .stream()
+                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .toList();
+    }
+
+    //Search by type and rental id + staff email
+    public  List<RentalCheckListResponse> getCheckListByFilter(String keyword, List<CheckType> type){
+        List<CheckType> typeList = (type == null || type.isEmpty())
+                ? List.of(CheckType.CHECK_IN,CheckType.CHECK_OUT)
+                : type;
+
+        List<RentalCheckList> checkLists = (keyword == null || keyword.isBlank())
+                ? rentalCheckListRepository.findByTypeIn(typeList)
+                : (keyword.matches(".*[a-zA-Z@._].*")
+                ? rentalCheckListRepository.findByStaff_User_EmailContainsAndTypeIn(keyword, typeList)
+                : rentalCheckListRepository.findByRental_IdAndTypeIn(Long.parseLong(keyword), typeList));
+
+        return checkLists
+                .stream()
+                .map(rentalCheckListMapper::toRentalCheckListResponse)
+                .toList();
+    }
 }

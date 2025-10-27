@@ -103,6 +103,9 @@ public enum ErrorCode {
     VEHICLE_STATION_MISMATCH(HttpStatus.BAD_REQUEST, "Phương tiện không thuộc trạm đã chọn"),
     TIME_MUST_BE_EXACT_HOUR(HttpStatus.BAD_REQUEST, "Thời gian đặt chỗ phải theo giờ chính xác (ví dụ: 1:00, 2:00)"),
     RESERVATION_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian gia hạn đặt chỗ phải sau thời gian kết thúc hiện tại"),
+    RESERVATION_TIME_MUST_AFTER_NOW_3HOURS(HttpStatus.BAD_REQUEST, "Thời gian đặt chỗ phải sau thời điểm hiện tại ít nhất 3 giờ"),
+    RENT_TIME_MUST_MINIMUM_4_HOURS(HttpStatus.BAD_REQUEST, "Thời gian thuê tối thiểu là 4 giờ"),
+    RESERVATION_STATUS_INVALID(HttpStatus.BAD_REQUEST, "Trạng thái đặt chỗ không hợp lệ"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tiền đặt cọc"),
@@ -121,7 +124,9 @@ public enum ErrorCode {
     RENTAL_CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy danh sách kiểm tra thuê xe"),
     DURATION_MINIUM(HttpStatus.BAD_REQUEST, "Thời gian thuê tối thiểu là 4 giờ"),
     RENTAL_NOT_IN_VALID_STATUS_FOR_CHECK(HttpStatus.BAD_REQUEST, "Trạng thái thuê xe không hợp lệ để thực hiện kiểm tra"),
-
+    RENTAL_IS_NOT_ONGOING_OR_OVERDUE_FOR_CHECK_OUT(HttpStatus.BAD_REQUEST,"Trạng thái thuê xê chỉ hợp lệ cho thực hiện check out"),
+    RENTAL_IS_NOT_CONFIRM_FOR_CHECK_IN(HttpStatus.BAD_REQUEST,"Trạng thái thuê xe chỉ hợp lệ cho thực hiện check in"),
+    RENTAL_IS_NOT_OVERDUE_FOR_CHECK_OUT(HttpStatus.BAD_REQUEST,"Trạng thái thuê xê chỉ hợp lệ cho thực hiện check out"),
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin thuê xe"),
     RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "Phương tiện đã có lịch thuê trong khoảng thời gian này, vui lòng chọn thời gian khác"),

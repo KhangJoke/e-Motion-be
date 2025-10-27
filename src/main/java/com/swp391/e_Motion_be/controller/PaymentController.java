@@ -43,10 +43,10 @@ public class PaymentController {
     public void paymentVnPayReturn(@RequestParam Map<String, String> params, HttpServletResponse response) throws Exception {
         PaymentResponse paymentResponse = paymentService.handleReturn(params);
         String redirectUrl;
-        if (paymentResponse == null) {
-            redirectUrl = "http://localhost:5173/booking/payment-result?status=failed";
+        if (paymentResponse.getStatus().equalsIgnoreCase(PaymentStatus.FAILED.toString())) {
+            redirectUrl = "http://localhost:5173/payments/payment-result?status=failed&type="+ paymentResponse.getType();
         } else {
-            redirectUrl = "http://localhost:5173/booking/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef();
+            redirectUrl = "http://localhost:5173/payments/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
         }
         response.sendRedirect(redirectUrl);
     }

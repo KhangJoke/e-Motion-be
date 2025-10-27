@@ -22,4 +22,9 @@ public class ReservationScheduler {
     public void checkOverdueReservations() {
         reservationService.notifyOverdueReservations();
     }
+
+    @Scheduled(fixedRate = 300000)
+    public void checkCancelReservation() {
+        reservationService.notifyCancelReservations();
+    }
 }

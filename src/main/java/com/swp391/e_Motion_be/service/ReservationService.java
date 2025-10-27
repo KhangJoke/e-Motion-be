@@ -83,7 +83,7 @@ public class ReservationService {
         // Check reservation time validity
         if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
         request.getStartTime().isAfter(LocalDateTime.now().plusYears(1))) {
-            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
+            throw new AppException(ErrorCode.RESERVATION_TIME_MUST_AFTER_NOW_3HOURS);
         }
 
         // Check vehicle availability - combine both checks for efficiency
@@ -153,7 +153,7 @@ public class ReservationService {
         // Time minimum 4hours validation
         long hour = Duration.between(startTime,endTime).toHours();
         if(hour < 4){
-           return false;
+           throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
         }
 
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
@@ -301,8 +301,8 @@ public class ReservationService {
         reservationRepository.delete(reservation);
     }
 
-    public List<ReservationResponse> getReservationsByStatus(ReservationStatus status) {
-        List<Reservation> reservations = reservationRepository.findByStatus(status);
+    public List<ReservationResponse> getReservationsByStatus(List<ReservationStatus> status) {
+        List<Reservation> reservations = reservationRepository.findByStatusIn(status);
         if (reservations == null || reservations.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }
@@ -355,8 +355,8 @@ public class ReservationService {
     public void notifyExpiringReservations() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
-        List<Reservation> expiringReservation = reservationRepository.findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(
-                ReservationStatus.CONFIRM,
+        List<Reservation> expiringReservation = reservationRepository.findByStatusInAndStartTimeBetweenAndExpiringNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM),
                 now,
                 threshold
         );
@@ -370,14 +370,31 @@ public class ReservationService {
     @Transactional
     public void notifyOverdueReservations() {
         LocalDateTime now = LocalDateTime.now();
-        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndEndTimeBeforeAndOverdueNotifiedFalse(
-                List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING),
+        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM),
                 now
         );
         overdueReservations.forEach(reservation -> {
             emailService.sendReservationOverdueEmail(reservation);
             reservation.setStatus(ReservationStatus.OVERDUE);
             reservation.setOverdueNotified(true);
+            reservationRepository.save(reservation);
+        });
+    }
+
+    @Transactional
+    public void notifyCancelReservations() {
+        LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
+        List<Reservation> cancelReservations = reservationRepository.findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM,
+                        ReservationStatus.PENDING,
+                        ReservationStatus.OVERDUE),
+                limitTime
+        );
+        cancelReservations.forEach(reservation -> {
+            emailService.sendReservationCancelEmail(reservation);
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservation.setCancelNotified(true);
             reservationRepository.save(reservation);
         });
     }

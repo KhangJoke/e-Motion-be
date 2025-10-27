@@ -55,7 +55,7 @@ public class ReservationController {
     }
 
         @GetMapping("/search")
-        public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam String keyword,
+        public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam (required = false) String keyword,
                                                                          @RequestParam (required = false) List<ReservationStatus> status) {
             List<ReservationResponse> reservationResponse = null;
             if(status == null) {
@@ -65,8 +65,10 @@ public class ReservationController {
                 else {
                     reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
                 }
+            } else if(keyword == null || keyword.isEmpty()) {
+                reservationResponse = reservationService.getReservationsByStatus(status);
             } else {
-                if (keyword != null && !keyword.matches(".*[A-Za-z].*")) {
+                if (!keyword.matches(".*[A-Za-z].*")) {
                     reservationResponse =  reservationService.getReservationByCodeContainAndStatus(keyword, status);
                 }
                 else {
@@ -104,8 +106,8 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/status/{status}")
-    public ApiResponse<List<ReservationResponse>> getReservationsByStatus(@PathVariable ReservationStatus status) {
+    @GetMapping("/status/")
+    public ApiResponse<List<ReservationResponse>> getReservationsByStatus(@RequestParam List<ReservationStatus> status) {
         List<ReservationResponse> data = reservationService.getReservationsByStatus(status);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(data);

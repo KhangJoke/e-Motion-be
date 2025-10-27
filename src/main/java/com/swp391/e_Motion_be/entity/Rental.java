@@ -29,6 +29,8 @@ public class Rental {
     LocalDateTime startTime;
     @Column(name="end_time")
     LocalDateTime endTime;
+    @Column(name = "cancel_notified")
+    private Boolean cancelNotified = false;
     @Column(name = "overdue_notified")
     private Boolean overdueNotified = false;
     @Column(name = "expiring_notified")

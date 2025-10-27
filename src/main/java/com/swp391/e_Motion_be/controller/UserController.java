@@ -7,6 +7,9 @@ import com.swp391.e_Motion_be.dto.requests.user.UpdateProfileRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
+import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.UserResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
@@ -53,7 +56,11 @@ public class UserController {
     public ResponseEntity<ApiResponse<FilterUserResponse>> getUserByBlockedInAndRoleIn(@RequestBody PageAndFilterUserRequest request){
         ApiResponse<FilterUserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(userService.findByPageAndFilter(request));
-        apiResponse.setMessage("Get user successfully");
+        if(apiResponse.getData().getContent().isEmpty()) {
+            apiResponse.setMessage("No users found");
+        }else {
+            apiResponse.setMessage("Get user successfully");
+        }
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -117,5 +124,21 @@ public class UserController {
         apiResponse.setStatus(204);
         apiResponse.setMessage("Block user by admin successfully");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
+    }
+
+    @GetMapping("/me/history/reservations")
+    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getReservationHistory(){
+        ApiResponse<List<ReservationResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Get user reservation history successfully");
+        apiResponse.setData(userService.getReservationHistory());
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/me/history/rentals")
+    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalHistory(){
+        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Get user rental history successfully");
+        apiResponse.setData(userService.getRentalHistory());
+        return ResponseEntity.ok(apiResponse);
     }
 }

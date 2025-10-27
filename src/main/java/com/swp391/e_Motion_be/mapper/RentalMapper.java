@@ -6,7 +6,7 @@ import com.swp391.e_Motion_be.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {DepositMapper.class})
 public interface RentalMapper {
     @Mapping(target = "id", ignore = true) //bỏ qua id vì rental có id riêng
     @Mapping(target = "status", constant = "PENDING") // set cứng
@@ -22,7 +22,7 @@ public interface RentalMapper {
     @Mapping(source = "user.email", target = "userEmail")
     @Mapping(source = "staff.id", target = "staffId")
     @Mapping(source = "station.id", target = "stationId")
-    @Mapping(source = "deposit.id", target = "depositId")
+    @Mapping(source = "deposit", target = "deposit")
     RentalResponse toRentalResponse(Rental rental);
     @Mapping(target = "id", ignore = true) //bỏ qua id vì rental có id riêng
     @Mapping(target = "status", constant = "PENDING") // set cứng
