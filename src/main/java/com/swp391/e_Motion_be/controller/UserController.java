@@ -124,6 +124,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
+    @GetMapping("/admin/toggle-status/{email}")
     @PostMapping("/admin/update-user")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserByAdmin(@RequestBody @Valid UpdateUserRequest request){
