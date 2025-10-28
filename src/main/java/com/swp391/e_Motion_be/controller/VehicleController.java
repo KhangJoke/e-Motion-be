@@ -26,7 +26,7 @@ public class VehicleController {
 
     // Find by ID
     @GetMapping("/id/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     public ApiResponse<VehicleDetailResponse> findById(@PathVariable Long id) {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleById(id));
     }
@@ -40,7 +40,7 @@ public class VehicleController {
 
     // Find all available
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     public ApiResponse<List<VehicleListResponse>> getAllVehicles() {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findAllVehicles());
@@ -49,7 +49,7 @@ public class VehicleController {
 
     // Find by brand
     @GetMapping("/brand/{brand}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     public ApiResponse<List<VehicleListResponse>> getVehiclesByBrand(@PathVariable String brand) {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findVehicleByBrand(brand));
@@ -77,7 +77,7 @@ public class VehicleController {
 
     // Search bằng thanh tìm kiếm
     @PostMapping("/search")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()()")
     public ApiResponse<List<VehicleListResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.searchVehicles(request));
