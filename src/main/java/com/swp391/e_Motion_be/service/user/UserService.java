@@ -315,18 +315,25 @@ public class UserService {
                 .toList();
     }
 
-    public UserResponse updateUserByAdmin(@Valid UpdateUserRequest request) {
+    public UserResponse updateUserByAdmin(UpdateUserRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         if(userRepository.existsByPhone(request.getPhone())) {
             throw new AppException(ErrorCode.PHONE_EXITS);
         }
-
-        user.setFullName(request.getFullName());
-        user.setPhone(request.getPhone());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
+        if(request.getFullName() != null && !request.getFullName().isEmpty()) {
+            user.setFullName(request.getFullName());
+        }
+        if(request.getPhone() != null && !request.getPhone().isEmpty()) {
+            user.setPhone(request.getPhone());
+        }
+        if(request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+        if(request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
 
         userRepository.save(user);
 
