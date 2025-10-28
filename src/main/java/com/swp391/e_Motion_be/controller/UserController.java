@@ -54,9 +54,9 @@ public class UserController {
 
     @PostMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<FilterUserResponse>> getUserByBlockedInAndRoleIn(@RequestBody PageAndFilterUserRequest request){
+    public ResponseEntity<ApiResponse<FilterUserResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterUserRequest request){
         ApiResponse<FilterUserResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setData(userService.findByPageAndFilter(request));
+        apiResponse.setData(userService.findByPageAndFilterAndSearch(request));
         if(apiResponse.getData().getContent().isEmpty()) {
             apiResponse.setMessage("No users found");
         }else {
@@ -124,7 +124,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @GetMapping("/admin/toggle-status/{email}")
     @PostMapping("/admin/update-user")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserByAdmin(@RequestBody @Valid UpdateUserRequest request){
@@ -135,7 +134,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @GetMapping("/admin/block-user/{email}")
+    @GetMapping("/admin/toggle-status/{email}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> toggleStatusUser(@PathVariable String email){
         userService.toggleStatusUser(email);

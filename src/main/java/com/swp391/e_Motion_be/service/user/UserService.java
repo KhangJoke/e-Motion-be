@@ -131,7 +131,7 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    public FilterUserResponse findByPageAndFilter(PageAndFilterUserRequest request) {
+    public FilterUserResponse findByPageAndFilterAndSearch(PageAndFilterUserRequest request) {
         List<Role> roleList = (request.getRoleList() == null || request.getRoleList().isEmpty())
                 ? List.of(Role.ROLE_USER, Role.ROLE_ADMIN, Role.ROLE_STAFF)
                 : request.getRoleList();
@@ -141,7 +141,7 @@ public class UserService {
                 : request.getBlockedList();
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
-        Page<User> userPage = userRepository.findByBlockedInAndRoleIn(blockedList, roleList, pageable);
+        Page<User> userPage = userRepository.findByBlockedInAndRoleInAndEmailContains(blockedList, roleList, request.getSearch(), pageable);
         List<UserResponse> users = userPage.getContent().stream()
                 .map(userMapper::toUserResponseWithoutDocument)
                 .toList();
@@ -327,11 +327,9 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
-        user.setEnabled(true);
-        user.setBlocked(false);
 
         userRepository.save(user);
 
-        return userMapper.toUserResponse(user);
+        return userMapper.toUserResponseWithoutDocument(user);
     }
 }

@@ -11,4 +11,5 @@ public class PageAndFilterUserRequest {
     private List<Role> roleList;
     private Integer page;
     private Integer limit;
+    private String search;
 }
