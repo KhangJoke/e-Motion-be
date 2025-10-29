@@ -3,12 +3,13 @@ package com.swp391.e_Motion_be.service;
 import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.CheckOutProcessResponse;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.*;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
+import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -20,12 +21,17 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -451,5 +457,19 @@ public class RentalService {
         return rentals.stream()
                 .map(rentalMapper::toRentalResponse)
                 .toList();
+    }
+
+    public PageAndFilterRentalResponse findByPageAndFilterAndSearch(PageAndFilterRentalRequest request) {
+        List<RentalStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
+                ? Arrays.asList(RentalStatus.values())
+                : request.getStatus();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+        Page<Rental> rentalPage = rentalRepository.findByStatusInAndUser_EmailContains(statusList, request.getSearch(), pageable);
+        List<RentalResponse> rentals = rentalPage.getContent().stream()
+                .map(rentalMapper::toRentalResponse)
+                .toList();
+
+        return new PageAndFilterRentalResponse(rentals, rentalPage.getTotalPages());
     }
 }

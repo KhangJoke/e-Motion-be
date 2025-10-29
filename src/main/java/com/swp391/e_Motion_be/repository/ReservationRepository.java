@@ -1,8 +1,14 @@
 package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Reservation;
+import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.enums.Role;
+import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -29,4 +35,14 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByUserEmailContains(String userEmail);
     List<Reservation> findByUserEmailContainsAndStatusIn(String keyword, List<ReservationStatus> status);
     List<Reservation> findByCodeContainsAndStatusIn(String keyword, List<ReservationStatus> status);
+    @Query("""
+    SELECT r FROM Reservation r
+    WHERE r.status IN :statuses
+    AND (:search IS NULL OR r.code LIKE %:search% OR r.code IS NULL)
+""")
+    Page<Reservation> searchByStatusAndCode(
+            @Param("statuses") List<ReservationStatus> statuses,
+            @Param("search") String search,
+            Pageable pageable);
+
 }

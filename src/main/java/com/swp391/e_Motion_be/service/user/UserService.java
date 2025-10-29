@@ -1,10 +1,10 @@
 package com.swp391.e_Motion_be.service.user;
 
 import com.swp391.e_Motion_be.dto.requests.user.*;
-import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.*;
-import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.Station;
@@ -131,7 +131,7 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    public FilterUserResponse findByPageAndFilterAndSearch(PageAndFilterUserRequest request) {
+    public PageAndFilterUserResponse findByPageAndFilterAndSearch(PageAndFilterUserRequest request) {
         List<Role> roleList = (request.getRoleList() == null || request.getRoleList().isEmpty())
                 ? List.of(Role.ROLE_USER, Role.ROLE_ADMIN, Role.ROLE_STAFF)
                 : request.getRoleList();
@@ -146,8 +146,7 @@ public class UserService {
                 .map(userMapper::toUserResponseWithoutDocument)
                 .toList();
 
-        return new FilterUserResponse(users, userPage.getTotalPages());
-
+        return new PageAndFilterUserResponse(users, userPage.getTotalPages());
     }
 
     public TotalStatsResponse getTotalStatsDashboard(){
@@ -319,7 +318,7 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        if(userRepository.existsByPhone(request.getPhone())) {
+        if(!user.getPhone().equals(request.getPhone()) && userRepository.existsByPhone(request.getPhone())) {
             throw new AppException(ErrorCode.PHONE_EXITS);
         }
         if(request.getFullName() != null && !request.getFullName().isEmpty()) {
