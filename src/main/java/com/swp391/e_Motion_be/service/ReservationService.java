@@ -4,10 +4,15 @@ import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
+import com.swp391.e_Motion_be.dto.requests.user.PageAndFilterUserRequest;
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
-import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -19,12 +24,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -448,5 +458,19 @@ public class ReservationService {
         return reservation.stream()
                 .map(reservationMapper::toReservationResponse)
                 .toList();
+    }
+
+    public PageAndFilterReservationResponse findByPageAndFilterAndSearch(PageAndFilterReservationRequest request) {
+        List<ReservationStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
+                ? Arrays.asList(ReservationStatus.values())
+                : request.getStatus();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+        Page<Reservation> reservationPage = reservationRepository.searchByStatusAndCode(statusList, request.getSearch(), pageable);
+        List<ReservationResponse> reservations = reservationPage.getContent().stream()
+                .map(reservationMapper::toReservationResponse)
+                .toList();
+
+        return new PageAndFilterReservationResponse(reservations, reservationPage.getTotalPages());
     }
 }

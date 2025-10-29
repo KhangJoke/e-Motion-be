@@ -1,17 +1,18 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.rental.CheckOutProcessResponse;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateFromReservationRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
+import com.swp391.e_Motion_be.dto.requests.rental.*;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -113,5 +114,18 @@ public class RentalController {
         response.setStatus(200);
 
         return response;
+    }
+
+    @PostMapping("/filter")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<PageAndFilterRentalResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterRentalRequest request){
+        ApiResponse<PageAndFilterRentalResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(rentalService.findByPageAndFilterAndSearch(request));
+        if(apiResponse.getData().getContent().isEmpty()) {
+            apiResponse.setMessage("No rentals found");
+        }else {
+            apiResponse.setMessage("Get rentals successfully");
+        }
+        return ResponseEntity.ok(apiResponse);
     }
 }

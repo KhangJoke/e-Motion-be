@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.responses.user;
+package com.swp391.e_Motion_be.dto.responses.rental;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FilterUserResponse {
-    private List<UserResponse> content;
+public class PageAndFilterRentalResponse {
+    private List<RentalResponse> content;
     private int totalPages;
 }

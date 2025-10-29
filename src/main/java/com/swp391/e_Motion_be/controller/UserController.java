@@ -2,10 +2,10 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.user.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
-import com.swp391.e_Motion_be.dto.responses.user.FilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
@@ -54,8 +54,8 @@ public class UserController {
 
     @PostMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<FilterUserResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterUserRequest request){
-        ApiResponse<FilterUserResponse> apiResponse = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<PageAndFilterUserResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterUserRequest request){
+        ApiResponse<PageAndFilterUserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(userService.findByPageAndFilterAndSearch(request));
         if(apiResponse.getData().getContent().isEmpty()) {
             apiResponse.setMessage("No users found");

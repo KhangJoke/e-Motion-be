@@ -1,14 +1,19 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
+import com.swp391.e_Motion_be.dto.requests.user.PageAndFilterUserRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -178,5 +183,18 @@ public class ReservationController {
         response.setMessage("Extended reservation return time successfully");
         response.setStatus(200);
         return response;
+    }
+
+    @PostMapping("/filter")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<PageAndFilterReservationResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterReservationRequest request){
+        ApiResponse<PageAndFilterReservationResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(reservationService.findByPageAndFilterAndSearch(request));
+        if(apiResponse.getData().getContent().isEmpty()) {
+            apiResponse.setMessage("No reservations found");
+        }else {
+            apiResponse.setMessage("Get reservations successfully");
+        }
+        return ResponseEntity.ok(apiResponse);
     }
 }

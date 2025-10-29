@@ -1,8 +1,16 @@
 package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Rental;
+import com.swp391.e_Motion_be.entity.Reservation;
+import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.RentalStatus;
+import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.enums.Role;
+import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,4 +29,5 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     List<Rental> findByStation_Id(long stationId);
     List<Rental> findByUserEmailContains(String email);
     List<Rental> findByUserEmailContainsAndStatusIn(String email, List<RentalStatus> status);
+    Page<Rental> findByStatusInAndUser_EmailContains(List<RentalStatus> statusList, String search, Pageable pageable);
 }

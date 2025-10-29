@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.entity.Reservation;
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.enums.vehicle.FeeType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
@@ -158,10 +159,12 @@ public class VehicleService {
                         List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
                 ).stream()
                 .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED && r.getStatus() != ReservationStatus.CANCELLED && r.getStatus() != ReservationStatus.FAILED)
                         .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) &&
                                 r.getEndTime().isAfter(request.getStartTime()))
                         &&
                         v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED && r.getStatus() != RentalStatus.CANCELLED)
                                 .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) &&
                                         r.getEndTime().isAfter(request.getStartTime()))
                 )
