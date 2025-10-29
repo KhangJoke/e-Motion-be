@@ -103,7 +103,7 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay/{txnRef}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     public ApiResponse<PaymentResponse> getPaymentById(@PathVariable @Valid String txnRef){
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
         response.setMessage("Get Payment By " + txnRef + " Successfully");
