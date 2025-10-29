@@ -154,7 +154,8 @@
     <table class="summary-table" th:if="${items != null and !items.isEmpty()}">
         <tr th:each="item : ${items}">
             <td class="label" th:text="${item.label}">Item Label</td>
-            <td class="amount" th:text="${#numbers.formatDecimal(item.amount, 1, 2)} + 'đ'">0.00đ</td>
+            <td class="amount" th:text="${#numbers.formatDecimal(item.amount, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+            >0.00đ</td>
         </tr>
     </table>
 
@@ -164,12 +165,14 @@
         <table class="damage-table">
             <tr th:each="damage : ${vehicleDamages}">
                 <td th:text="${damage.key}">Damage Description</td>
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(damage.value, 1, 2)} + 'đ'">0.00đ</td>
+                <td style="text-align: right;" th:text="${#numbers.formatDecimal(damage.value, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                >0.00đ</td>
             </tr>
             <tr class="damage-total">
                 <td>Total Damage Cost</td>
                 <td style="text-align: right;"
-                    th:text="${#numbers.formatDecimal(vehicleDamagesTotal, 1, 2)} + 'đ'">0.00đ</td>
+                    th:text="${#numbers.formatDecimal(vehicleDamagesTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                >0.00đ</td>
             </tr>
         </table>
     </div>
@@ -179,7 +182,8 @@
         <table>
             <tr>
                 <td>Total Penalty</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(penaltyTotal, 1, 2)} + 'đ'">0.00đ</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(penaltyTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                >0.00đ</td>
             </tr>
         </table>
     </div>
@@ -189,7 +193,8 @@
         <table>
             <tr>
                 <td>Total Deposit</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(totalDeposit, 1, 2)} + 'đ'">0.00đ</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(totalDeposit, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                >0.00đ</td>
             </tr>
         </table>
     </div>
@@ -199,7 +204,8 @@
         <table>
             <tr>
                 <td>Rental Fee</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(rentalFee, 1, 2)} + 'đ'">0.00đ</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(rentalFee, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                >0.00đ</td>
             </tr>
         </table>
     </div>
@@ -209,7 +215,8 @@
         <table>
             <tr>
                 <td>Total Pay</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(total, 1, 2)} + 'đ'">0.00đ</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                >0.00đ</td>
             </tr>
         </table>
     </div>
@@ -219,7 +226,8 @@
         <table>
             <tr>
                 <td>Refund Amount</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(refundAmount, 1, 2)} + 'đ'">0.00đ</td>
+                <td class="total-amount" th:text="${#numbers.formatDecimal(refundAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                >0.00đ</td>
             </tr>
         </table>
     </div>

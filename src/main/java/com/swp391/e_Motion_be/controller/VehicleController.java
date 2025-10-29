@@ -77,7 +77,7 @@ public class VehicleController {
 
     // Search bằng thanh tìm kiếm
     @PostMapping("/search")
-    @PreAuthorize("permitAll()()")
+    @PreAuthorize("permitAll()")
     public ApiResponse<List<VehicleListResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.searchVehicles(request));
@@ -94,7 +94,7 @@ public class VehicleController {
     }
 
     @GetMapping("/booking")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestParam("id") Long vid,
                                                             @RequestParam("startTime") String start,
                                                             @RequestParam("endTime") String end){

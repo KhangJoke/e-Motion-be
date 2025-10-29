@@ -84,7 +84,7 @@ public class RentalService {
         rental.setStaff(staff);
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservationRepository.save(reservation);
-        return createRentalCommon(rental, reservation.getUser().getId() ,reservation.getVehicle(), reservation.getStation().getId());
+        return createRentalCommon(rental, reservation.getUser().getId() ,reservation.getVehicle(), reservation.getStation().getId(), reservation.getDeposit().getAmount());
     }
 
     // Hàm tạo rental khi renter thuê trực tiếp tại trạm
@@ -106,11 +106,11 @@ public class RentalService {
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
         Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
-        return createRentalCommon(rental, user.getId(), vehicle, station.getId());
+        return createRentalCommon(rental, user.getId(), vehicle, station.getId(),0);
     }
 
     // Hàm này chứa các action chung của 2 hàm cách tạo rental
-    private RentalResponse createRentalCommon(Rental rental, Long userId, Vehicle vehicle, Long stationId){
+    private RentalResponse createRentalCommon(Rental rental, Long userId, Vehicle vehicle, Long stationId, double reservationDepositAmount){
         // Kiểm tra CCCD và GPLX của renter
         if(!documentRepository.existsByUser_IdAndType(userId, DocumentType.CCCD)){
             throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
@@ -135,7 +135,7 @@ public class RentalService {
         // save rental
         // set status của xe sang đang thuê
         vehicle.setStatus(VehicleStatus.UNAVAILABLE);
-        rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime())); // Tiền thuê
+        rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime()) - reservationDepositAmount); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
@@ -286,7 +286,7 @@ public class RentalService {
         request.setRentalId(rental.getId());
         request.setDepositId(rental.getDeposit().getId());
         request.setType(PaymentType.RENTAL);
-        request.setAmount(rental.getRentFee()+rentalDepositAmount-reservationDepositAmount);
+        request.setAmount(rental.getRentFee()+rentalDepositAmount);
         request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
         request.setUserEmail(rental.getUser().getEmail());
 
