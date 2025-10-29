@@ -22,4 +22,5 @@ public class UserResponse {
     private boolean blocked;
     private List<DocumentResponse> documents;
     private Long staffId;
+    private String stationName;
 }

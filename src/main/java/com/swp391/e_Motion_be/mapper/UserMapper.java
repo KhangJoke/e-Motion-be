@@ -8,11 +8,14 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring",uses = {DocumentMapper.class})
 public interface UserMapper {
-    @Mapping(source = "staff.id", target = "staffId")
     UserResponse toUserResponse(User user);
 
     @Mapping(target = "documents", ignore = true)
     UserResponse toUserResponseWithoutDocument(User user);
+
+    @Mapping(source = "staff.station.name", target = "stationName")
+    @Mapping(source = "staff.id", target = "staffId")
+    UserResponse toStaffResponse(User user);
 
     User toUser(RegisterUserDto registerUserDto);
 }

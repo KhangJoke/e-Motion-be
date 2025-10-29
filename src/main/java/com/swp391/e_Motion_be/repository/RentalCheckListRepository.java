@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface RentalCheckListRepository extends JpaRepository<RentalCheckList, Long> {
     List<RentalCheckList> findByRental_Id(Long rentalId);
-    List<RentalCheckList> findByStaff_User_Email(String email);
     List<RentalCheckList> findByRental_IdAndTypeIn(Long rentalId,List<CheckType> type);
     List<RentalCheckList> findByStaff_User_EmailContainsAndTypeIn(String email,List<CheckType> type);
     List<RentalCheckList> findByTypeIn(List<CheckType> type);
+    int countByStaff_IdAndType(Long staffId, CheckType type);
 }
