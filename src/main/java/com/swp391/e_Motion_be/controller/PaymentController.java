@@ -42,6 +42,7 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay-return")
+    @PreAuthorize("permitAll()")
     public void paymentVnPayReturn(@RequestParam Map<String, String> params, HttpServletResponse response) throws Exception {
         PaymentResponse paymentResponse = paymentService.handleReturn(params);
         String redirectUrl;
@@ -102,7 +103,7 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay/{txnRef}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("permitAll()")
     public ApiResponse<PaymentResponse> getPaymentById(@PathVariable @Valid String txnRef){
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
         response.setMessage("Get Payment By " + txnRef + " Successfully");

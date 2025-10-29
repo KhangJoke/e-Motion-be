@@ -1,6 +1,8 @@
 package com.swp391.e_Motion_be.dto.responses.rental;
 
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
+import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
+import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -23,7 +26,10 @@ public class RentalResponse {
     long vehicleId;
     Long reservationId;
     String userEmail;
-    DepositResponse deposit;
+    DepositResponse rentalDeposit;
+    DepositResponse reservationDeposit;
+    List<RentalCheckListResponse> rentalCheckLists;
+    VehicleLogResponse vehicleLog;
     long stationId;
     long staffId;
 }

@@ -63,7 +63,7 @@ public class DocumentController {
     }
 
     @DeleteMapping("/{docId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("permitAll()")
     ApiResponse<String> deleteDocument(@PathVariable long docId){
         documentService.deleteDocumentById(docId);
         ApiResponse<String> ApiResponse = new ApiResponse<>();
