@@ -22,7 +22,8 @@ public interface RentalMapper {
     @Mapping(source = "user.email", target = "userEmail")
     @Mapping(source = "staff.id", target = "staffId")
     @Mapping(source = "station.id", target = "stationId")
-    @Mapping(source = "deposit", target = "deposit")
+    @Mapping(source = "deposit", target = "rentalDeposit")
+    @Mapping(source = "reservation.deposit", target = "reservationDeposit")
     @Mapping(source = "rentalCheckLists", target = "rentalCheckLists")
     @Mapping(source = "vehicleLog", target = "vehicleLog")
     RentalResponse toRentalResponse(Rental rental);

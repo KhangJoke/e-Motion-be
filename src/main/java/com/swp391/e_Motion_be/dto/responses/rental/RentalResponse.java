@@ -26,7 +26,8 @@ public class RentalResponse {
     long vehicleId;
     Long reservationId;
     String userEmail;
-    DepositResponse deposit;
+    DepositResponse rentalDeposit;
+    DepositResponse reservationDeposit;
     List<RentalCheckListResponse> rentalCheckLists;
     VehicleLogResponse vehicleLog;
     long stationId;
