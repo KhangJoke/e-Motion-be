@@ -34,6 +34,7 @@ public class VehicleLog {
     private Double cost;
 
     @Column(name = "images",  columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter.class)
     private List<String> imgs;
 
     @Column(name="created_at", nullable=false)
