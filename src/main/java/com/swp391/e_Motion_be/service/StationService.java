@@ -74,4 +74,10 @@ public class StationService {
                 .toList();
     }
 
+    public List<String> getStationNames(){
+        return stationRepository.findAll().stream()
+                .map(Station::getName)
+                .toList();
+    }
+
 }

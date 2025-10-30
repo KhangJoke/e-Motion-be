@@ -12,4 +12,5 @@ public class PageAndFilterUserRequest {
     private Integer page;
     private Integer limit;
     private String search;
+    private Long stationId;
 }

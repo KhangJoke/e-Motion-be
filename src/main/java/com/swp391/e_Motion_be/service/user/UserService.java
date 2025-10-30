@@ -146,7 +146,14 @@ public class UserService {
                 : request.getBlockedList();
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
-        Page<User> userPage = userRepository.findByBlockedInAndRoleInAndEmailContains(blockedList, roleList, request.getSearch(), pageable);
+        Page<User> userPage;
+        if(request.getStationId() != null) {
+            Station station = stationRepository.findById(request.getStationId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+            userPage = userRepository.findByBlockedInAndRoleInAndEmailContainsAndStaff_Station_Id(blockedList, List.of(Role.ROLE_STAFF), request.getSearch(), station.getId(), pageable);
+        }else{
+            userPage = userRepository.findByBlockedInAndRoleInAndEmailContains(blockedList, roleList, request.getSearch(), pageable);
+        }
         List<UserResponse> users = userPage.getContent().stream()
                 .map(userMapper::toUserResponseWithoutDocument)
                 .toList();

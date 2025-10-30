@@ -21,6 +21,7 @@ public class StationController {
     private final StationService stationService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<StationResponse> createStations(@RequestBody StationCreationRequest request) {
         ApiResponse<StationResponse> response = new ApiResponse<>();
         response.setData(stationService.createStation(request));
