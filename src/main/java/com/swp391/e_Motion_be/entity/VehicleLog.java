@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.swp391.e_Motion_be.dto.convert.StringListConverter;
 import com.swp391.e_Motion_be.dto.convert.VehicleLogItemListConverter;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import jakarta.persistence.*;
@@ -25,14 +26,14 @@ public class VehicleLog {
     @Column(name ="log_id")
     private Long id;
 
-    @Column(name = "repair_cost")
+    @Column(name = "repair_cost",  columnDefinition = "TEXT")
     @Convert(converter = VehicleLogItemListConverter.class)
     private List<VehicleLogItem> repairCost;
 
     @Column(name ="total_cost")
     private Double cost;
 
-    @Column(name = "images")
+    @Column(name = "images",  columnDefinition = "TEXT")
     private List<String> imgs;
 
     @Column(name="created_at", nullable=false)
