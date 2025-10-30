@@ -1,10 +1,12 @@
 package com.swp391.e_Motion_be.dto.responses.rental;
 
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -16,7 +18,7 @@ public class RentalOverviewResponse {
     private double reservationDeposit;
     private double rentalDeposit;
     private double checkListFee;
-    private Map<String, Double> vehicleDamages;
+    private List<VehicleLogItem> vehicleDamages;
     private double vehicleDamageFee;
     private boolean refundEligible;
 }

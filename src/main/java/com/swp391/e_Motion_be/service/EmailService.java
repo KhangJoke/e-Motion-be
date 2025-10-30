@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.email.PaymentEmailRequest;
 import com.swp391.e_Motion_be.dto.email.PaymentItem;
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -125,6 +126,7 @@ public class EmailService {
     private PaymentEmailRequest createReservationEmail(Payment payment) {
         Deposit deposit = payment.getDeposit();
         List<PaymentItem> items = new ArrayList<>();
+        List<VehicleLogItem> vehicleLogItems = new ArrayList<>();
         double total = 0;
 
         if (deposit != null && deposit.getAmount() > 0) {
@@ -142,7 +144,7 @@ public class EmailService {
                 .paymentStatus(payment.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
                 .items(items)
-                .vehicleDamages(Collections.emptyMap())
+                .vehicleDamages(vehicleLogItems)
                 .total(total)
                 .build();
     }
@@ -153,6 +155,7 @@ public class EmailService {
         Reservation reservation = rental.getReservation();
         Deposit deposit = payment.getDeposit();
         List<PaymentItem> items = new ArrayList<>();
+        List<VehicleLogItem> vehicleLogItems = new ArrayList<>();
         double total = 0;
 
         if (deposit != null && deposit.getAmount() > 0) {
@@ -186,7 +189,7 @@ public class EmailService {
                 .paymentStatus(payment.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
                 .items(items)
-                .vehicleDamages(Collections.emptyMap())
+                .vehicleDamages(vehicleLogItems)
                 .total(total)
                 .build();
     }
@@ -220,12 +223,16 @@ public class EmailService {
         }
 
         // Thêm các damage charges (sẽ hiển thị chi tiết ở bảng riêng)
-        Map<String, Double> vehicleDamages = Collections.emptyMap();
+        List<VehicleLogItem> vehicleDamages = new ArrayList<>();
         if (vehicleLog != null && vehicleLog.getRepairCost() != null && !vehicleLog.getRepairCost().isEmpty()) {
-            vehicleDamages = vehicleLog.getRepairCost();
-            damageTotal = vehicleDamages.values().stream()
-                    .mapToDouble(Double::doubleValue)
-                    .sum();
+             vehicleDamages = vehicleLog.getRepairCost();
+
+            damageTotal = vehicleDamages
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .mapToDouble(VehicleLogItem::getCost)
+                        .sum();
+
             penaltyTotal += damageTotal;
         }
 
@@ -249,6 +256,7 @@ public class EmailService {
 
     // Email mặc định cho các loại thanh toán khác
     private PaymentEmailRequest createDefaultEmail(Payment payment) {
+        List<VehicleLogItem> vehicleLogItems = new ArrayList<>();
         return PaymentEmailRequest.builder()
                 .subject("Payment Confirmation")
                 .message("Thank you for your payment. Below are your transaction details.")
@@ -256,7 +264,7 @@ public class EmailService {
                 .paymentStatus(payment.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
                 .items(Collections.emptyList())
-                .vehicleDamages(Collections.emptyMap())
+                .vehicleDamages(vehicleLogItems)
                 .total(0)
                 .build();
     }
@@ -264,7 +272,7 @@ public class EmailService {
     // Email cho hoàn tiền (Refund)
     private PaymentEmailRequest createRefundEmail(Payment payment) {
         Rental rental = payment.getRental();
-
+        List<VehicleLogItem> vehicleLogItems = new ArrayList<>();
         if (rental == null) {
             return PaymentEmailRequest.builder()
                     .subject("Refund Processed - Payment Receipt")
@@ -273,7 +281,7 @@ public class EmailService {
                     .paymentStatus(payment.getStatus().toString())
                     .statusColor(getStatusColor(payment.getStatus()))
                     .items(Collections.emptyList())
-                    .vehicleDamages(Collections.emptyMap())
+                    .vehicleDamages(vehicleLogItems)
                     .vehicleDamagesTotal(0)
                     .total(0)
                     .totalDeposit(payment.getDeposit() != null ? payment.getDeposit().getAmount() : 0)
@@ -308,11 +316,14 @@ public class EmailService {
         }
 
         // Add damage charges
-        Map<String, Double> vehicleDamages = Collections.emptyMap();
+        List<VehicleLogItem> vehicleDamages = new ArrayList<>();
         if (vehicleLog != null && vehicleLog.getRepairCost() != null && !vehicleLog.getRepairCost().isEmpty()) {
             vehicleDamages = vehicleLog.getRepairCost();
-            damageTotal = vehicleDamages.values().stream()
-                    .mapToDouble(Double::doubleValue)
+
+            damageTotal = vehicleDamages
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .mapToDouble(VehicleLogItem::getCost)
                     .sum();
             penaltyTotal += damageTotal;
         }

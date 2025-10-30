@@ -5,11 +5,10 @@ import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.*;
 import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.StaffStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
-import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.Station;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.entity.*;
+import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.Role;
@@ -45,12 +44,14 @@ public class UserService {
     private final VehicleRepository vehicleRepository;
     private final ReservationRepository reservationRepository;
     private final RentalRepository rentalRepository;
+    private final RentalCheckListRepository rentalCheckListRepository;
 
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StationRepository stationRepository;
     private final ReservationMapper reservationMapper;
     private final RentalMapper rentalMapper;
+    private final StaffRepository staffRepository;
 
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
@@ -69,8 +70,12 @@ public class UserService {
     }
 
     public UserResponse getUserByEmail(String email) {
-        return userMapper.toUserResponse(userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS)));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+        if(user.getRole() == Role.ROLE_STAFF){
+            return userMapper.toStaffResponse(user);
+        }
+        return userMapper.toUserResponse(user);
     }
 
     public void deleteUserByEmail(String email) {
@@ -337,5 +342,15 @@ public class UserService {
         userRepository.save(user);
 
         return userMapper.toUserResponseWithoutDocument(user);
+    }
+
+    public StaffStatsResponse getTransactions(Long staffId) {
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+
+        int deliveries = rentalCheckListRepository.countByStaff_IdAndType(staff.getId(), CheckType.CHECK_IN);
+        int pickups = rentalCheckListRepository.countByStaff_IdAndType(staff.getId(), CheckType.CHECK_OUT);
+
+        return new StaffStatsResponse(deliveries, pickups);
     }
 }

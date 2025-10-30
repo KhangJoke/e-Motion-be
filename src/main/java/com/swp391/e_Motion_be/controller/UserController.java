@@ -6,6 +6,7 @@ import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
 import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
+import com.swp391.e_Motion_be.dto.responses.user.StaffStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
@@ -159,6 +160,14 @@ public class UserController {
         ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get user rental history successfully");
         apiResponse.setData(userService.getRentalHistory());
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/transactions/{staffId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<StaffStatsResponse>> getTransactions(@PathVariable Long staffId){
+        ApiResponse<StaffStatsResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(userService.getTransactions(staffId));
         return ResponseEntity.ok(apiResponse);
     }
 }

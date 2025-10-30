@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.email;
 
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,7 @@ public class PaymentEmailRequest {
     private String paymentStatus;
     private String statusColor;
     private List<PaymentItem> items;
-    private Map<String, Double> vehicleDamages;
+    private List<VehicleLogItem> vehicleDamages;
     private double vehicleDamagesTotal;
     private double penaltyTotal;
     private double total;
