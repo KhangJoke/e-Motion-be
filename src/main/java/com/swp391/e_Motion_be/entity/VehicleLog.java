@@ -1,5 +1,7 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.swp391.e_Motion_be.dto.convert.VehicleLogItemListConverter;
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,15 +18,16 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class VehicleLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name ="log_id")
     private Long id;
 
-    @Column(name = "repair_cost", columnDefinition = "TEXT")
-    @Convert(converter = MapToJsonConverter.class)
-    private Map<String, Double> repairCost;
+    @Column(name = "repair_cost")
+    @Convert(converter = VehicleLogItemListConverter.class)
+    private List<VehicleLogItem> repairCost;
 
     @Column(name ="total_cost")
     private Double cost;

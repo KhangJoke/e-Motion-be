@@ -3,6 +3,7 @@ package com.swp391.e_Motion_be.service;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -84,10 +85,10 @@ public class VehicleLogService {
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
-        double totalCost = request.getRepairCost().values()
+        double totalCost = request.getRepairCost()
                 .stream()
                 .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
+                .mapToDouble(VehicleLogItem::getCost)
                 .sum();
 
         totalCost = Math.round(totalCost * 100.0) / 100.0;
