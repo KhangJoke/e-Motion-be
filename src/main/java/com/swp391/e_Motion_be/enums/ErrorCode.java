@@ -17,6 +17,7 @@ public enum ErrorCode {
     PHONE_EXITS(HttpStatus.CONFLICT, "Số điện thoại đã tồn tại"),
     NEW_PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "Mật khẩu mới phải khác mật khẩu cũ"),
     CANNOT_DELETE_OWN_ACCOUNT(HttpStatus.BAD_REQUEST, "Không thể xóa tài khoản của chính bạn"),
+    ACCOUNT_BLOCKED(HttpStatus.FORBIDDEN, "Tài khoản đã bị khóa"),
 
     // Update password errors
     OLD_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu cũ không đúng"),

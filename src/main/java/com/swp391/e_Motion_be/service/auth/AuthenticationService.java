@@ -101,6 +101,8 @@ public class AuthenticationService {
 
         if(!user.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_NOT_VERIFIED);
+        }else if(user.isBlocked()) {
+            throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
         }
         try {
             authenticationManager.authenticate(
