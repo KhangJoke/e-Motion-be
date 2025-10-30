@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.VehicleLog;
 
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -15,7 +16,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class VehicleLogUpdateRequest {
     @NotNull(message = "Repair cost list is require")
-    private Map<String, Double> repairCost;
+    private List<VehicleLogItem> repairCost;
 
     @NotNull(message = "Cost is required")
     @PositiveOrZero(message = "Cost must be zero or positive")

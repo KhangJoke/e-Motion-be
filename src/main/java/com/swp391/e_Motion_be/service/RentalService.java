@@ -10,6 +10,7 @@ import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -212,7 +213,7 @@ public class RentalService {
         double rentalDepositAmount = rental.getDeposit().getAmount();
 
         VehicleLog vehicleLog = rental.getVehicleLog();
-        Map<String, Double> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairCost() : null;
+       List<VehicleLogItem> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairCost() : null;
         double vehicleDamageFee = vehicleLog != null ? vehicleLog.getCost() : 0;
 
         double totalCharges = vehicleDamageFee + checkListFee;
