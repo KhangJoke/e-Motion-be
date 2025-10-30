@@ -109,12 +109,12 @@ public class PaymentService {
         vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getVnp_ReturnUrl());
         vnp_Params.put("vnp_IpAddr", ipAddr);
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        vnp_Params.put("vnp_CreateDate", payment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String createDate = payment.getCreatedAt().format(formatter);
+        String expireDate = LocalDateTime.now().plusMinutes(15).format(formatter);
 
-        cld.add(Calendar.MINUTE, 15);
-        vnp_Params.put("vnp_ExpireDate", formatter.format(cld.getTime()));
+        vnp_Params.put("vnp_CreateDate", createDate);
+        vnp_Params.put("vnp_ExpireDate", expireDate);
 
         // Build query string with sorted parameters
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
