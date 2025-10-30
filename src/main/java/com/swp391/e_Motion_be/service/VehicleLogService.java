@@ -4,17 +4,18 @@ import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
-import com.swp391.e_Motion_be.entity.*;
+import com.swp391.e_Motion_be.entity.Rental;
+import com.swp391.e_Motion_be.entity.Staff;
+import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.entity.VehicleLog;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleLogMapper;
 import com.swp391.e_Motion_be.repository.*;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -85,7 +86,7 @@ public class VehicleLogService {
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
-        double totalCost = request.getRepairCost()
+        double totalCost = request.getRepairItems()
                 .stream()
                 .filter(Objects::nonNull)
                 .mapToDouble(VehicleLogItem::getCost)
@@ -98,6 +99,7 @@ public class VehicleLogService {
         vehicleLog.setStaff(staff);
         vehicleLog.setRental(rental);
         vehicleLog.setCost(totalCost);
+        vehicleLog.setRepairCost(request.getRepairItems());
 
         // Update vehicle status -> maintance
         vehicle.setStatus(VehicleStatus.MAINTAINED);
