@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,5 +14,4 @@ public class TotalStatsResponse {
     long totalBookings;
     double totalRevenue;
     double usageRate;
-    List<Integer> peakHours;
 }

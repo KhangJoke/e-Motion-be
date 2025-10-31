@@ -169,8 +169,7 @@ public class UserService {
         long totalVehicles = vehicles.size();
         long totalReservations = reservationRepository.count();
         double totalRevenue = calculateRevenue(rentals);
-        double usageRate = calculateUsageRate(vehicles); // tỷ lệ xe đang sử dụng / tổng số xe
-        List<Integer> peakHours = getPeakHours(rentals);
+        double usageRate = calculateUsageRate(vehicles);
 
         return new TotalStatsResponse(
                 totalUsers,
@@ -178,8 +177,7 @@ public class UserService {
                 totalReservations,
                 rentals.size(),
                 totalRevenue,
-                usageRate,
-                peakHours);
+                usageRate);
     }
 
     public List<StationStatsResponse> getStationDetailDashboard(){
@@ -221,10 +219,13 @@ public class UserService {
                 .toList();
     }
 
-    public List<PeakHourResponse> getPeakHoursInDayDashboard(){
+    public List<PeakHourResponse> getPeakHoursInMonthDashboard(){
         Map<Integer, Long> hourFrequency = rentalRepository.findAll().stream()
                 .filter(rental -> (rental.getStatus() == RentalStatus.COMPLETED || rental.getStatus() == RentalStatus.ONGOING))
-                .filter(r -> r.getStartTime().toLocalDate().isEqual(LocalDate.now()))
+                .filter(r -> {
+            LocalDate date = r.getStartTime().toLocalDate();
+            return date.getMonthValue() == LocalDate.now().getMonthValue() && date.getYear() == LocalDate.now().getYear();
+        })
                 .collect(Collectors.groupingBy(rental -> rental.getStartTime().getHour(), Collectors.counting()));
 
         return IntStream.rangeClosed(1, 23)
@@ -268,7 +269,7 @@ public class UserService {
         TotalStatsResponse totalStats = getTotalStatsDashboard();
         List<StationStatsResponse> stationDetails = getStationDetailDashboard();
         List<RevenueInYearResponse> revenueInYear = getRevenueInYearDashboard();
-        List<PeakHourResponse> peakHours = getPeakHoursInDayDashboard();
+        List<PeakHourResponse> peakHours = getPeakHoursInMonthDashboard();
 
         return new DataAdminDashboard(totalStats, stationDetails, revenueInYear, peakHours);
     }

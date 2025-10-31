@@ -3,10 +3,13 @@ package com.swp391.e_Motion_be.controller;
 import com.swp391.e_Motion_be.dto.requests.station.StationCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.StationResponse;
+import com.swp391.e_Motion_be.dto.responses.station.ManageStationResponse;
+import com.swp391.e_Motion_be.dto.responses.station.RevenueStationResponse;
+import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.service.StationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,6 +92,26 @@ public class StationController {
         ApiResponse<String> response = new ApiResponse<>();
         response.setMessage("Delete station successfully");
         return response;
+    }
+
+    @GetMapping("/manage")
+    public ResponseEntity<ApiResponse<List<ManageStationResponse>>> getDataManageStation(){
+        ApiResponse<List<ManageStationResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Get data manage station successfully");
+        apiResponse.setData(stationService.getDataManageStation());
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/revenue")
+    public ResponseEntity<ApiResponse<List<RevenueStationResponse>>> getRevenueStation(
+            @RequestParam(defaultValue = "month") String type,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year
+    ) {
+        ApiResponse<List<RevenueStationResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setData(stationService.getRevenueStation(type, month, year));
+        apiResponse.setMessage("Get station revenue successfully");
+        return ResponseEntity.ok(apiResponse);
     }
 
 }
