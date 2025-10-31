@@ -345,6 +345,19 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         if(request.getRole() != null) {
+            if(user.getRole() == Role.ROLE_STAFF && request.getRole() != Role.ROLE_STAFF) {
+                // If changing from STAFF to other role, remove staff record
+                Staff staff = staffRepository.findByUser_Id(user.getId())
+                        .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+                staffRepository.delete(staff);
+            }
+            if(user.getRole() != Role.ROLE_STAFF && request.getRole() == Role.ROLE_STAFF) {
+                Staff newStaff = new Staff();
+                newStaff.setUser(user);
+                newStaff.setStation(stationRepository.findById(request.getStationId())
+                        .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND)));
+                staffRepository.save(newStaff);
+            }
             user.setRole(request.getRole());
         }
 
