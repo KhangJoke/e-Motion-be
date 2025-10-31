@@ -164,8 +164,8 @@
         <h3>⚠️ Vehicle Damage Charges</h3>
         <table class="damage-table">
             <tr th:each="damage : ${vehicleDamages}">
-                <td th:text="${damage.key}">Damage Description</td>
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(damage.value, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                <td th:text="${damage.description}">Damage Description</td>
+                <td style="text-align: right;" th:text="${#numbers.formatDecimal(damage.cost, 0, 'COMMA', 0, 'POINT')} + 'đ'"
                 >0.00đ</td>
             </tr>
             <tr class="damage-total">

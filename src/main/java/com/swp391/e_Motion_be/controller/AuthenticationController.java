@@ -70,7 +70,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@CookieValue(name="refresh_token", required = false) String refreshToken,
                                                             HttpServletResponse response) {
         if (refreshToken == null || refreshToken.isEmpty()) {

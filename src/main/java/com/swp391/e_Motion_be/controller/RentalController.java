@@ -1,12 +1,10 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.rental.*;
-import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;

@@ -2,14 +2,11 @@ package com.swp391.e_Motion_be.dto.requests.VehicleLog;
 
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -17,7 +14,7 @@ import java.util.Map;
 public class VehicleLogCreationRequest {
 
     @NotNull(message = "Repair cost list is require")
-    private List<VehicleLogItem> repairCost;
+    private List<VehicleLogItem> repairItems;
 
     @NotNull(message = "VehicleId is required")
     private Long vehicleId;

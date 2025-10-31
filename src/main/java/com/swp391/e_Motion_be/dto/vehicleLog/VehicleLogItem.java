@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VehicleLogItem {
-    private String itemName;
-    private Double cost;
+    private String description;
+    private double cost;
 }
