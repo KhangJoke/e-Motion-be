@@ -89,6 +89,7 @@ public enum ErrorCode {
     STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy trạm"),
     STATION_NAME_EXISTS(HttpStatus.CONFLICT, "Tên trạm đã tồn tại"),
     STATION_CITY_INVALID(HttpStatus.BAD_REQUEST, "Thành phố của trạm không hợp lệ"),
+    STATION_GET_REVENUE_FAILED(HttpStatus.BAD_REQUEST, "Get revenue station failed"),
 
     // Staff errors
     STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"),

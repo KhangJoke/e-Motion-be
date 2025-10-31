@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.repository;
 
+import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -52,4 +54,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             @Param("reservationStatuses") List<String> reservationStatuses,
             @Param("excludedRentalStatuses") List<String> excludedRentalStatuses
     );
+
+
 }
