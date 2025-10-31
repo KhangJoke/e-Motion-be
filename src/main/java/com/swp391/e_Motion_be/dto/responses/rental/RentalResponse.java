@@ -3,6 +3,7 @@ package com.swp391.e_Motion_be.dto.responses.rental;
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
 import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class RentalResponse {
     LocalDateTime endTime;
     double rentFee;
     LocalDateTime createdAt;
-    VehicleLogResponse vehicle;
+    VehicleDetailResponse vehicle;
     Long reservationId;
     String userEmail;
     DepositResponse rentalDeposit;

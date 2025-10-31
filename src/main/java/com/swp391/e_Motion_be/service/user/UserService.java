@@ -321,7 +321,8 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        return rentalRepository.findByUser_Id(user.getId()).stream()
+        List<Rental> rentals = rentalRepository.findByUser_Id(user.getId());
+        return rentals.stream()
                 .map(rentalMapper::toRentalResponse)
                 .toList();
     }
