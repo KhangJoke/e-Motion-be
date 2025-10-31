@@ -6,7 +6,7 @@ import com.swp391.e_Motion_be.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {DepositMapper.class, RentalCheckListMapper.class, VehicleLogMapper.class})
+@Mapper(componentModel = "spring", uses = {DepositMapper.class, RentalCheckListMapper.class, VehicleLogMapper.class, VehicleMapper.class})
 public interface RentalMapper {
     @Mapping(target = "id", ignore = true) //bỏ qua id vì rental có id riêng
     @Mapping(target = "status", constant = "PENDING") // set cứng
@@ -17,7 +17,7 @@ public interface RentalMapper {
     @Mapping(target = "user", source = "user")
     @Mapping(target = "staff", source = "staff")
     Rental toRentalEntity(RentalCreateRequest request, Vehicle vehicle, Station station, User user, Staff staff);
-    @Mapping(source = "vehicle.id", target = "vehicleId")
+    @Mapping(source = "vehicle", target = "vehicle")
     @Mapping(source = "reservation.id", target = "reservationId")
     @Mapping(source = "user.email", target = "userEmail")
     @Mapping(source = "staff.id", target = "staffId")

@@ -23,7 +23,7 @@ public class RentalResponse {
     LocalDateTime endTime;
     double rentFee;
     LocalDateTime createdAt;
-    long vehicleId;
+    VehicleLogResponse vehicle;
     Long reservationId;
     String userEmail;
     DepositResponse rentalDeposit;
