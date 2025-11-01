@@ -27,9 +27,9 @@ public class Staff {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<VehicleLog> vehicleLogs;
 
-    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<Rental> rentals;
 }
