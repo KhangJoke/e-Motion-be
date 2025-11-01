@@ -113,6 +113,14 @@ public class VehicleLogService {
         VehicleLog vehicleLog = vehicleLogRepository.findById(logId)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_LOG_NOT_EXIST));
 
+        double totalCost = request.getRepairItems()
+                .stream()
+                .filter(Objects::nonNull)
+                .mapToDouble(VehicleLogItem::getCost)
+                .sum();
+
+        vehicleLog.setCost(totalCost);
+
         vehicleLogMapper.updateVehicleLogFromRequest(vehicleLog, request);
         return vehicleLogMapper.toResponse(vehicleLog);
     }

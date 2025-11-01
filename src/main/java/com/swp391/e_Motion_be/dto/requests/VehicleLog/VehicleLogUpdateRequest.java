@@ -16,11 +16,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class VehicleLogUpdateRequest {
     @NotNull(message = "Repair cost list is require")
-    private List<VehicleLogItem> repairCost;
-
-    @NotNull(message = "Cost is required")
-    @PositiveOrZero(message = "Cost must be zero or positive")
-    private Double cost;
+    private List<VehicleLogItem> repairItems;
 
     @NotNull(message = "VehicleId is required")
     private Long vehicleId;
