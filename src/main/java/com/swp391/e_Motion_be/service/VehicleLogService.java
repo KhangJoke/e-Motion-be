@@ -99,7 +99,7 @@ public class VehicleLogService {
         vehicleLog.setStaff(staff);
         vehicleLog.setRental(rental);
         vehicleLog.setCost(totalCost);
-        vehicleLog.setRepairCost(request.getRepairItems());
+        vehicleLog.setRepairItems(request.getRepairItems());
 
         // Update vehicle status -> maintance
         vehicle.setStatus(VehicleStatus.MAINTAINED);

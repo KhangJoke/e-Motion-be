@@ -206,7 +206,7 @@ public class RentalService {
         double rentalDepositAmount = rental.getDeposit().getAmount();
 
         VehicleLog vehicleLog = rental.getVehicleLog();
-       List<VehicleLogItem> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairCost() : null;
+       List<VehicleLogItem> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairItems() : null;
         double vehicleDamageFee = vehicleLog != null ? vehicleLog.getCost() : 0;
 
         double totalCharges = vehicleDamageFee + checkListFee;

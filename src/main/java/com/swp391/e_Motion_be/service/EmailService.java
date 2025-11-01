@@ -228,8 +228,8 @@ public class EmailService {
 
         // Thêm các damage charges (sẽ hiển thị chi tiết ở bảng riêng)
         List<VehicleLogItem> vehicleDamages = new ArrayList<>();
-        if (vehicleLog != null && vehicleLog.getRepairCost() != null && !vehicleLog.getRepairCost().isEmpty()) {
-             vehicleDamages = vehicleLog.getRepairCost();
+        if (vehicleLog != null && vehicleLog.getRepairItems() != null && !vehicleLog.getRepairItems().isEmpty()) {
+             vehicleDamages = vehicleLog.getRepairItems();
 
             damageTotal = vehicleDamages
                         .stream()
@@ -321,8 +321,8 @@ public class EmailService {
 
         // Add damage charges
         List<VehicleLogItem> vehicleDamages = new ArrayList<>();
-        if (vehicleLog != null && vehicleLog.getRepairCost() != null && !vehicleLog.getRepairCost().isEmpty()) {
-            vehicleDamages = vehicleLog.getRepairCost();
+        if (vehicleLog != null && vehicleLog.getRepairItems() != null && !vehicleLog.getRepairItems().isEmpty()) {
+            vehicleDamages = vehicleLog.getRepairItems();
 
             damageTotal = vehicleDamages
                     .stream()
