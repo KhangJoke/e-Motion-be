@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses.reservation;
 
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,9 +18,7 @@ public class ReservationResponse {
     private Boolean overdueNotified;
     private Boolean expiringNotified;
     private String userEmail;
-    private Long vehicleId;
-    private String vehicleName;
-    private String plateNumber;
+    private VehicleDetailResponse vehicle;
     private Long stationId;
 }
 

@@ -1,11 +1,9 @@
 package com.swp391.e_Motion_be.dto.responses.station;
 
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.enums.station.StationStatus;
 import lombok.Data;
 
-import java.util.List;
 
 @Data
 public class ManageStationResponse {
@@ -16,5 +14,4 @@ public class ManageStationResponse {
     private StationStatus status;
     private Long quantityCar;
     private Long quantityStaff;
-    private List<RentalResponse> rental;
 }

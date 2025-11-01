@@ -123,6 +123,7 @@ public class ReservationController {
     }
 
     @GetMapping("/email/{email}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<ReservationResponse>> getReservationsByUserEmail(@PathVariable String email) {
         List<ReservationResponse> data = reservationService.getReservationsByUserEmail(email);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();

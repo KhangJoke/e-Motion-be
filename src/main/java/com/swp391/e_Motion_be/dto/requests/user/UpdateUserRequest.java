@@ -16,4 +16,6 @@ public class UpdateUserRequest {
     private String phone;
 
     private Role role;
+
+    private long stationId;
 }
