@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImgVehicleResponse {
-    private Long vehicleId;
     private String url;
     private boolean isMain;
-    private String publicId;
 }

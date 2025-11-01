@@ -1,6 +1,8 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
+import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
+import com.swp391.e_Motion_be.entity.ImgVehicle;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import lombok.AllArgsConstructor;
@@ -33,5 +35,5 @@ public class VehicleDetailResponse {
     private String plateNumber;
     private LocalDateTime lastMaintenance;
     private StationResponse station;
-    private List<String> images;
+    private List<ImgVehicleResponse> images;
 }

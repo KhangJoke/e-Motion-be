@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
