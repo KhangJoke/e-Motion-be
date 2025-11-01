@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.responses;
+package com.swp391.e_Motion_be.dto.responses.vehicleLog;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.swp391.e_Motion_be.dto.convert.PlainDoubleToNumberSerializer;

@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
@@ -57,9 +58,9 @@ public class RentalService {
     private double priceDayRate;
 
 
-    public List<RentalResponse> getAllRentals(){
+    public List<RentalListResponse> getAllRentals(){
        return rentalRepository.findAll().stream()
-                .map(rentalMapper::toRentalResponse)
+                .map(rentalMapper::toRentalListResponse)
                 .toList();
     }
 
@@ -460,8 +461,8 @@ public class RentalService {
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
         Page<Rental> rentalPage = rentalRepository.findByStatusInAndUser_EmailContains(statusList, request.getSearch(), pageable);
-        List<RentalResponse> rentals = rentalPage.getContent().stream()
-                .map(rentalMapper::toRentalResponse)
+        List<RentalListResponse> rentals = rentalPage.getContent().stream()
+                .map(rentalMapper::toRentalListResponse)
                 .toList();
 
         return new PageAndFilterRentalResponse(rentals, rentalPage.getTotalPages());

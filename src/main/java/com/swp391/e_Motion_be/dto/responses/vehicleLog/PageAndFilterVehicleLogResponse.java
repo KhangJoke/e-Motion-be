@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.responses.rental;
+package com.swp391.e_Motion_be.dto.responses.vehicleLog;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageAndFilterRentalResponse {
-    private List<RentalListResponse> content;
+public class PageAndFilterVehicleLogResponse {
+    private List<VehicleLogResponse> content;
     private int totalPages;
 }

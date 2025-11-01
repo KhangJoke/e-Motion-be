@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.dto.requests.VehicleLog;
+package com.swp391.e_Motion_be.dto.requests.vehicleLog;
 
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import jakarta.validation.constraints.NotNull;
@@ -11,8 +11,9 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class VehicleLogUpdateRequest {
-    @NotNull(message = "Repair cost list is require")
+public class VehicleLogCreationRequest {
+
+    @NotNull(message = "Repair item list is require")
     private List<VehicleLogItem> repairItems;
 
     @NotNull(message = "VehicleId is required")
@@ -21,7 +22,7 @@ public class VehicleLogUpdateRequest {
     @NotNull(message = "Images are required")
     private List<String> imgs;
 
-    @NotNull(message = "staffId are required")
+    @NotNull(message = "StaffId is required (Staff)")
     private Long staffId;
 
     @NotNull(message = "RentalId is required")

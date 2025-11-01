@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationR
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.service.ReservationService;
@@ -39,9 +40,9 @@ public class ReservationController {
     }
 
     @GetMapping
-    public ApiResponse<List<ReservationResponse>> getAllReservations() {
-        List<ReservationResponse> data = reservationService.getAllReservations();
-        ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<ReservationListResponse>> getAllReservations() {
+        List<ReservationListResponse> data = reservationService.getAllReservations();
+        ApiResponse<List<ReservationListResponse>> response = new ApiResponse<>();
         response.setData(data);
         response.setMessage("Fetched all reservations successfully");
         response.setStatus(200);

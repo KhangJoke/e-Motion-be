@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRe
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
@@ -256,13 +257,13 @@ public class ReservationService {
         return false;
     }
 
-    public List<ReservationResponse> getAllReservations() {
+    public List<ReservationListResponse> getAllReservations() {
         List<Reservation> reservations = reservationRepository.findAll();
         if (reservations.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }
         return reservations.stream()
-                .map(reservationMapper::toReservationResponse)
+                .map(reservationMapper::toReservationListResponse)
                 .toList();
     }
 
@@ -464,8 +465,8 @@ public class ReservationService {
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
         Page<Reservation> reservationPage = reservationRepository.searchByStatusAndCode(statusList, request.getSearch(), pageable);
-        List<ReservationResponse> reservations = reservationPage.getContent().stream()
-                .map(reservationMapper::toReservationResponse)
+        List<ReservationListResponse> reservations = reservationPage.getContent().stream()
+                .map(reservationMapper::toReservationListResponse)
                 .toList();
 
         return new PageAndFilterReservationResponse(reservations, reservationPage.getTotalPages());
