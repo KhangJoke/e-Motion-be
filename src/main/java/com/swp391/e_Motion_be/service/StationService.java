@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -102,8 +103,12 @@ public class StationService {
         return staffRepository.countByStation_Id(station.getId());
     }
 
-    private List<RentalResponse> getRentalOfStation(Station station){
+    public List<RentalResponse> getRentalOfStation(Long stationId){
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
         return rentalRepository.findByStation_Id(station.getId()).stream()
+                .sorted(Comparator.comparing(Rental::getCreatedAt).reversed())
                 .map(rentalMapper::toRentalResponse)
                 .toList();
     }
@@ -120,7 +125,6 @@ public class StationService {
             manageStationResponse.setStatus(station.getStatus());
             manageStationResponse.setQuantityCar(getCarOfStation(station));
             manageStationResponse.setQuantityStaff(getStaffOfStation(station));
-            manageStationResponse.setRental(getRentalOfStation(station));
 
             manageStationResponseList.add(manageStationResponse);
         }
@@ -148,7 +152,17 @@ public class StationService {
         List<Rental> rentals = rentalRepository.findAll().stream()
                 .filter(r -> r.getStatus() == RentalStatus.COMPLETED)
                 .filter(r -> r.getEndTime().getYear() == year)
-                .filter(r -> r.getStartTime().getMonthValue() == month)
+                .filter(r -> r.getEndTime().getMonthValue() == month)
+                .toList();
+        return getRevenueCommon(rentals);
+    }
+
+    private List<RevenueStationResponse> getDayRevenue(int day, int month, int year) {
+        List<Rental> rentals = rentalRepository.findAll().stream()
+                .filter(r -> r.getStatus() == RentalStatus.COMPLETED)
+                .filter(r -> r.getEndTime().getYear() == year)
+                .filter(r -> r.getEndTime().getMonthValue() == month)
+                .filter(r -> r.getEndTime().getDayOfMonth() == day)
                 .toList();
         return getRevenueCommon(rentals);
     }
@@ -169,13 +183,16 @@ public class StationService {
     }
 
 
-    public List<RevenueStationResponse> getRevenueStation(String type, Integer month, Integer year) {
+    public List<RevenueStationResponse> getRevenueStation(String type,int day, int month, int year) {
         switch (type) {
+            case "day" -> {
+                return getDayRevenue(day, month, year);
+            }
             case "month" -> {
-                return getMonthlyRevenue(month != null ? month : LocalDate.now().getMonthValue(), year != null ? year : LocalDate.now().getYear());
+                return getMonthlyRevenue(month, year);
             }
             case "year" -> {
-                return getYearlyRevenue(year != null ? year : LocalDate.now().getYear());
+                return getYearlyRevenue(year);
             }
             case "total" -> {
                 return getTotalRevenue();
