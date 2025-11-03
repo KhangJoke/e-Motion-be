@@ -195,14 +195,12 @@ public class VehicleService {
         List<FeeResponse> fees = new ArrayList<>();
 
         double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
-        double vatValue = bookingFeeValue * vatPercentage;
 
         FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
         FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
         FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
         FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
-                bookingFeeValue + vatValue + vehicle.getDepositFee());
-
+                bookingFeeValue + vehicle.getDepositFee());
         fees.add(bookingFee);
         fees.add(deposit);
         fees.add(holdCar);
