@@ -23,6 +23,8 @@ public class Staff {
     @JoinColumn(name = "station_id")
     private Station station;
 
+    private boolean isDelete = false;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

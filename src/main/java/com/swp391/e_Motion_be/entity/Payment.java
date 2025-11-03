@@ -37,6 +37,7 @@ public class Payment {
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+    private boolean isDelete = false;
 
     @Column(nullable = false, unique = true)
     private String txnRef;

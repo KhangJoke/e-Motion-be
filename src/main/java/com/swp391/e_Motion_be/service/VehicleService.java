@@ -145,8 +145,8 @@ public class VehicleService {
     public void deleteVehicleById(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-
-        vehicleRepository.delete(vehicle);
+        vehicle.setDelete(true);
+        vehicleRepository.save(vehicle);
     }
 
     // Search bằng thanh tìm kiếm

@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -69,6 +68,8 @@ public class Vehicle {
 
     @Column(name="last_maintenance",nullable = false)
     private LocalDateTime lastMaintenance;
+
+    private boolean isDelete = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")

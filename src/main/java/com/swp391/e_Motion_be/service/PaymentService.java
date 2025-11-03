@@ -719,7 +719,8 @@ public class PaymentService {
     public void deletePayment(Long id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
-        paymentRepository.delete(payment);
+        payment.setDelete(true);
+        paymentRepository.save(payment);
     }
 
     public List<PaymentResponse> getAllPayment() {

@@ -286,7 +286,8 @@ public class ReservationService {
     public void deleteReservationByCode(String code) {
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-        reservationRepository.delete(reservation);
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
     }
 
     public List<ReservationResponse> getReservationsByUserEmail(String email) {
