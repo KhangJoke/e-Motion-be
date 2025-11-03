@@ -6,5 +6,5 @@ import lombok.Data;
 public class PageAndFilterVehicleLogRequest {
     private Integer page;
     private Integer limit;
-    private String search;
+    private Long search;
 }

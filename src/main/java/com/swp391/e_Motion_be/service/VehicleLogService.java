@@ -142,7 +142,7 @@ public class VehicleLogService {
 
     public PageAndFilterVehicleLogResponse findByPageAndFilterAndSearch(PageAndFilterVehicleLogRequest request) {
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
-        Page<VehicleLog> vehicleLogsPage = (request.getSearch()==null || request.getSearch().isEmpty()) ? vehicleLogRepository.findAll(pageable) : vehicleLogRepository.findByVehicle_id(Long.parseLong(request.getSearch()), pageable);
+        Page<VehicleLog> vehicleLogsPage = (request.getSearch()==null || request.getSearch()==0) ? vehicleLogRepository.findAll(pageable) : vehicleLogRepository.findByVehicle_id(request.getSearch(), pageable);
 
         List<VehicleLogResponse> vehicleLog = vehicleLogsPage.getContent().stream()
                 .map(vehicleLogMapper::toResponse)
