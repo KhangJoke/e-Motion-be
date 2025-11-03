@@ -56,5 +56,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             @Param("excludedRentalStatuses") List<String> excludedRentalStatuses
     );
 
-    Page<Vehicle> findByIdInAndBrandInAndCategoryAndNameContains(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, String search, Pageable pageable);
+    Page<Vehicle> findByIdInAndBrandInAndCategoryInAndNameContains(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, String search, Pageable pageable);
 }

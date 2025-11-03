@@ -247,7 +247,7 @@ public class VehicleService {
                 .map(Vehicle::getId)
                 .toList();
 
-        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryAndNameContains(ids, brandsList, categoryList, request.getSearch(), pageable);
+        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(ids, brandsList, categoryList, request.getSearch(), pageable);
         List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
                 .map(v -> vehicleMapper.toVehicleListResponse(v, hours))
                 .toList();
