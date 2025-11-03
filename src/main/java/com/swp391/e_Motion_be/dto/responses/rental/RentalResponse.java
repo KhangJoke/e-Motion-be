@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.dto.responses.rental;
 
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
+import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicleLog.VehicleLogResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
 import lombok.AccessLevel;
@@ -31,6 +32,5 @@ public class RentalResponse {
     DepositResponse reservationDeposit;
     List<RentalCheckListResponse> rentalCheckLists;
     VehicleLogResponse vehicleLog;
-    long stationId;
-    long staffId;
+    UserResponse staff;
 }
