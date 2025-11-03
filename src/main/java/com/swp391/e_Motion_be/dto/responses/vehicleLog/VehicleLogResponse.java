@@ -1,6 +1,5 @@
-package com.swp391.e_Motion_be.dto.responses;
+package com.swp391.e_Motion_be.dto.responses.vehicleLog;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.swp391.e_Motion_be.dto.convert.PlainDoubleToNumberSerializer;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
@@ -10,14 +9,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleLogResponse {
     private Long id;
-    private List<VehicleLogItem> repairCost;
+    private List<VehicleLogItem> repairItems;
     @JsonSerialize(using  = PlainDoubleToNumberSerializer.class)
     private Double cost;
     private List<String> imgs;

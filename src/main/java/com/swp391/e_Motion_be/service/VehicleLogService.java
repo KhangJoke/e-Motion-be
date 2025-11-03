@@ -1,8 +1,10 @@
 package com.swp391.e_Motion_be.service;
 
-import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.PageAndFilterVehicleLogRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.VehicleLogCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.VehicleLogUpdateRequest;
+import com.swp391.e_Motion_be.dto.responses.vehicleLog.PageAndFilterVehicleLogResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicleLog.VehicleLogResponse;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.Staff;
@@ -14,6 +16,10 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleLogMapper;
 import com.swp391.e_Motion_be.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -99,7 +105,7 @@ public class VehicleLogService {
         vehicleLog.setStaff(staff);
         vehicleLog.setRental(rental);
         vehicleLog.setCost(totalCost);
-        vehicleLog.setRepairCost(request.getRepairItems());
+        vehicleLog.setRepairItems(request.getRepairItems());
 
         // Update vehicle status -> maintance
         vehicle.setStatus(VehicleStatus.MAINTAINED);
@@ -113,7 +119,16 @@ public class VehicleLogService {
         VehicleLog vehicleLog = vehicleLogRepository.findById(logId)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_LOG_NOT_EXIST));
 
+        double totalCost = request.getRepairItems()
+                .stream()
+                .filter(Objects::nonNull)
+                .mapToDouble(VehicleLogItem::getCost)
+                .sum();
+
+        vehicleLog.setCost(totalCost);
+
         vehicleLogMapper.updateVehicleLogFromRequest(vehicleLog, request);
+        vehicleLogRepository.save(vehicleLog);
         return vehicleLogMapper.toResponse(vehicleLog);
     }
 
@@ -123,5 +138,16 @@ public class VehicleLogService {
             throw new AppException(ErrorCode.VEHICLE_LOG_NOT_EXIST);
         }
         vehicleLogRepository.deleteById(logId);
+    }
+
+    public PageAndFilterVehicleLogResponse findByPageAndFilterAndSearch(PageAndFilterVehicleLogRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+        Page<VehicleLog> vehicleLogsPage = (request.getSearch()==null || request.getSearch()==0) ? vehicleLogRepository.findAll(pageable) : vehicleLogRepository.findByVehicle_id(request.getSearch(), pageable);
+
+        List<VehicleLogResponse> vehicleLog = vehicleLogsPage.getContent().stream()
+                .map(vehicleLogMapper::toResponse)
+                .toList();
+
+        return new PageAndFilterVehicleLogResponse(vehicleLog, vehicleLogsPage.getTotalPages());
     }
 }

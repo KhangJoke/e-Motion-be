@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRe
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
@@ -256,13 +257,13 @@ public class ReservationService {
         return false;
     }
 
-    public List<ReservationResponse> getAllReservations() {
+    public List<ReservationListResponse> getAllReservations() {
         List<Reservation> reservations = reservationRepository.findAll();
         if (reservations.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }
         return reservations.stream()
-                .map(reservationMapper::toReservationResponse)
+                .map(reservationMapper::toReservationListResponse)
                 .toList();
     }
 
@@ -270,26 +271,6 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
         return reservationMapper.toReservationResponse(reservation);
-    }
-
-    public List<ReservationResponse> getReservationByCodeContain(String code) {
-        List<Reservation> reservation = reservationRepository.findByCodeContains(code);
-        if (reservation == null || reservation.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
-        return reservation.stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
-    }
-
-    public List<ReservationResponse> getReservationByUserEmailContain(String userEmail) {
-        List<Reservation> reservation = reservationRepository.findByUserEmailContains(userEmail);
-        if (reservation == null || reservation.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
-        return reservation.stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
     }
 
     public ReservationResponse updateReservationStatus(UpdateReservationStatusRequest request) {
@@ -308,18 +289,8 @@ public class ReservationService {
         reservationRepository.delete(reservation);
     }
 
-    public List<ReservationResponse> getReservationsByStatus(List<ReservationStatus> status) {
-        List<Reservation> reservations = reservationRepository.findByStatusIn(status);
-        if (reservations == null || reservations.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
-        return reservations.stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
-    }
-
     public List<ReservationResponse> getReservationsByUserEmail(String email) {
-        List<Reservation> reservations = reservationRepository.findByUserEmail(email);
+        List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(email);
         if (reservations == null || reservations.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }
@@ -437,35 +408,42 @@ public class ReservationService {
         return reservationMapper.toReservationResponse(updatedReservation);
     }
 
-    public List<ReservationResponse> getReservationByUserEmailContainAndStatus(String keyword, List<ReservationStatus> status) {
-        List<Reservation> reservation = reservationRepository.findByUserEmailContainsAndStatusIn(keyword, status);
-        if (reservation == null || reservation.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
-        return reservation.stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
-    }
-
-    public List<ReservationResponse> getReservationByCodeContainAndStatus(String keyword, List<ReservationStatus> status) {
-        List<Reservation> reservation = reservationRepository.findByCodeContainsAndStatusIn(keyword, status);
-        if (reservation == null || reservation.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
-        return reservation.stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
-    }
-
     public PageAndFilterReservationResponse findByPageAndFilterAndSearch(PageAndFilterReservationRequest request) {
+        String keyword = request.getSearch();
         List<ReservationStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
                 ? Arrays.asList(ReservationStatus.values())
                 : request.getStatus();
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
-        Page<Reservation> reservationPage = reservationRepository.searchByStatusAndCode(statusList, request.getSearch(), pageable);
-        List<ReservationResponse> reservations = reservationPage.getContent().stream()
-                .map(reservationMapper::toReservationResponse)
+
+        Page<Reservation> reservationPage;
+
+        // CASE 1: status == null
+        if (request.getStatus() == null || request.getStatus().isEmpty()) {
+            if (keyword != null && !keyword.isEmpty()) {
+                if (!keyword.matches(".*[A-Za-z].*")) {
+                    reservationPage = reservationRepository.findByCodeContaining(keyword, pageable);
+                } else {
+                    reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCase(keyword, pageable);
+                }
+            } else {
+                reservationPage = reservationRepository.findAll(pageable);
+            }
+        }
+        // CASE 2: có status nhưng keyword null hoặc rỗng
+        else if (keyword == null || keyword.isEmpty()) {
+            reservationPage = reservationRepository.findByStatusIn(statusList, pageable);
+        }
+        // CASE 3: có status + keyword
+        else {
+            if (!keyword.matches(".*[A-Za-z].*")) {
+                reservationPage = reservationRepository.findByCodeContainingAndStatusIn(keyword, statusList, pageable);
+            } else {
+                reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCaseAndStatusIn(keyword, statusList, pageable);
+            }
+        }
+        List<ReservationListResponse> reservations = reservationPage.getContent().stream()
+                .map(reservationMapper::toReservationListResponse)
                 .toList();
 
         return new PageAndFilterReservationResponse(reservations, reservationPage.getTotalPages());

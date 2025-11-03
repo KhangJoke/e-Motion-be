@@ -11,6 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PageAndFilterReservationResponse {
-    private List<ReservationResponse> content;
+    private List<ReservationListResponse> content;
     private int totalPages;
 }

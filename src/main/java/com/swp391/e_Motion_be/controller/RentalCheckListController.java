@@ -1,12 +1,16 @@
 package com.swp391.e_Motion_be.controller;
 
+import com.swp391.e_Motion_be.dto.requests.checklist.PageAndFilterCheckListRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
+import com.swp391.e_Motion_be.dto.responses.checkList.PageAndFilterCheckListResponse;
+import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListListResponse;
+import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.service.RentalCheckListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,9 +33,9 @@ public class RentalCheckListController {
     }
 
     @GetMapping
-    public ApiResponse<List<RentalCheckListResponse>> getAllCheckList() {
-        ApiResponse<List<RentalCheckListResponse>> response = new ApiResponse<>();
-        response.setData(rentalCheckListService.getAllCheckLists());
+    public ApiResponse<List<RentalCheckListListResponse>> getAllCheckList() {
+        ApiResponse<List<RentalCheckListListResponse>> response = new ApiResponse<>();
+        response.setData(rentalCheckListService.getListCheckLists());
         response.setMessage("Get all rental checklists successfully");
         return response;
     }
@@ -57,6 +61,19 @@ public class RentalCheckListController {
             response.setMessage("Get all rental checklists successfully");
         }
         return response;
+    }
+
+    @PostMapping("/filter")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<PageAndFilterCheckListResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterCheckListRequest request){
+        ApiResponse<PageAndFilterCheckListResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(rentalCheckListService.findByPageAndFilterAndSearch(request));
+        if(apiResponse.getData().getContent().isEmpty()) {
+            apiResponse.setMessage("No check lists found");
+        }else {
+            apiResponse.setMessage("Get check lists successfully");
+        }
+        return ResponseEntity.ok(apiResponse);
     }
 }
 

@@ -8,11 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import com.swp391.e_Motion_be.dto.convert.MapToJsonConverter;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name ="vehicle_logs")
@@ -26,9 +24,9 @@ public class VehicleLog {
     @Column(name ="log_id")
     private Long id;
 
-    @Column(name = "repair_cost",  columnDefinition = "TEXT")
+    @Column(name = "repair_items",  columnDefinition = "TEXT")
     @Convert(converter = VehicleLogItemListConverter.class)
-    private List<VehicleLogItem> repairCost;
+    private List<VehicleLogItem> repairItems;
 
     @Column(name ="total_cost")
     private Double cost;

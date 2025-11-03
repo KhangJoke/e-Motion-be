@@ -1,7 +1,10 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.dto.requests.checklist.PageAndFilterCheckListRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
-import com.swp391.e_Motion_be.dto.responses.RentalCheckListResponse;
+import com.swp391.e_Motion_be.dto.responses.checkList.PageAndFilterCheckListResponse;
+import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListListResponse;
+import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.RentalCheckList;
 import com.swp391.e_Motion_be.entity.Staff;
@@ -16,10 +19,15 @@ import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -133,6 +141,12 @@ public class RentalCheckListService {
                 .toList();
     }
 
+    public List<RentalCheckListListResponse> getListCheckLists(){
+        List<RentalCheckList> checkLists = rentalCheckListRepository.findLatestChecklistPerRental();
+        return checkLists.stream()
+                .map(rentalCheckListMapper::toRentalCheckListListResponse)
+                .toList();
+    }
 
     public List<RentalCheckListResponse>  getCheckListByRentalId(Long rentalId){
         return rentalCheckListRepository.findByRental_Id(rentalId)
@@ -157,5 +171,27 @@ public class RentalCheckListService {
                 .stream()
                 .map(rentalCheckListMapper::toRentalCheckListResponse)
                 .toList();
+    }
+
+    public PageAndFilterCheckListResponse findByPageAndFilterAndSearch(PageAndFilterCheckListRequest request) {
+        List<CheckType> typeList = (request.getType() == null || request.getType().isEmpty())
+                ? Arrays.asList(CheckType.values())
+                : request.getType();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("rental.id").ascending());
+        List<RentalCheckList> latest = rentalCheckListRepository.findLatestChecklistPerRental();
+
+        List<Long> ids = latest.stream()
+                .map(RentalCheckList::getId)
+                .toList();
+
+        Page<RentalCheckList> checkListPage = rentalCheckListRepository
+                .findByIdInAndTypeInAndStaff_User_EmailContaining(ids, typeList, request.getSearch(), pageable);
+
+        List<RentalCheckListListResponse> checkLists = checkListPage.getContent().stream()
+                .map(rentalCheckListMapper::toRentalCheckListListResponse)
+                .toList();
+
+        return new PageAndFilterCheckListResponse(checkLists, checkListPage.getTotalPages());
     }
 }

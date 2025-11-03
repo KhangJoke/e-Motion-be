@@ -5,8 +5,8 @@ import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationR
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
-import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -39,9 +39,9 @@ public class ReservationController {
     }
 
     @GetMapping
-    public ApiResponse<List<ReservationResponse>> getAllReservations() {
-        List<ReservationResponse> data = reservationService.getAllReservations();
-        ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<ReservationListResponse>> getAllReservations() {
+        List<ReservationListResponse> data = reservationService.getAllReservations();
+        ApiResponse<List<ReservationListResponse>> response = new ApiResponse<>();
         response.setData(data);
         response.setMessage("Fetched all reservations successfully");
         response.setStatus(200);
@@ -53,35 +53,6 @@ public class ReservationController {
         ReservationResponse reservationResponse = reservationService.getReservationByCode(code);
 
         ApiResponse<ReservationResponse> response = new ApiResponse<>();
-        response.setData(reservationResponse);
-        response.setMessage("Fetched reservation successfully");
-        response.setStatus(200);
-
-        return response;
-    }
-
-    @GetMapping("/search")
-    public ApiResponse<List<ReservationResponse>> searchReservations(@RequestParam (required = false) String keyword,
-                                                                         @RequestParam (required = false) List<ReservationStatus> status) {
-        List<ReservationResponse> reservationResponse = null;
-        if(status == null) {
-            if (keyword != null && !keyword.matches(".*[A-Za-z].*")) {
-                reservationResponse =  reservationService.getReservationByCodeContain(keyword);
-            }
-            else {
-                reservationResponse = reservationService.getReservationByUserEmailContain(keyword);
-            }
-        } else if(keyword == null || keyword.isEmpty()) {
-            reservationResponse = reservationService.getReservationsByStatus(status);
-        } else {
-            if (!keyword.matches(".*[A-Za-z].*")) {
-                reservationResponse =  reservationService.getReservationByCodeContainAndStatus(keyword, status);
-            }
-            else {
-                reservationResponse = reservationService.getReservationByUserEmailContainAndStatus(keyword, status);
-            }
-        }
-        ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
         response.setData(reservationResponse);
         response.setMessage("Fetched reservation successfully");
         response.setStatus(200);
@@ -109,16 +80,6 @@ public class ReservationController {
         response.setMessage("Deleted reservation successfully");
         response.setStatus(204);
 
-        return response;
-    }
-
-    @GetMapping("/status/")
-    public ApiResponse<List<ReservationResponse>> getReservationsByStatus(@RequestParam List<ReservationStatus> status) {
-        List<ReservationResponse> data = reservationService.getReservationsByStatus(status);
-        ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
-        response.setData(data);
-        response.setMessage("Fetched reservations by status successfully");
-        response.setStatus(200);
         return response;
     }
 

@@ -3,6 +3,7 @@ package com.swp391.e_Motion_be.controller;
 import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.enums.RentalStatus;
@@ -26,8 +27,8 @@ public class RentalController {
     private final RentalService rentalService;
 
     @GetMapping
-    public ApiResponse<List<RentalResponse>> getAllRentals() {
-        ApiResponse<List<RentalResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<RentalListResponse>> getAllRentals() {
+        ApiResponse<List<RentalListResponse>> response = new ApiResponse<>();
         response.setData(rentalService.getAllRentals());
         return response;
     }

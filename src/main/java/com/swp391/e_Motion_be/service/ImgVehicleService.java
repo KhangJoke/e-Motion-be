@@ -32,7 +32,6 @@ public class ImgVehicleService {
         entity.setVehicle(vehicle);
 
         ImgVehicleResponse response = imgVehicleMapper.toResponse(imgVehicleRepository.save(entity));
-        response.setPublicId(cloudinaryService.getPublicIdFromUrl(response.getUrl()));
         return response;
     }
 
@@ -42,7 +41,6 @@ public class ImgVehicleService {
                 .stream()
                 .map(entity -> {
                     ImgVehicleResponse response = imgVehicleMapper.toResponse(entity);
-                    response.setPublicId(cloudinaryService.getPublicIdFromUrl(entity.getUrl()));
                     return response;
                 })
                 .toList();
@@ -57,7 +55,6 @@ public class ImgVehicleService {
                 .stream()
                 .map(entity -> {
                     ImgVehicleResponse response = imgVehicleMapper.toResponse(entity);
-                    response.setPublicId(cloudinaryService.getPublicIdFromUrl(entity.getUrl()));
                     return response;
                 })
                 .toList();

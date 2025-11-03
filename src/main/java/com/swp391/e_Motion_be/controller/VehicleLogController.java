@@ -1,12 +1,15 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.PageAndFilterVehicleLogRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.VehicleLogCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicleLog.PageAndFilterVehicleLogResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicleLog.VehicleLogResponse;
 import com.swp391.e_Motion_be.service.VehicleLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +74,19 @@ public class VehicleLogController {
     public ApiResponse<List<VehicleLogResponse>> getVehicleLogsByUser(@PathVariable Long id) {
         List<VehicleLogResponse> response = vehicleLogService.findVehicleLogByStaffId(id);
         return new ApiResponse<>(200, "Success", response);
+    }
+
+    @PostMapping("/filter")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleLogResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterVehicleLogRequest request){
+        ApiResponse<PageAndFilterVehicleLogResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(vehicleLogService.findByPageAndFilterAndSearch(request));
+        if(apiResponse.getData().getContent().isEmpty()) {
+            apiResponse.setMessage("No rentals found");
+        }else {
+            apiResponse.setMessage("Get rentals successfully");
+        }
+        return ResponseEntity.ok(apiResponse);
     }
 }
 
