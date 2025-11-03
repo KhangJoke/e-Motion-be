@@ -1,13 +1,14 @@
 package com.swp391.e_Motion_be.mapper;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
+import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {DepositMapper.class, RentalCheckListMapper.class, VehicleLogMapper.class, VehicleMapper.class, UserMapper.class})
+@Mapper(componentModel = "spring", uses = {DepositMapper.class, RentalCheckListMapper.class, VehicleLogMapper.class, VehicleMapper.class, StaffMapper.class})
 public interface RentalMapper {
     @Mapping(target = "id", ignore = true) //bỏ qua id vì rental có id riêng
     @Mapping(target = "status", constant = "PENDING") // set cứng

@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.dto.responses.rental;
 
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
+import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicleLog.VehicleLogResponse;
@@ -32,5 +33,5 @@ public class RentalResponse {
     DepositResponse reservationDeposit;
     List<RentalCheckListResponse> rentalCheckLists;
     VehicleLogResponse vehicleLog;
-    UserResponse staff;
+    StaffResponse staff;
 }
