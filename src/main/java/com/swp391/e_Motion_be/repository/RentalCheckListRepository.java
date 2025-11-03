@@ -28,5 +28,6 @@ public interface RentalCheckListRepository extends JpaRepository<RentalCheckList
        OR (p.priority = 1 AND rc.check_type = 'CHECK_IN')
     """, nativeQuery = true)
     List<RentalCheckList> findLatestChecklistPerRental();
-    Page<RentalCheckList> findByTypeInAndStaff_User_EmailContaining(List<CheckType> typeList, String search, Pageable pageable);
+    Page<RentalCheckList> findByIdInAndTypeInAndStaff_User_EmailContaining(List<Long> ids, List<CheckType> typeList, String search, Pageable pageable
+    );
 }

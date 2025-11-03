@@ -179,7 +179,15 @@ public class RentalCheckListService {
                 : request.getType();
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("rental.id").ascending());
-        Page<RentalCheckList> checkListPage = rentalCheckListRepository.findByTypeInAndStaff_User_EmailContaining(typeList, request.getSearch(), pageable);
+        List<RentalCheckList> latest = rentalCheckListRepository.findLatestChecklistPerRental();
+
+        List<Long> ids = latest.stream()
+                .map(RentalCheckList::getId)
+                .toList();
+
+        Page<RentalCheckList> checkListPage = rentalCheckListRepository
+                .findByIdInAndTypeInAndStaff_User_EmailContaining(ids, typeList, request.getSearch(), pageable);
+
         List<RentalCheckListListResponse> checkLists = checkListPage.getContent().stream()
                 .map(rentalCheckListMapper::toRentalCheckListListResponse)
                 .toList();

@@ -11,5 +11,5 @@ import java.util.List;
 public interface VehicleLogRepository extends JpaRepository<VehicleLog, Long> {
     List<VehicleLog> findVehicleLogByVehicleId(Long vehicleId);
     List<VehicleLog> findByStaff_Id(Long staffId);
-    Page<VehicleLog> findByVehicle_idContains(String search, Pageable pageable);
+    Page<VehicleLog> findByVehicle_id(Long search, Pageable pageable);
 }
