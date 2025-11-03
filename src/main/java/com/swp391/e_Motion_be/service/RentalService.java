@@ -344,11 +344,7 @@ public class RentalService {
                 refundRequest.setAmount(Math.abs(balance));
                 refundRequest.setFullRefund(false);
 
-                try {
-                    paymentService.refundPayment(refundRequest);
-                } catch (Exception e) {
-                    throw new AppException(ErrorCode.REFUND_FAILED);
-                }
+                paymentService.refundPayment(refundRequest);
             }
 
             rental.setStatus(RentalStatus.COMPLETED);

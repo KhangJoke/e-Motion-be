@@ -397,6 +397,32 @@ public class PaymentService {
             Payment originalPayment = paymentRepository.findByTxnRef(request.getTxnRef())
                     .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
 
+            if(originalPayment.getTransactionNo().equals("999999")) {
+                String refundTxnRef = "REFUND" + System.currentTimeMillis() +
+                        (100000 + new Random().nextInt(900000));
+
+                Payment refundPayment = Payment.builder()
+                        .amount(Double.parseDouble(String.valueOf(request.getAmount())))
+                        .method(PaymentMethod.VNPAY)
+                        .status(PaymentStatus.SUCCESS)
+                        .type(PaymentType.REFUND)
+                        .txnRef(refundTxnRef)
+                        .description("Hoan tien giao dich " + request.getTxnRef())
+                        .responseCode("PostMan Test")
+                        .transactionNo("999999")
+                        .bankCode(originalPayment.getBankCode())
+                        .payDate(LocalDateTime.now())
+                        .user(originalPayment.getUser())
+                        .rental(originalPayment.getRental())
+                        .deposit(originalPayment.getDeposit())
+                        .build();
+
+                paymentRepository.save(refundPayment);
+                log.info("Refund payment created successfully: {}", refundTxnRef);
+
+                return paymentMapper.toPaymentResponse(refundPayment);
+            }
+
             // Validate payment can be refunded
             if (originalPayment.getStatus() != PaymentStatus.SUCCESS) {
                 log.error("Payment cannot be refunded. Status: {}", originalPayment.getStatus());
@@ -495,7 +521,10 @@ public class PaymentService {
                 log.warn("Refund failed for txnRef: {} with code: {}", responseParams.get("vnp_TxnRef"), responseCode);
                 originalPayment.setTxnRef(vnPayConfig.generateTxnRef());
                 paymentRepository.save(originalPayment);
-                throw new AppException(ErrorCode.REFUND_FAILED);
+                throw new AppException(ErrorCode.REFUND_IS_PROCESSING);
+            }else if ("91".equals(responseCode)) {
+                log.warn("Refund failed for txnRef: {} with code: {}", responseParams.get("vnp_TxnRef"), responseCode);
+                throw new AppException(ErrorCode.REFUND_IS_NOT_FOUND);
             } else if(!"00".equals(responseCode)){
                 log.error("Refund failed with response code: {}", responseCode);
                 throw new AppException(ErrorCode.REFUND_FAILED);

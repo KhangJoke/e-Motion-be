@@ -157,6 +157,8 @@ public enum ErrorCode {
     RENTAL_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán thuê xe"),
     DEPOSIT_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán đặt cọc"),
     CREATE_PAYMENT_URL_FAILED(HttpStatus.BAD_REQUEST, "Tạo đường dẫn thanh toán thất bại"),
+    REFUND_IS_PROCESSING(HttpStatus.BAD_REQUEST, "Yêu cầu hoàn tiền đang được xử lý"),
+    REFUND_IS_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy giao dịch yêu cầu hoàn trả"),
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Xóa hình ảnh thất bại"),
