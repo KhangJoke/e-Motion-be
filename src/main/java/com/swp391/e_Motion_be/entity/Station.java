@@ -39,7 +39,7 @@ public class Station {
     @Column(name = "station_city")
     @Enumerated(EnumType.STRING)
     private StationCity city;
-
+    private boolean isDelete = false;
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Staff> staffs;
 

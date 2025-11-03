@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -86,6 +87,10 @@ public class DocumentService {
     public void deleteDocumentById(long docId){
         Document document = documentRepository.findById(docId)
                 .orElseThrow(() -> new AppException(ErrorCode.DOCUMENT_NOT_FOUND));
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!document.getUser().getId().equals(loginUser.getId())){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
         documentRepository.deleteById(docId);
         cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(document.getImgUrl()));
     }

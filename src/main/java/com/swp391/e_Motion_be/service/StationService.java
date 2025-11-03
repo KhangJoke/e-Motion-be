@@ -21,14 +21,11 @@ import com.swp391.e_Motion_be.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 
 @Service
 @RequiredArgsConstructor
@@ -66,7 +63,8 @@ public class StationService {
 
     public void deleteStation(String name) {
         Station existing = stationRepository.findByNameIgnoreCase(name.trim()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-        stationRepository.delete(existing);
+        existing.setDelete(true);
+        stationRepository.save(existing);
     }
 
     public List<StationResponse> findAllStations() {

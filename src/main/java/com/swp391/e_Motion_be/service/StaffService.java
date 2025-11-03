@@ -63,7 +63,8 @@ public class StaffService {
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
         User user = staff.getUser();
-        staffRepository.delete(staff);
+        staff.setDelete(true);
+        staffRepository.save(staff);
         user.setRole(Role.ROLE_USER);
         userRepository.save(user);
     }
