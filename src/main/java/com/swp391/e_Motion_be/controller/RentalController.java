@@ -20,13 +20,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rentals")
-@PreAuthorize("hasAnyRole('ADMIN','STAFF')")
 @RequiredArgsConstructor
 public class RentalController {
 
     private final RentalService rentalService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<RentalListResponse>> getAllRentals() {
         ApiResponse<List<RentalListResponse>> response = new ApiResponse<>();
         response.setData(rentalService.getAllRentals());
@@ -34,6 +34,7 @@ public class RentalController {
     }
 
     @PostMapping("/reservation")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> createRentalFromReservation(@RequestBody @Valid RentalCreateFromReservationRequest request){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.createRentalFromReservation(request));
@@ -41,6 +42,7 @@ public class RentalController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> createRental(@RequestBody @Valid RentalCreateRequest request){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.createRental(request));
@@ -48,6 +50,7 @@ public class RentalController {
     }
 
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<RentalResponse>> getRentalsByStatus(@PathVariable String status){
         ApiResponse<List<RentalResponse>> response = new ApiResponse<>();
         response.setData(rentalService.getRentalsByStatus(status));
@@ -55,6 +58,7 @@ public class RentalController {
     }
 
     @PatchMapping("/status")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> updateRentalStatus(@RequestBody @Valid RentalUpdateStatusRequest request){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.updateRentalStatus(request));
@@ -62,6 +66,7 @@ public class RentalController {
     }
 
     @GetMapping("/{id}/details")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> getRentalDetails(@PathVariable Long id){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.getRentalById(id));
@@ -69,6 +74,7 @@ public class RentalController {
     }
 
     @GetMapping("/{id}/overview")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalOverviewResponse> getRentalOverview(@PathVariable Long id){
         ApiResponse<RentalOverviewResponse> response = new ApiResponse<>();
         response.setData(rentalService.getRentalOverviewById(id));
@@ -76,6 +82,7 @@ public class RentalController {
     }
 
     @PostMapping("/{id}/check-inpayment")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<String> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
         ApiResponse<String> response = new ApiResponse<>();
         response.setData(rentalService.processCheckInPayment(id , request.getRemoteAddr()));
@@ -83,6 +90,7 @@ public class RentalController {
     }
 
     @PostMapping("/{id}/check-outpayment")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<CheckOutProcessResponse> processCheckOutPayment(@PathVariable Long id, HttpServletRequest request){
         ApiResponse<CheckOutProcessResponse> response = new ApiResponse<>();
         response.setData(rentalService.processCheckOutPayment(id , request.getRemoteAddr()));
@@ -99,6 +107,7 @@ public class RentalController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<RentalResponse>> searchRentals (@RequestParam String email,
                                                             @RequestParam (required = false) List<RentalStatus> status) {
         List<RentalResponse> rentalResponses = null;

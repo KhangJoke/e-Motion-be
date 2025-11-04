@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicles")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class VehicleController {
 
     private final VehicleService vehicleService;
@@ -57,18 +56,21 @@ public class VehicleController {
 
     // Create a new vehicle
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<VehicleDetailResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
         return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
     }
 
     // Update vehicle by ID
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<VehicleDetailResponse> updateVehicle(@PathVariable Long id, @RequestBody @Valid VehicleUpdateRequest request) {
         return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle(id, request));
     }
 
     // Delete vehicle by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicleById(id);
         return new ApiResponse<>(200, "Vehicle deleted successfully", null);

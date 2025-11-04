@@ -15,11 +15,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/staffs")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class StaffController {
     private final StaffService staffService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<StaffResponse> createStaff(@RequestBody @Valid StaffCreationRequest request){
         ApiResponse<StaffResponse> response = new ApiResponse<>();
         response.setData(staffService.createStaff(request));
@@ -37,6 +37,7 @@ public class StaffController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<StaffResponse>> getAllStaffs() {
         ApiResponse<List<StaffResponse>> response = new ApiResponse<>();
         response.setData(staffService.getAllStaffs());
@@ -45,6 +46,7 @@ public class StaffController {
     }
 
     @DeleteMapping("/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteStaff(@PathVariable String email){
         staffService.deleteStaff(email);
         ApiResponse<Void> response = new ApiResponse<>();
@@ -53,6 +55,7 @@ public class StaffController {
     }
 
     @PutMapping("/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<StaffResponse> updateStaffByEmail(@PathVariable String email,
                                                       @RequestBody @Valid StaffUpdateRequest request){
         ApiResponse<StaffResponse> response = new ApiResponse<>();

@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/stations")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class StationController {
 
     private final StationService stationService;
@@ -79,6 +78,7 @@ public class StationController {
     }
 
     @PutMapping("/{name}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<StationResponse> updateStation(@PathVariable String name,
                                                       @RequestBody StationUpdateRequest request) {
         ApiResponse<StationResponse> response = new ApiResponse<>();
@@ -88,6 +88,7 @@ public class StationController {
     }
 
     @DeleteMapping("/{name}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> deleteStation(@PathVariable String name) {
         stationService.deleteStation(name);
         ApiResponse<String> response = new ApiResponse<>();
@@ -96,7 +97,7 @@ public class StationController {
     }
 
     @GetMapping("/manage")
-//    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ManageStationResponse>>> getDataManageStation(){
         ApiResponse<List<ManageStationResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get data manage station successfully");
@@ -105,7 +106,7 @@ public class StationController {
     }
 
     @GetMapping("/revenue")
-//    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<RevenueStationResponse>>> getRevenueStation(
             @RequestParam(defaultValue = "month") String type,
             @RequestParam Integer day,
@@ -119,6 +120,7 @@ public class StationController {
     }
 
     @GetMapping("/manage/rentals")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalOfStation(@RequestParam Long stationId){
         ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setData(stationService.getRentalOfStation(stationId));

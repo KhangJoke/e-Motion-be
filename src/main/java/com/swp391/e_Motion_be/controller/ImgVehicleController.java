@@ -15,13 +15,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/imgVehicles")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class ImgVehicleController {
 
     private final ImgVehicleService imgVehicleService;
 
     // Create
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<ImgVehicleResponse> create(@RequestBody @Valid ImgVehicleCreationRequest request) {
         ImgVehicleResponse response = imgVehicleService.create(request);
         return new ApiResponse<>(200, "Image created successfully", response);
@@ -29,6 +29,7 @@ public class ImgVehicleController {
 
     // Find all
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<ImgVehicleResponse>> findAll() {
         List<ImgVehicleResponse> response = imgVehicleService.findAll();
         return new ApiResponse<>(200, "Success", response);
@@ -44,6 +45,7 @@ public class ImgVehicleController {
 
     // Update
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<ImgVehicleResponse> update(@PathVariable Long id,
                                                   @RequestBody @Valid ImgVehicleUpdateRequest request) {
         ImgVehicleResponse response = imgVehicleService.update(id, request);
@@ -52,6 +54,7 @@ public class ImgVehicleController {
 
     // Optional: Delete
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<String> delete(@PathVariable Long id) {
         imgVehicleService.deleteImgVehicle(id);
         return new ApiResponse<>(200, "Image deleted successfully", null);
