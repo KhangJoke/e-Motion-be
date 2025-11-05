@@ -25,4 +25,6 @@ public class CreateUserRequest {
 
     @NotNull(message = "Role must not be null")
     private Role role;
+
+    private Long stationId;
 }

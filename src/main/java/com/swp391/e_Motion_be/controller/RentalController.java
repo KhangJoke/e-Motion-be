@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
@@ -20,13 +21,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rentals")
-@PreAuthorize("hasAnyRole('ADMIN','STAFF')")
 @RequiredArgsConstructor
 public class RentalController {
 
     private final RentalService rentalService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<RentalListResponse>> getAllRentals() {
         ApiResponse<List<RentalListResponse>> response = new ApiResponse<>();
         response.setData(rentalService.getAllRentals());
@@ -34,6 +35,7 @@ public class RentalController {
     }
 
     @PostMapping("/reservation")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> createRentalFromReservation(@RequestBody @Valid RentalCreateFromReservationRequest request){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.createRentalFromReservation(request));
@@ -41,6 +43,7 @@ public class RentalController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> createRental(@RequestBody @Valid RentalCreateRequest request){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.createRental(request));
@@ -48,6 +51,7 @@ public class RentalController {
     }
 
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<RentalResponse>> getRentalsByStatus(@PathVariable String status){
         ApiResponse<List<RentalResponse>> response = new ApiResponse<>();
         response.setData(rentalService.getRentalsByStatus(status));
@@ -55,6 +59,7 @@ public class RentalController {
     }
 
     @PatchMapping("/status")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> updateRentalStatus(@RequestBody @Valid RentalUpdateStatusRequest request){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.updateRentalStatus(request));
@@ -62,6 +67,7 @@ public class RentalController {
     }
 
     @GetMapping("/{id}/details")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalResponse> getRentalDetails(@PathVariable Long id){
         ApiResponse<RentalResponse> response = new ApiResponse<>();
         response.setData(rentalService.getRentalById(id));
@@ -69,6 +75,7 @@ public class RentalController {
     }
 
     @GetMapping("/{id}/overview")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalOverviewResponse> getRentalOverview(@PathVariable Long id){
         ApiResponse<RentalOverviewResponse> response = new ApiResponse<>();
         response.setData(rentalService.getRentalOverviewById(id));
@@ -76,13 +83,15 @@ public class RentalController {
     }
 
     @PostMapping("/{id}/check-inpayment")
-    public ApiResponse<String> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
-        ApiResponse<String> response = new ApiResponse<>();
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ApiResponse<VnpayResponse> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
+        ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setData(rentalService.processCheckInPayment(id , request.getRemoteAddr()));
         return response;
     }
 
     @PostMapping("/{id}/check-outpayment")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<CheckOutProcessResponse> processCheckOutPayment(@PathVariable Long id, HttpServletRequest request){
         ApiResponse<CheckOutProcessResponse> response = new ApiResponse<>();
         response.setData(rentalService.processCheckOutPayment(id , request.getRemoteAddr()));
@@ -92,13 +101,14 @@ public class RentalController {
     //Chưa làm phân quyền
     @PostMapping("/{id}/extend")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<String> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
-        ApiResponse<String> response = new ApiResponse<>();
+    public ApiResponse<VnpayResponse> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
+        ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
         return response;
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<RentalResponse>> searchRentals (@RequestParam String email,
                                                             @RequestParam (required = false) List<RentalStatus> status) {
         List<RentalResponse> rentalResponses = null;
@@ -113,6 +123,23 @@ public class RentalController {
         response.setStatus(200);
 
         return response;
+    }
+
+    @GetMapping("/station/{stationId}")
+    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalOfStation(@PathVariable Long stationId){
+        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setData(rentalService.getRentalOfStation(stationId));
+        apiResponse.setMessage("Get station rentals successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/email/{email}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalsByUserEmail(@PathVariable String email){
+        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Get user rental history successfully");
+        apiResponse.setData(rentalService.getRentalsByUserEmail(email));
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/filter")

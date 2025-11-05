@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.dto.responses.user;
 
 import com.swp391.e_Motion_be.dto.responses.DocumentResponse;
+import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
 import com.swp391.e_Motion_be.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,5 +23,5 @@ public class UserResponse {
     private boolean blocked;
     private List<DocumentResponse> documents;
     private Long staffId;
-    private String stationName;
+    private StationResponse station;
 }

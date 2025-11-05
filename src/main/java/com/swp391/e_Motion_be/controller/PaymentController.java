@@ -6,6 +6,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.UpdatePaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
+import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -30,14 +31,15 @@ public class PaymentController {
 
     @PostMapping("/vnpay")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<String> createPaymentUrl(HttpServletRequest request,
-                                        @RequestBody @Valid CreatePaymentUrlRequest input) throws Exception
+    public ApiResponse<VnpayResponse> createPaymentUrl(HttpServletRequest request,
+                                                       @RequestBody @Valid CreatePaymentUrlRequest input) throws Exception
     {
         String ipAddr = request.getRemoteAddr();
-        ApiResponse<String> response = new ApiResponse<>();
+        ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setMessage("Create VnPay Url Successfully");
         response.setStatus(201);
-        response.setData(paymentService.createPaymentUrl(input, ipAddr));
+        VnpayResponse data = paymentService.createPaymentUrl(input, ipAddr);
+        response.setData(data);
         return response;
     }
 
@@ -149,6 +151,16 @@ public class PaymentController {
         response.setMessage("Query Transaction Successfully");
         response.setStatus(200);
         response.setData(paymentService.queryTransaction(txnRef, request));
+        return response;
+    }
+
+    @GetMapping("/rental/{rentalId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<PaymentResponse> getPaymentByRentalId(@PathVariable Long rentalId){
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setMessage("Get Payment By Rental Id " + rentalId + " Successfully");
+        response.setStatus(200);
+        response.setData(paymentService.getPaymentByRentalId(rentalId));
         return response;
     }
 }

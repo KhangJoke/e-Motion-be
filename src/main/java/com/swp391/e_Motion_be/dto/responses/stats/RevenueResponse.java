@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RevenueInYearResponse {
-    private int month;
-    private double revenue;
+public class RevenueResponse {
+    private String name;
+    private double data;
 }

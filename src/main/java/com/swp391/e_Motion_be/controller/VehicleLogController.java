@@ -18,13 +18,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicleLogs")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class VehicleLogController {
 
     private final VehicleLogService vehicleLogService;
 
     // Create a new vehicle log
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<VehicleLogResponse> createVehicleLog(
             @RequestBody @Valid VehicleLogCreationRequest request) {
         VehicleLogResponse response = vehicleLogService.createVehicleLog(request);
@@ -33,6 +33,7 @@ public class VehicleLogController {
 
     // Get a single vehicle log by logId
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<VehicleLogResponse> getVehicleLog(@PathVariable Long id) {
         VehicleLogResponse response = vehicleLogService.findVehicleLogById(id);
         return new ApiResponse<>(200, "Success", response);
@@ -40,6 +41,7 @@ public class VehicleLogController {
 
     // Get all vehicle logs
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<VehicleLogResponse>> getAllVehicleLogs() {
         List<VehicleLogResponse> response = vehicleLogService.findAllVehicleLogs();
         return new ApiResponse<>(200, "Success", response);
@@ -47,6 +49,7 @@ public class VehicleLogController {
 
     // Update a vehicle log
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<VehicleLogResponse> updateVehicleLog(
             @PathVariable Long id,
             @RequestBody @Valid VehicleLogUpdateRequest request) {
@@ -56,6 +59,7 @@ public class VehicleLogController {
 
     // Delete a vehicle log
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<String> deleteVehicleLog(@PathVariable Long id) {
         vehicleLogService.deleteVehicleLog(id);
         return new ApiResponse<>(200, "Vehicle log deleted successfully", null);
@@ -63,6 +67,7 @@ public class VehicleLogController {
 
     // Find logs by vehicleId
     @GetMapping("/vehicle/{vehicleId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<VehicleLogResponse>> getVehicleLogsByVehicle(@PathVariable Long vehicleId) {
         List<VehicleLogResponse> response = vehicleLogService.findVehicleLogByVehicleId(vehicleId);
         return new ApiResponse<>(200, "Success", response);

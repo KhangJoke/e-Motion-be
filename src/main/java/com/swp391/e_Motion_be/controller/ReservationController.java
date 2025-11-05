@@ -22,7 +22,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -39,6 +38,7 @@ public class ReservationController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<ReservationListResponse>> getAllReservations() {
         List<ReservationListResponse> data = reservationService.getAllReservations();
         ApiResponse<List<ReservationListResponse>> response = new ApiResponse<>();
@@ -49,6 +49,7 @@ public class ReservationController {
     }
 
     @GetMapping("/{code}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<ReservationResponse> getReservationByCode(@PathVariable String code) {
         ReservationResponse reservationResponse = reservationService.getReservationByCode(code);
 
@@ -61,6 +62,7 @@ public class ReservationController {
     }
 
     @PatchMapping("/update-status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<ReservationResponse> updateReservationStatus(@RequestBody @Valid UpdateReservationStatusRequest request) {
         ReservationResponse reservationResponse = reservationService.updateReservationStatus(request);
 
@@ -73,6 +75,7 @@ public class ReservationController {
     }
 
     @DeleteMapping("/{code}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<Void> deleteReservation(@PathVariable String code) {
         reservationService.deleteReservationByCode(code);
 
@@ -95,6 +98,7 @@ public class ReservationController {
     }
 
     @GetMapping("/station/{stationName}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<ReservationResponse>> getReservationsByStationName(@PathVariable String stationName) {
         List<ReservationResponse> data = reservationService.getReservationsByStationName(stationName);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
@@ -105,6 +109,7 @@ public class ReservationController {
     }
 
     @GetMapping("/vehicle/{vehicleId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<ReservationResponse>> getReservationsByVehicleId(@PathVariable Long vehicleId) {
         List<ReservationResponse> data = reservationService.getReservationsByVehicleId(vehicleId);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
@@ -115,6 +120,7 @@ public class ReservationController {
     }
 
     @GetMapping("/time/{time}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<ReservationResponse>> getExpiredReservations(@PathVariable LocalDateTime time) {
         List<ReservationResponse> data = reservationService.getValidReservations(time);
         ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
@@ -125,6 +131,7 @@ public class ReservationController {
     }
 
     @PostMapping("/{code}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<Boolean> cancelReservation(@PathVariable String code, HttpServletRequest httpReq) {
         ApiResponse<Boolean> response = new ApiResponse<>();
         response.setData(reservationService.cancelReservation(code, httpReq));

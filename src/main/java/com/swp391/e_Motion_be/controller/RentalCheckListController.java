@@ -3,12 +3,10 @@ package com.swp391.e_Motion_be.controller;
 import com.swp391.e_Motion_be.dto.requests.checklist.PageAndFilterCheckListRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListUpdateRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicleLog.VehicleLogUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.PageAndFilterCheckListResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListListResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicleLog.VehicleLogResponse;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.service.RentalCheckListService;
 import jakarta.validation.Valid;
@@ -67,7 +65,6 @@ public class RentalCheckListController {
     }
 
     @PostMapping("/filter")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PageAndFilterCheckListResponse>> findByPageAndFilterAndSearch(@RequestBody @Valid PageAndFilterCheckListRequest request){
         ApiResponse<PageAndFilterCheckListResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(rentalCheckListService.findByPageAndFilterAndSearch(request));
