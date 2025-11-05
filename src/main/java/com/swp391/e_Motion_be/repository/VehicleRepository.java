@@ -1,11 +1,13 @@
 package com.swp391.e_Motion_be.repository;
 
-import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -57,5 +58,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             @Param("excludedRentalStatuses") List<String> excludedRentalStatuses
     );
 
-
+    Page<Vehicle> findByIdInAndBrandInAndCategoryInAndNameContains(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, String search, Pageable pageable);
 }

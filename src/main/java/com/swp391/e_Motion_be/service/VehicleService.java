@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterVehicleRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
@@ -12,6 +13,7 @@ import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.enums.vehicle.FeeType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
@@ -22,11 +24,16 @@ import com.swp391.e_Motion_be.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -220,5 +227,44 @@ public class VehicleService {
                                 vehicleRepository.countByStation_IdAndStatus(station.getId(), status)
                                 , status))
                 .toList();
+    }
+
+    public PageAndFilterVehicleResponse findByPageAndFilterAndSearch(PageAndFilterVehicleRequest request) {
+        List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
+                ? Arrays.asList(VehicleBrand.values())
+                : request.getBrands();
+
+        List<VehicleCategory> categoryList = (request.getCategories() == null || request.getCategories().isEmpty())
+                ? Arrays.asList(VehicleCategory.values())
+                : request.getCategories();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+
+        long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
+
+        List<Long> ids = vehicleRepository
+                .findByStation_CityAndStatusIn(
+                        request.getCity(),
+                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
+                ).stream()
+                .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED && r.getStatus() != ReservationStatus.CANCELLED && r.getStatus() != ReservationStatus.FAILED)
+                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) &&
+                                r.getEndTime().isAfter(request.getStartTime()))
+                        &&
+                        v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED && r.getStatus() != RentalStatus.CANCELLED)
+                                .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime()) &&
+                                        r.getEndTime().isAfter(request.getStartTime()))
+                )
+                .map(Vehicle::getId)
+                .toList();
+
+        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(ids, brandsList, categoryList, request.getSearch(), pageable);
+        List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, hours))
+                .toList();
+
+        return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
     }
 }

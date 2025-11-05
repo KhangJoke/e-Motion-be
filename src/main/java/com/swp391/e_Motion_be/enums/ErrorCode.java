@@ -42,6 +42,7 @@ public enum ErrorCode {
     VEHICLE_LOG_TYPE_EMPTY(HttpStatus.BAD_REQUEST, "Loại nhật ký phương tiện trống"),
     VEHICLE_LOG_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Cập nhật nhật ký phương tiện thất bại"),
     VEHICLE_LOG_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tạo nhật ký phương tiện thất bại"),
+    VEHICLE_LOG_RENTAL_COMPLETED(HttpStatus.BAD_REQUEST, "Không thể cập nhật nhật ký phương tiện cho thuê đã hoàn thành"),
 
     // Img Vehicle
     IMG_VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy hình ảnh phương tiện"),
@@ -95,6 +96,7 @@ public enum ErrorCode {
     STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"),
     USER_ALREADY_ASSIGNED_AS_STAFF(HttpStatus.CONFLICT, "Người dùng đã được chỉ định làm nhân viên"),
     USER_NOT_A_STAFF(HttpStatus.BAD_REQUEST, "Người dùng không phải là nhân viên"),
+    NOT_SAME_STAFF_EMAIL(HttpStatus.BAD_REQUEST, "Email nhân viên không khớp với email người tạo"),
 
     // Reservation errors
     RESERVATION_ENDTIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian kết thúc đặt chỗ phải trong tương lai"),
@@ -129,6 +131,7 @@ public enum ErrorCode {
     RENTAL_IS_NOT_ONGOING_OR_OVERDUE_FOR_CHECK_OUT(HttpStatus.BAD_REQUEST,"Trạng thái thuê xê chỉ hợp lệ cho thực hiện check out"),
     RENTAL_IS_NOT_CONFIRM_FOR_CHECK_IN(HttpStatus.BAD_REQUEST,"Trạng thái thuê xe chỉ hợp lệ cho thực hiện check in"),
     RENTAL_IS_NOT_OVERDUE_FOR_CHECK_OUT(HttpStatus.BAD_REQUEST,"Trạng thái thuê xê chỉ hợp lệ cho thực hiện check out"),
+    RENTAL_LOG_RENTAL_COMPLETED(HttpStatus.BAD_REQUEST, "Không thể cập nhật danh sách kiểm tra cho thuê đã hoàn thành"),
     // Rental errors
     RENTAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin thuê xe"),
     RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "Phương tiện đã có lịch thuê trong khoảng thời gian này, vui lòng chọn thời gian khác"),
@@ -137,6 +140,7 @@ public enum ErrorCode {
     USER_NEED_HAS_CCCD(HttpStatus.BAD_REQUEST, "Người thuê cần có CCCD"),
     USER_NEED_HAS_LICENSE(HttpStatus.BAD_REQUEST, "Người thuê cần có bằng lái xe"),
     RENTAL_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian gia hạn thuê xe phải sau thời gian kết thúc hiện tại"),
+    NOT_SAME_RENTAL(HttpStatus.BAD_REQUEST, "Mã thuê xe không khớp với mã thuê xe trong danh sách kiểm tra"),
 
     // Payment errors
     PAYMENT_NOT_EXISTS(HttpStatus.NOT_FOUND, "Không tìm thấy thanh toán"),
@@ -153,6 +157,8 @@ public enum ErrorCode {
     RENTAL_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán thuê xe"),
     DEPOSIT_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán đặt cọc"),
     CREATE_PAYMENT_URL_FAILED(HttpStatus.BAD_REQUEST, "Tạo đường dẫn thanh toán thất bại"),
+    REFUND_IS_PROCESSING(HttpStatus.BAD_REQUEST, "Yêu cầu hoàn tiền đang được xử lý"),
+    REFUND_IS_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy giao dịch yêu cầu hoàn trả"),
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Xóa hình ảnh thất bại"),

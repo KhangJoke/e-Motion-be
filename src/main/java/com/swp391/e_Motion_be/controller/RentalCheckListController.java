@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.checklist.PageAndFilterCheckListRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
+import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.PageAndFilterCheckListResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListListResponse;
@@ -64,8 +65,7 @@ public class RentalCheckListController {
     }
 
     @PostMapping("/filter")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<PageAndFilterCheckListResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterCheckListRequest request){
+    public ResponseEntity<ApiResponse<PageAndFilterCheckListResponse>> findByPageAndFilterAndSearch(@RequestBody @Valid PageAndFilterCheckListRequest request){
         ApiResponse<PageAndFilterCheckListResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(rentalCheckListService.findByPageAndFilterAndSearch(request));
         if(apiResponse.getData().getContent().isEmpty()) {
@@ -74,6 +74,14 @@ public class RentalCheckListController {
             apiResponse.setMessage("Get check lists successfully");
         }
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<RentalCheckListResponse> updateRentalCheckList(
+            @PathVariable Long id,
+            @RequestBody @Valid RentalCheckListUpdateRequest request) {
+        RentalCheckListResponse response = rentalCheckListService.updateRentalCheckList(id, request);
+        return new ApiResponse<>(200, "Rental Check List updated successfully", response);
     }
 }
 

@@ -20,7 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/stations")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class StationController {
 
     private final StationService stationService;
@@ -89,6 +88,7 @@ public class StationController {
     }
 
     @PutMapping("/{name}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<StationResponse> updateStation(@PathVariable String name,
                                                       @RequestBody StationUpdateRequest request) {
         ApiResponse<StationResponse> response = new ApiResponse<>();
@@ -98,6 +98,7 @@ public class StationController {
     }
 
     @DeleteMapping("/{name}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> deleteStation(@PathVariable String name) {
         stationService.deleteStation(name);
         ApiResponse<String> response = new ApiResponse<>();
@@ -106,7 +107,7 @@ public class StationController {
     }
 
     @GetMapping("/manage")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ManageStationResponse>>> getDataManageStation(){
         ApiResponse<List<ManageStationResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get data manage station successfully");
@@ -115,8 +116,8 @@ public class StationController {
     }
 
     @GetMapping("/revenue")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<RevenueResponse>>> getRevenueStation(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<RevenueResponse>>> getRevenueAllStation(
             @RequestParam(defaultValue = "month") String type,
             @RequestParam Integer day,
             @RequestParam Integer month,
@@ -130,7 +131,7 @@ public class StationController {
 
     @GetMapping("/revenue/{stationId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<List<RevenueResponse>>> getRevenueStation(@PathVariable Long stationId) {
+    public ResponseEntity<ApiResponse<List<RevenueResponse>>> getRevenueEachStation(@PathVariable Long stationId) {
         ApiResponse<List<RevenueResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setData(stationService.getWeeklyRevenueOfStation(stationId));
         apiResponse.setMessage("Get station revenue successfully");

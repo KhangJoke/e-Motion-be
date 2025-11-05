@@ -3,7 +3,7 @@ package com.swp391.e_Motion_be.controller;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.service.StaffService;
-import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/staffs")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class StaffController {
     private final StaffService staffService;
 

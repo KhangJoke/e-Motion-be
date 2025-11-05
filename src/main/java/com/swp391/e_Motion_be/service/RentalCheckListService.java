@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.checklist.PageAndFilterCheckListRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
+import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.checkList.PageAndFilterCheckListResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListListResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
@@ -17,6 +18,7 @@ import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
 import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -193,5 +195,31 @@ public class RentalCheckListService {
                 .toList();
 
         return new PageAndFilterCheckListResponse(checkLists, checkListPage.getTotalPages());
+    }
+
+    public RentalCheckListResponse updateRentalCheckList(Long id, @Valid RentalCheckListUpdateRequest request) {
+        RentalCheckList rentalCheckList = rentalCheckListRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_CHECKLIST_NOT_FOUND));
+
+        if(rentalCheckList.getRental().getStatus().equals(RentalStatus.COMPLETED)) {
+            throw new AppException(ErrorCode.RENTAL_LOG_RENTAL_COMPLETED);
+        }
+        if(staffRepository.findByUser_Email(request.getStaffEmail()).isEmpty()) {
+            throw new AppException(ErrorCode.STAFF_NOT_FOUND);
+        }
+        if(request.getStaffEmail().equalsIgnoreCase(rentalCheckList.getStaff().getUser().getEmail())) {
+            throw new AppException(ErrorCode.NOT_SAME_STAFF_EMAIL);
+        }
+        if(rentalRepository.findById(request.getRentalId()).isEmpty()) {
+            throw new AppException(ErrorCode.RENTAL_NOT_FOUND);
+        }
+        if(!request.getRentalId().equals(rentalCheckList.getRental().getId())) {
+            throw new AppException(ErrorCode.NOT_SAME_RENTAL);
+        }
+        rentalCheckList.setCurrentBattery(request.getCurrentBattery());
+        rentalCheckList.setImg(request.getImg());
+
+        rentalCheckListRepository.save(rentalCheckList);
+        return rentalCheckListMapper.toRentalCheckListResponse(rentalCheckList);
     }
 }

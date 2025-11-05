@@ -11,6 +11,7 @@ import com.swp391.e_Motion_be.entity.Staff;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.entity.VehicleLog;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleLogMapper;
@@ -118,6 +119,10 @@ public class VehicleLogService {
     public VehicleLogResponse updateVehicleLog(Long logId, VehicleLogUpdateRequest request) {
         VehicleLog vehicleLog = vehicleLogRepository.findById(logId)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_LOG_NOT_EXIST));
+
+        if(vehicleLog.getRental().getStatus().equals(RentalStatus.COMPLETED)) {
+            throw new AppException(ErrorCode.VEHICLE_LOG_RENTAL_COMPLETED);
+        }
 
         double totalCost = request.getRepairItems()
                 .stream()

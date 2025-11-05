@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.controller;
 
+import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterVehicleRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
@@ -8,6 +9,7 @@ import com.swp391.e_Motion_be.dto.responses.vehicle.*;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicles")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class VehicleController {
 
     private final VehicleService vehicleService;
@@ -55,18 +56,21 @@ public class VehicleController {
 
     // Create a new vehicle
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<VehicleDetailResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
         return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
     }
 
     // Update vehicle by ID
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<VehicleDetailResponse> updateVehicle(@PathVariable Long id, @RequestBody @Valid VehicleUpdateRequest request) {
         return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle(id, request));
     }
 
     // Delete vehicle by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicleById(id);
         return new ApiResponse<>(200, "Vehicle deleted successfully", null);
@@ -109,4 +113,17 @@ public class VehicleController {
         return response;
     }
 
+
+    @PostMapping("/filter")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterVehicleRequest request){
+        ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(vehicleService.findByPageAndFilterAndSearch(request));
+        if(apiResponse.getData().getContent().isEmpty()) {
+            apiResponse.setMessage("No vehicle found");
+        }else {
+            apiResponse.setMessage("Get vehicles successfully");
+        }
+        return ResponseEntity.ok(apiResponse);
+    }
 }
