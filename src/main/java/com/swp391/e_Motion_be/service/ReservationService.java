@@ -18,6 +18,7 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +52,7 @@ public class ReservationService {
     private final DepositService depositService;
     private final EmailService emailService;
     private final DocumentRepository documentRepository;
+    private final UserService userService;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -291,11 +290,12 @@ public class ReservationService {
     }
 
     public List<ReservationResponse> getReservationsByUserEmail(String email) {
-        List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(email);
-        if (reservations == null || reservations.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(user.getEmail());
         return reservations.stream()
+                .sorted(Comparator.comparing(Reservation::getCreatedAt).reversed())
                 .map(reservationMapper::toReservationResponse)
                 .toList();
     }
@@ -410,39 +410,32 @@ public class ReservationService {
     }
 
     public PageAndFilterReservationResponse findByPageAndFilterAndSearch(PageAndFilterReservationRequest request) {
+        User user = userService.currentUser();
+
         String keyword = request.getSearch();
         List<ReservationStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
                 ? Arrays.asList(ReservationStatus.values())
                 : request.getStatus();
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
-
         Page<Reservation> reservationPage;
 
-        // CASE 1: status == null
-        if (request.getStatus() == null || request.getStatus().isEmpty()) {
-            if (keyword != null && !keyword.isEmpty()) {
-                if (!keyword.matches(".*[A-Za-z].*")) {
-                    reservationPage = reservationRepository.findByCodeContaining(keyword, pageable);
-                } else {
-                    reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCase(keyword, pageable);
-                }
+        if(user.getRole() == Role.ROLE_STAFF){
+            Station station = stationRepository.findById(user.getStaff().getStation().getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+            if (!keyword.matches(".*[A-Za-z].*")) {
+                reservationPage = reservationRepository.findByCodeContainingAndStatusInAndStation_Id(keyword, statusList, station.getId(), pageable);
             } else {
-                reservationPage = reservationRepository.findAll(pageable);
+                reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCaseAndStatusInAndStation_Id(keyword, statusList, station.getId(), pageable);
             }
-        }
-        // CASE 2: có status nhưng keyword null hoặc rỗng
-        else if (keyword == null || keyword.isEmpty()) {
-            reservationPage = reservationRepository.findByStatusIn(statusList, pageable);
-        }
-        // CASE 3: có status + keyword
-        else {
+        }else{
             if (!keyword.matches(".*[A-Za-z].*")) {
                 reservationPage = reservationRepository.findByCodeContainingAndStatusIn(keyword, statusList, pageable);
             } else {
                 reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCaseAndStatusIn(keyword, statusList, pageable);
             }
         }
+
         List<ReservationListResponse> reservations = reservationPage.getContent().stream()
                 .map(reservationMapper::toReservationListResponse)
                 .toList();

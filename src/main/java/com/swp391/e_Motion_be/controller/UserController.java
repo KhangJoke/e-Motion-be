@@ -129,10 +129,9 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserByAdmin(@RequestBody @Valid UpdateUserRequest request){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
-        UserResponse userResponse = userService.updateUserByAdmin(request);
+        userService.updateUserByAdmin(request);
         apiResponse.setMessage("update user by admin successfully");
-        apiResponse.setData(userResponse);
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 
     @GetMapping("/admin/toggle-status/{email}")
@@ -145,26 +144,8 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 
-    @GetMapping("/me/history/reservations")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getReservationHistory(){
-        ApiResponse<List<ReservationResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Get user reservation history successfully");
-        apiResponse.setData(userService.getReservationHistory());
-        return ResponseEntity.ok(apiResponse);
-    }
-
-    @GetMapping("/me/history/rentals")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalHistory(){
-        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Get user rental history successfully");
-        apiResponse.setData(userService.getRentalHistory());
-        return ResponseEntity.ok(apiResponse);
-    }
-
     @GetMapping("/transactions/{staffId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<StaffStatsResponse>> getTransactions(@PathVariable Long staffId){
         ApiResponse<StaffStatsResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(userService.getTransactions(staffId));

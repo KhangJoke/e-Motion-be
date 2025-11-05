@@ -5,8 +5,9 @@ import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.station.ManageStationResponse;
-import com.swp391.e_Motion_be.dto.responses.station.RevenueStationResponse;
+import com.swp391.e_Motion_be.dto.responses.station.StationDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
+import com.swp391.e_Motion_be.dto.responses.stats.RevenueResponse;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.service.StationService;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,15 @@ public class StationController {
         return response;
     }
 
+    @GetMapping("/{stationId}")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<StationDetailResponse> getStationById(@PathVariable Long stationId) {
+        ApiResponse<StationDetailResponse> response = new ApiResponse<>();
+        response.setData(stationService.getStationById(stationId));
+        response.setMessage("Get station by ID successfully");
+        return response;
+    }
+
     @GetMapping("/address/{address}")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<StationResponse>> getStationsByAddress(@PathVariable String address) {
@@ -96,7 +106,7 @@ public class StationController {
     }
 
     @GetMapping("/manage")
-//    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<List<ManageStationResponse>>> getDataManageStation(){
         ApiResponse<List<ManageStationResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get data manage station successfully");
@@ -105,24 +115,25 @@ public class StationController {
     }
 
     @GetMapping("/revenue")
-//    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<RevenueStationResponse>>> getRevenueStation(
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<RevenueResponse>>> getRevenueStation(
             @RequestParam(defaultValue = "month") String type,
             @RequestParam Integer day,
             @RequestParam Integer month,
             @RequestParam Integer year
     ) {
-        ApiResponse<List<RevenueStationResponse>> apiResponse = new ApiResponse<>();
+        ApiResponse<List<RevenueResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setData(stationService.getRevenueStation(type, day, month, year));
         apiResponse.setMessage("Get station revenue successfully");
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/manage/rentals")
-    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalOfStation(@RequestParam Long stationId){
-        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setData(stationService.getRentalOfStation(stationId));
-        apiResponse.setMessage("Get station rentals successfully");
+    @GetMapping("/revenue/{stationId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<List<RevenueResponse>>> getRevenueStation(@PathVariable Long stationId) {
+        ApiResponse<List<RevenueResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setData(stationService.getWeeklyRevenueOfStation(stationId));
+        apiResponse.setMessage("Get station revenue successfully");
         return ResponseEntity.ok(apiResponse);
     }
 

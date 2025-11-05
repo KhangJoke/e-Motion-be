@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface StaffRepository extends JpaRepository<Staff, Long> {
     Optional<Staff> findByUser_Email(String email);
-    boolean existsByUser(User user);
-    Long countByStation_Id(Long stationId);
-    Optional<Staff> findByUser_Id(Long id);
+    boolean existsByUser_Email(String email);
+    Long countByIsDeleteFalseAndStation_Id(Long stationId);
+
 }

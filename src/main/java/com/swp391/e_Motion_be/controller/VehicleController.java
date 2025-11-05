@@ -4,10 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.FeeResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleScheduleResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.*;
 import com.swp391.e_Motion_be.service.VehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -102,4 +99,14 @@ public class VehicleController {
         response.setData(vehicleService.getListFeeBooking(vid, start, end));
         return response;
     }
+
+    @GetMapping("/status/{stationId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<List<VehicleQuantityEachStatusResponse>> getVehicleQuantityEachStatusOfStation(@PathVariable Long stationId){
+        ApiResponse<List<VehicleQuantityEachStatusResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.getVehicleQuantityEachStatusOfStation(stationId));
+        response.setMessage("Get vehicle of station successfully");
+        return response;
+    }
+
 }

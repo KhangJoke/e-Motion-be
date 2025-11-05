@@ -1,7 +1,5 @@
 package com.swp391.e_Motion_be.service;
 
-import com.swp391.e_Motion_be.dto.requests.staff.StaffCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.staff.StaffUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.entity.Staff;
 import com.swp391.e_Motion_be.entity.Station;
@@ -26,36 +24,31 @@ public class StaffService {
     private final UserRepository userRepository;
     private final StaffMapper staffMapper;
 
-    public StaffResponse createStaff(StaffCreationRequest request){
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+    public Staff createStaff(User user, Long stationId){
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
 
-        Station station = stationRepository.findByNameIgnoreCase(request.getStationName()).orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-
-        if(staffRepository.existsByUser(user)){
+        if(staffRepository.existsByUser_Email(user.getEmail())){
             throw new AppException(ErrorCode.USER_ALREADY_ASSIGNED_AS_STAFF);
         }
 
-        user.setRole(Role.ROLE_STAFF);
-        userRepository.save(user);
-
-        Staff staff = staffMapper.toStaffEntity(request);
-        staff.setUser(user);
+        Staff staff = new Staff();
+        staff.setUser(user); // nếu chưa có user thì sẽ tự lưu với persist
         staff.setStation(station);
-        staffRepository.save(staff);
-        return staffMapper.toStaffResponse(staff);
+
+        return staffRepository.save(staff);
     }
 
-    public StaffResponse updateStaff(StaffUpdateRequest request){
-        Staff staff = staffRepository.findByUser_Email(request.getEmail())
+    public void updateStaff(String email, Long stationId){
+        Staff staff = staffRepository.findByUser_Email(email)
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
-        Station newStation = stationRepository.findByNameIgnoreCase(request.getNewStationName())
+        Station newStation = stationRepository.findById(stationId)
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-        staff.setStation(newStation);
-        staffRepository.save(staff);
 
-        return staffMapper.toStaffResponse(staff);
+        staff.setStation(newStation);
+        staff.setDelete(false);
+        staffRepository.save(staff);
     }
 
     public void deleteStaff(String email) {

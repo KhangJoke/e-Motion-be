@@ -18,6 +18,7 @@ import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.StaffService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -52,6 +53,15 @@ public class UserService {
     private final ReservationMapper reservationMapper;
     private final RentalMapper rentalMapper;
     private final StaffRepository staffRepository;
+    private final StaffService staffService;
+
+    public User currentUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = ((User) authentication.getPrincipal()).getEmail();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+    }
 
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
@@ -72,9 +82,7 @@ public class UserService {
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-        if(user.getRole() == Role.ROLE_STAFF){
-            return userMapper.toStaffResponse(user);
-        }
+
         return userMapper.toUserResponse(user);
     }
 
@@ -137,6 +145,7 @@ public class UserService {
     }
 
     public PageAndFilterUserResponse findByPageAndFilterAndSearch(PageAndFilterUserRequest request) {
+        User user = currentUser();
         List<Role> roleList = (request.getRoleList() == null || request.getRoleList().isEmpty())
                 ? List.of(Role.ROLE_USER, Role.ROLE_ADMIN, Role.ROLE_STAFF)
                 : request.getRoleList();
@@ -147,15 +156,21 @@ public class UserService {
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
         Page<User> userPage;
-        if(request.getStationId() != null) {
+
+        if(user.getRole() == Role.ROLE_STAFF){
+            Station station = stationRepository.findById(user.getStaff().getStation().getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+            userPage = userRepository.findUsersByStaff(blockedList, List.of(Role.ROLE_STAFF, Role.ROLE_USER), request.getSearch(), station.getId(), pageable);
+        }else if(request.getStationId() != null) {
             Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
             userPage = userRepository.findByBlockedInAndRoleInAndEmailContainsAndStaff_Station_Id(blockedList, List.of(Role.ROLE_STAFF), request.getSearch(), station.getId(), pageable);
         }else{
             userPage = userRepository.findByBlockedInAndRoleInAndEmailContains(blockedList, roleList, request.getSearch(), pageable);
         }
+
         List<UserResponse> users = userPage.getContent().stream()
-                .map(userMapper::toUserResponseWithoutDocument)
+                .map(userMapper::toUserResponse)
                 .toList();
 
         return new PageAndFilterUserResponse(users, userPage.getTotalPages());
@@ -201,7 +216,7 @@ public class UserService {
         }).toList();
     }
 
-    public List<RevenueInYearResponse> getRevenueInYearDashboard(){
+    public List<RevenueResponse> getRevenueInYearDashboard(){
         List<Rental> rentals = rentalRepository.findAll().stream()
                 .filter(r -> r.getStatus() == RentalStatus.COMPLETED)
                 .filter(r -> r.getEndTime().getYear() == LocalDateTime.now().getYear())
@@ -212,8 +227,8 @@ public class UserService {
                         Collectors.summingDouble(Rental::getRentFee)));
 
         return IntStream.rangeClosed(1, 12)
-                .mapToObj(month -> new RevenueInYearResponse(
-                        Month.of(month).getValue(), // tên tháng (JANUARY, FEBRUARY,...)
+                .mapToObj(month -> new RevenueResponse(
+                        "T" + Month.of(month).getValue(), // tên tháng (JANUARY, FEBRUARY,...)
                         revenueByMonth.getOrDefault(month, 0.0)
                 ))
                 .toList();
@@ -236,7 +251,7 @@ public class UserService {
                 .toList();
     }
 
-    private List<Integer> getPeakHours(List<Rental> rentals){
+    public List<Integer> getPeakHours(List<Rental> rentals){
         Map<Integer, Long> hourFrequency = rentals.stream()
                 .filter(rental -> (rental.getStatus() == RentalStatus.COMPLETED || rental.getStatus() == RentalStatus.ONGOING))
                 .filter(r -> r.getEndTime().getYear() == LocalDateTime.now().getYear())
@@ -268,7 +283,7 @@ public class UserService {
     public DataAdminDashboard getDataAdminDashboard(){
         TotalStatsResponse totalStats = getTotalStatsDashboard();
         List<StationStatsResponse> stationDetails = getStationDetailDashboard();
-        List<RevenueInYearResponse> revenueInYear = getRevenueInYearDashboard();
+        List<RevenueResponse> revenueInYear = getRevenueInYearDashboard();
         List<PeakHourResponse> peakHours = getPeakHoursInMonthDashboard();
 
         return new DataAdminDashboard(totalStats, stationDetails, revenueInYear, peakHours);
@@ -288,6 +303,14 @@ public class UserService {
         newUser.setPhone(request.getPhone());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setRole(request.getRole());
+        if(request.getRole() == Role.ROLE_STAFF) {
+            if(request.getStationId() != null){
+                Staff staff = staffService.createStaff(newUser, request.getStationId());
+                newUser.setStaff(staff);
+            }else{
+                throw new AppException(ErrorCode.STATION_NOT_FOUND);
+            }
+        }
         newUser.setEnabled(true);
         newUser.setBlocked(false);
 
@@ -303,67 +326,24 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public List<ReservationResponse> getReservationHistory() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = ((User) authentication.getPrincipal()).getEmail();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-
-        return reservationRepository.findByUser_Id(user.getId()).stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
-    }
-
-    public List<RentalResponse> getRentalHistory() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = ((User) authentication.getPrincipal()).getEmail();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-
-        List<Rental> rentals = rentalRepository.findByUser_Id(user.getId());
-        return rentals.stream()
-                .map(rentalMapper::toRentalResponse)
-                .toList();
-    }
-
-    public UserResponse updateUserByAdmin(UpdateUserRequest request) {
+    public void updateUserByAdmin(UpdateUserRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-
-        if(!user.getPhone().equals(request.getPhone()) && userRepository.existsByPhone(request.getPhone())) {
-            throw new AppException(ErrorCode.PHONE_EXITS);
-        }
-        if(request.getFullName() != null && !request.getFullName().isEmpty()) {
-            user.setFullName(request.getFullName());
-        }
-        if(request.getPhone() != null && !request.getPhone().isEmpty()) {
-            user.setPhone(request.getPhone());
-        }
-        if(request.getPassword() != null && !request.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
-        if(request.getRole() != null) {
-            if(user.getRole() == Role.ROLE_STAFF && request.getRole() != Role.ROLE_STAFF) {
-                // If changing from STAFF to other role, remove staff record
-                Staff staff = staffRepository.findByUser_Id(user.getId())
-                        .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-                staffRepository.delete(staff);
+        user.setRole(request.getRole());
+        if(request.getRole() == Role.ROLE_STAFF) {
+            if (request.getStationId() != null) {
+                staffService.updateStaff(user.getEmail(), request.getStationId());
+            } else {
+                throw new AppException(ErrorCode.STATION_NOT_FOUND);
             }
-            if(user.getRole() != Role.ROLE_STAFF && request.getRole() == Role.ROLE_STAFF) {
-                Staff newStaff = new Staff();
-                newStaff.setUser(user);
-                newStaff.setStation(stationRepository.findById(request.getStationId())
-                        .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND)));
-                staffRepository.save(newStaff);
-            }
-            user.setRole(request.getRole());
+        } else {
+            staffRepository.findByUser_Email(request.getEmail())
+                    .ifPresent(staff -> {
+                        staff.setDelete(true);
+                        staffRepository.save(staff);
+                    });
         }
-
         userRepository.save(user);
-
-        return userMapper.toUserResponseWithoutDocument(user);
     }
 
     public StaffStatsResponse getTransactions(Long staffId) {

@@ -30,4 +30,5 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     List<Rental> findByUserEmailContains(String email);
     List<Rental> findByUserEmailContainsAndStatusIn(String email, List<RentalStatus> status);
     Page<Rental> findByStatusInAndUser_EmailContains(List<RentalStatus> statusList, String search, Pageable pageable);
+    Page<Rental> findByStatusInAndUser_EmailContainsAndStation_Id(List<RentalStatus> statusList, String search, Long stationId, Pageable pageable);
 }

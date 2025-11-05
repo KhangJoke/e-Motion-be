@@ -12,6 +12,6 @@ import java.util.List;
 public class DataAdminDashboard {
     private TotalStatsResponse totalStats;
     private List<StationStatsResponse> stationStats;
-    private List<RevenueInYearResponse> revenueInYear;
+    private List<RevenueResponse> revenueInYear;
     private List<PeakHourResponse> peakHours;
 }

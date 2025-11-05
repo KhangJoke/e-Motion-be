@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Station;
 import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -23,6 +24,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByBrandAndStatus(VehicleBrand brand,VehicleStatus status);
     long countByStation_Id(Long stationId);
     List<Vehicle> findByStation_Id(Long stationId);
+    long countByStation_IdAndStatus(Long stationId, VehicleStatus vehicleStatus);
 
     @Query(value = """
         SELECT EXISTS (

@@ -26,10 +26,10 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(List<ReservationStatus> status, LocalDateTime time);
     List<Reservation> findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(Collection<ReservationStatus> status, LocalDateTime startTime);
 
-    Page<Reservation> findByCodeContaining(String code, Pageable pageable);
-    Page<Reservation> findByUser_EmailContainingIgnoreCase(String email, Pageable pageable);
-    Page<Reservation> findByStatusIn(List<ReservationStatus> statusList, Pageable pageable);
     Page<Reservation> findByUser_EmailContainingIgnoreCaseAndStatusIn(String keyword, List<ReservationStatus> status, Pageable pageable);
     Page<Reservation> findByCodeContainingAndStatusIn(String keyword, List<ReservationStatus> status,
+                                                      Pageable pageable);
+    Page<Reservation> findByUser_EmailContainingIgnoreCaseAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId, Pageable pageable);
+    Page<Reservation> findByCodeContainingAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId,
                                                       Pageable pageable);
 }

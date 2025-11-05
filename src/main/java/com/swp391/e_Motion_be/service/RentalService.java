@@ -16,6 +16,7 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +25,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -49,6 +53,7 @@ public class RentalService {
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
     private final PaymentService paymentService;
+    private final UserService userService;
 
     @Value("${price.8h.rate}")
     private double price8hRate;
@@ -136,12 +141,12 @@ public class RentalService {
         // save rental
         // set status của xe sang đang thuê
         vehicle.setStatus(VehicleStatus.UNAVAILABLE);
-        rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime()) - reservationDepositAmount); // Tiền thuê
+        rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime())); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
                 DepositStatus.PENDING,
-                vehicle.getDepositFee(), // Cọc xe
+                vehicle.getDepositFee() - reservationDepositAmount, // Cọc xe
                 null,
                 rental.getId()
         );
@@ -455,16 +460,48 @@ public class RentalService {
     }
 
     public PageAndFilterRentalResponse findByPageAndFilterAndSearch(PageAndFilterRentalRequest request) {
+        User user = userService.currentUser();
+
         List<RentalStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
                 ? Arrays.asList(RentalStatus.values())
                 : request.getStatus();
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
-        Page<Rental> rentalPage = rentalRepository.findByStatusInAndUser_EmailContains(statusList, request.getSearch(), pageable);
+        Page<Rental> rentalPage;
+
+        if(user.getRole() == Role.ROLE_STAFF){
+            Station station = stationRepository.findById(user.getStaff().getStation().getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+            rentalPage = rentalRepository.findByStatusInAndUser_EmailContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+        }else{
+            rentalPage = rentalRepository.findByStatusInAndUser_EmailContains(statusList, request.getSearch(), pageable);
+        }
+
         List<RentalListResponse> rentals = rentalPage.getContent().stream()
                 .map(rentalMapper::toRentalListResponse)
                 .toList();
 
         return new PageAndFilterRentalResponse(rentals, rentalPage.getTotalPages());
+    }
+
+    public List<RentalResponse> getRentalOfStation(Long stationId){
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+        return rentalRepository.findByStation_Id(station.getId()).stream()
+                .sorted(Comparator.comparing(Rental::getCreatedAt).reversed())
+                .map(rentalMapper::toRentalResponse)
+                .toList();
+    }
+
+    public List<RentalResponse> getRentalsByUserEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        List<Rental> rentals = rentalRepository.findByUser_Id(user.getId());
+        return rentals.stream()
+                .sorted(Comparator.comparing(Rental::getCreatedAt).reversed())
+                .map(rentalMapper::toRentalResponse)
+                .toList();
     }
 }

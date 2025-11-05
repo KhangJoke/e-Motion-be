@@ -1,7 +1,5 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.staff.StaffCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.staff.StaffUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.service.StaffService;
@@ -19,13 +17,6 @@ import java.util.List;
 public class StaffController {
     private final StaffService staffService;
 
-    @PostMapping
-    public ApiResponse<StaffResponse> createStaff(@RequestBody @Valid StaffCreationRequest request){
-        ApiResponse<StaffResponse> response = new ApiResponse<>();
-        response.setData(staffService.createStaff(request));
-        response.setMessage("Create staff successfully");
-        return response;
-    }
 
     @GetMapping("/{email}")
     @PreAuthorize("isAuthenticated()")
@@ -49,15 +40,6 @@ public class StaffController {
         staffService.deleteStaff(email);
         ApiResponse<Void> response = new ApiResponse<>();
         response.setMessage("Delete staff by email successfully");
-        return response;
-    }
-
-    @PutMapping("/{email}")
-    public ApiResponse<StaffResponse> updateStaffByEmail(@PathVariable String email,
-                                                      @RequestBody @Valid StaffUpdateRequest request){
-        ApiResponse<StaffResponse> response = new ApiResponse<>();
-        response.setData(staffService.updateStaff(request));
-        response.setMessage("Update staff by id successfully");
         return response;
     }
 }

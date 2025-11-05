@@ -115,6 +115,23 @@ public class RentalController {
         return response;
     }
 
+    @GetMapping("/station/{stationId}")
+    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalOfStation(@PathVariable Long stationId){
+        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setData(rentalService.getRentalOfStation(stationId));
+        apiResponse.setMessage("Get station rentals successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/email/{email}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalsByUserEmail(@PathVariable String email){
+        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Get user rental history successfully");
+        apiResponse.setData(rentalService.getRentalsByUserEmail(email));
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @PostMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PageAndFilterRentalResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterRentalRequest request){

@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -207,5 +208,17 @@ public class VehicleService {
         fees.add(total);
 
         return fees;
+    }
+
+    public List<VehicleQuantityEachStatusResponse> getVehicleQuantityEachStatusOfStation(Long stationId){
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+        return Stream.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING, VehicleStatus.MAINTAINED)
+                .map(status ->
+                        new VehicleQuantityEachStatusResponse(
+                                vehicleRepository.countByStation_IdAndStatus(station.getId(), status)
+                                , status))
+                .toList();
     }
 }
