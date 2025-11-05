@@ -15,33 +15,60 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Email;
+import com.sendgrid.helpers.mail.objects.Content;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     @Autowired
     private TemplateEngine templateEngine;
+
+    @Value("${sendgrid.api.key}")
+    private String sendGridApiKey;
+
     private final JavaMailSender emailSender;
     private final RentalCheckListRepository rentalCheckListRepository;
 
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
-        MimeMessage mimeMessage = emailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+        Email from = new Email("030739230108@st.buh.edu.vn"); // verified sender
+        Email toEmail = new Email(to);
+        Content content = new Content("text/html", text);
+        Mail mail = new Mail(from, subject, toEmail, content);
 
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(text, true);
+        SendGrid sg = new SendGrid(sendGridApiKey);
+        Request request = new Request();
 
-        emailSender.send(mimeMessage);
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sg.api(request);
+
+
+            System.out.println("SendGrid Response Code: " + response.getStatusCode());
+            System.out.println("SendGrid Response Body: " + response.getBody());
+            System.out.println("SendGrid Response Headers: " + response.getHeaders());
+
+            if (response.getStatusCode() >= 400) {
+                System.err.println("SendGrid error: " + response.getStatusCode() + " " + response.getBody());
+                throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+            }
+        } catch (IOException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
     }
 
     public void sendEmail(String to, String subject, String htmlMessage) {
