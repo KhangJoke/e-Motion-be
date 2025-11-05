@@ -25,9 +25,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -292,7 +291,7 @@ public class RentalService {
         request.setRentalId(rental.getId());
         request.setDepositId(rental.getDeposit().getId());
         request.setType(PaymentType.RENTAL);
-        request.setAmount(rental.getRentFee()+rentalDepositAmount);
+        request.setAmount(rental.getRentFee()+rentalDepositAmount+reservationDepositAmount);
         request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
         request.setUserEmail(rental.getUser().getEmail());
 

@@ -420,6 +420,19 @@ public class PaymentService {
                 paymentRepository.save(refundPayment);
                 log.info("Refund payment created successfully: {}", refundTxnRef);
 
+                List<Deposit> releaseDeposit = new ArrayList<>();
+                if(originalPayment.getDeposit() != null){
+                    releaseDeposit.add(originalPayment.getDeposit());
+                }
+                if(originalPayment.getRental().getReservation() != null){
+                    releaseDeposit.add(originalPayment.getRental().getReservation().getDeposit());
+                }
+
+                for(Deposit deposit : releaseDeposit){
+                    deposit.setStatus(DepositStatus.RELEASED);
+                    depositRepository.save(deposit);
+                }
+
                 return paymentMapper.toPaymentResponse(refundPayment);
             }
 
