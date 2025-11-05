@@ -462,7 +462,7 @@ public class RentalService {
                 ? Arrays.asList(RentalStatus.values())
                 : request.getStatus();
 
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
         Page<Rental> rentalPage;
 
         if(user.getRole() == Role.ROLE_STAFF){

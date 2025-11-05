@@ -820,4 +820,10 @@ public class PaymentService {
         }while(reservationRepository.findByCode(String.valueOf(code)).isPresent());
         return String.valueOf(code);
     }
+
+    public PaymentResponse getPaymentByRentalId(Long rentalId) {
+        Payment payment = paymentRepository.getPaymentByTypeAndRentalId(PaymentType.RENTAL, rentalId)
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
+        return paymentMapper.toPaymentResponse(payment);
+    }
 }

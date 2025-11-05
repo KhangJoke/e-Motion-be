@@ -417,7 +417,7 @@ public class ReservationService {
                 ? Arrays.asList(ReservationStatus.values())
                 : request.getStatus();
 
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
         Page<Reservation> reservationPage;
 
         if(user.getRole() == Role.ROLE_STAFF){
