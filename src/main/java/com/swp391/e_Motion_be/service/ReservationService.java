@@ -142,7 +142,7 @@ public class ReservationService {
                 depositResponse.getId(),
                 null
         );
-        String url = paymentService.createPaymentUrl(paymentUrlRequest, httpReq.getRemoteAddr());
+        String url = paymentService.createPaymentUrl(paymentUrlRequest, httpReq.getRemoteAddr()).getUrl();
 
         log.info("Payment URL created for reservation: {}", reservation.getId());
 

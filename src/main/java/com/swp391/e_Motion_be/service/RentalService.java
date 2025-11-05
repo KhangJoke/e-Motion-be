@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.*;
+import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
@@ -276,7 +277,7 @@ public class RentalService {
     }
 
     @Transactional
-    public String processCheckInPayment(Long id, String ipAddr) throws Exception {
+    public VnpayResponse processCheckInPayment(Long id, String ipAddr) throws Exception {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
@@ -322,7 +323,7 @@ public class RentalService {
             request.setUserEmail(rental.getUser().getEmail());
 
             try {
-                String url = paymentService.createPaymentUrl(request, remoteAddr);
+                String url = paymentService.createPaymentUrl(request, remoteAddr).getUrl();
                 emailService.sendPaymentStatusToEmail(rental.getPayments()
                         .stream()
                         .filter(p -> p.getType() == PaymentType.PENALTY_FEE_RENTAL)
@@ -366,7 +367,7 @@ public class RentalService {
         }
     }
 
-    public String extendRentalReturnTime(Long id, LocalDateTime newReturnTime, String ipAddr) throws Exception {
+    public VnpayResponse extendRentalReturnTime(Long id, LocalDateTime newReturnTime, String ipAddr) throws Exception {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 

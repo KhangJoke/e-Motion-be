@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.UpdatePaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
+import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -19,6 +20,7 @@ import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.PaymentMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.util.QRCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +54,7 @@ public class PaymentService {
     private final EmailService emailService;
 
     @Transactional
-    public String createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
+    public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
         log.info("Creating payment URL for user: {}", request.getUserEmail());
 
         String vnp_Version = "2.1.0";
@@ -152,7 +154,7 @@ public class PaymentService {
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + query;
         log.info("Payment URL created successfully for txnRef: {}", vnp_TxnRef);
 
-        return paymentUrl;
+        return new VnpayResponse(paymentUrl, QRCode.generateVnpayQR(paymentUrl));
     }
 
     @Transactional

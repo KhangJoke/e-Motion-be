@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
@@ -83,8 +84,8 @@ public class RentalController {
 
     @PostMapping("/{id}/check-inpayment")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
-    public ApiResponse<String> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
-        ApiResponse<String> response = new ApiResponse<>();
+    public ApiResponse<VnpayResponse> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
+        ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setData(rentalService.processCheckInPayment(id , request.getRemoteAddr()));
         return response;
     }
@@ -100,8 +101,8 @@ public class RentalController {
     //Chưa làm phân quyền
     @PostMapping("/{id}/extend")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<String> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
-        ApiResponse<String> response = new ApiResponse<>();
+    public ApiResponse<VnpayResponse> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
+        ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
         return response;
     }
