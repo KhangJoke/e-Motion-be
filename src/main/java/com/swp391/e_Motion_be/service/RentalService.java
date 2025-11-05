@@ -291,7 +291,7 @@ public class RentalService {
         request.setRentalId(rental.getId());
         request.setDepositId(rental.getDeposit().getId());
         request.setType(PaymentType.RENTAL);
-        request.setAmount(rental.getRentFee()+rentalDepositAmount+reservationDepositAmount);
+        request.setAmount(rental.getRentFee()+rentalDepositAmount);
         request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
         request.setUserEmail(rental.getUser().getEmail());
 
@@ -309,7 +309,7 @@ public class RentalService {
 
         RentalOverviewResponse overview = getRentalOverviewById(id);
         double totalCharges = overview.getVehicleDamageFee() + overview.getCheckListFee();
-        double totalDeposits = overview.getRentalDeposit();
+        double totalDeposits = overview.getRentalDeposit() + overview.getReservationDeposit();
         double balance = totalCharges - totalDeposits;
 
         // TRƯỜNG HỢP 1: Khách hàng cần trả thêm tiền
