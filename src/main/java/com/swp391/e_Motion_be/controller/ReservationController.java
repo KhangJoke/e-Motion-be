@@ -61,6 +61,19 @@ public class ReservationController {
         return response;
     }
 
+    @GetMapping("/me/{code}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<ReservationResponse> getOwnReservationByCode(@PathVariable String code) {
+        ReservationResponse reservationResponse = reservationService.getOwnReservationByCode(code);
+
+        ApiResponse<ReservationResponse> response = new ApiResponse<>();
+        response.setData(reservationResponse);
+        response.setMessage("Fetched reservation successfully");
+        response.setStatus(200);
+
+        return response;
+    }
+
     @PatchMapping("/update-status")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<ReservationResponse> updateReservationStatus(@RequestBody @Valid UpdateReservationStatusRequest request) {

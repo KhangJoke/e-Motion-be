@@ -272,6 +272,18 @@ public class ReservationService {
         return reservationMapper.toReservationResponse(reservation);
     }
 
+    public ReservationResponse getOwnReservationByCode(String code) {
+        User currentUser = userService.currentUser();
+
+        Reservation reservation = reservationRepository.findByCode(code)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if(!reservation.getUser().getEmail().equals(currentUser.getEmail())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        return reservationMapper.toReservationResponse(reservation);
+    }
+
     public ReservationResponse updateReservationStatus(UpdateReservationStatusRequest request) {
         Reservation reservation = reservationRepository.findByCode(request.getReservationCode())
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));

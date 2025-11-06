@@ -500,4 +500,16 @@ public class RentalService {
                 .map(rentalMapper::toRentalResponse)
                 .toList();
     }
+
+    public RentalResponse getOwnRentalDetails(long id) {
+        User user = userService.currentUser();
+
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+        if(!rental.getUser().getEmail().equals(user.getEmail())){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return rentalMapper.toRentalResponse(rental);
+    }
 }

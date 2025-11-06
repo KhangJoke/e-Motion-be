@@ -74,6 +74,14 @@ public class RentalController {
         return response;
     }
 
+    @GetMapping("/me/details/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<RentalResponse> getOwnRentalDetails(@PathVariable Long id){
+        ApiResponse<RentalResponse> response = new ApiResponse<>();
+        response.setData(rentalService.getOwnRentalDetails(id));
+        return response;
+    }
+
     @GetMapping("/{id}/overview")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<RentalOverviewResponse> getRentalOverview(@PathVariable Long id){
