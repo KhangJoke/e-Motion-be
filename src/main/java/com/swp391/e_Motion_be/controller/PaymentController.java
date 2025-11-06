@@ -153,4 +153,14 @@ public class PaymentController {
         response.setData(paymentService.queryTransaction(txnRef, request));
         return response;
     }
+
+    @GetMapping("/rental/{rentalId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<PaymentResponse> getPaymentByRentalId(@PathVariable Long rentalId){
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setMessage("Get Payment By Rental Id " + rentalId + " Successfully");
+        response.setStatus(200);
+        response.setData(paymentService.getPaymentByRentalId(rentalId));
+        return response;
+    }
 }
