@@ -5,10 +5,11 @@ import com.swp391.e_Motion_be.entity.Payment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring" , uses = {RentalMapper.class , DepositMapper.class})
+@Mapper(componentModel = "spring" , uses = {RentalMapper.class , DepositMapper.class, ReservationMapper.class})
 public interface PaymentMapper {
     @Mapping(source = "user.email", target = "userEmail")
     @Mapping(source = "rental", target = "rentalResponse")
     @Mapping(source = "deposit", target = "depositResponse")
+    @Mapping(source = "deposit.reservation", target = "reservationResponse")
     PaymentResponse toPaymentResponse(Payment payment);
 }

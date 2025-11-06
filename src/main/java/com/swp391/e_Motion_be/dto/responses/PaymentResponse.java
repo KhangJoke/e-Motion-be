@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.dto.responses;
 
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +30,7 @@ public class PaymentResponse {
     private LocalDateTime payDate;// vnp_PayDate
 
     private String userEmail;
+    private ReservationResponse reservationResponse;
     private RentalResponse rentalResponse;
     private DepositResponse depositResponse;
 }
