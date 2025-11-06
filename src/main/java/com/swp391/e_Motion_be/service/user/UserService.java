@@ -160,7 +160,7 @@ public class UserService {
         if(user.getRole() == Role.ROLE_STAFF){
             Station station = stationRepository.findById(user.getStaff().getStation().getId())
                     .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-            userPage = userRepository.findUsersByStaff(blockedList, List.of(Role.ROLE_STAFF, Role.ROLE_USER), request.getSearch(), station.getId(), pageable);
+            userPage = userRepository.findUsersByStaff(blockedList, roleList, request.getSearch(), station.getId(), pageable);
         }else if(request.getStationId() != null) {
             Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
