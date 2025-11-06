@@ -62,7 +62,7 @@ public class ReservationController {
     }
 
     @GetMapping("/me/{code}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<ReservationResponse> getOwnReservationByCode(@PathVariable String code) {
         ReservationResponse reservationResponse = reservationService.getOwnReservationByCode(code);
 
