@@ -822,7 +822,7 @@ public class PaymentService {
     }
 
     public PaymentResponse getPaymentByRentalId(Long rentalId) {
-        Payment payment = paymentRepository.getPaymentByTypeAndRentalId(PaymentType.RENTAL, rentalId)
+        Payment payment = paymentRepository.findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType.RENTAL, rentalId)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
         return paymentMapper.toPaymentResponse(payment);
     }
