@@ -321,7 +321,7 @@ public class RentalService {
             request.setAmount(balance);
             request.setDescription("Check-out Payment for Rental ID: " + rental.getId());
             request.setUserEmail(rental.getUser().getEmail());
-
+            rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
             try {
                 String url = paymentService.createPaymentUrl(request, remoteAddr).getUrl();
                 emailService.sendPaymentStatusToEmail(rental.getPayments()
@@ -353,6 +353,7 @@ public class RentalService {
             }
 
             rental.setStatus(RentalStatus.COMPLETED);
+            rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
             Rental updatedRental = rentalRepository.save(rental);
             Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElseThrow(
                     () -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS)
