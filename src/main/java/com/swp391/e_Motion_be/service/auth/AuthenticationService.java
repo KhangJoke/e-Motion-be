@@ -11,7 +11,6 @@ import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
-import com.swp391.e_Motion_be.repository.RedisTokenRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import com.swp391.e_Motion_be.service.EmailService;
 import jakarta.mail.MessagingException;
@@ -40,7 +39,7 @@ public class AuthenticationService {
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
     private final UserMapper userMapper;
-    private final RedisTokenRepository redisTokenRepository;
+    private final RedisTokenService redisTokenService;
 
     public User signup(RegisterUserDto input) {
         User oldUser = userRepository.findByEmail(input.getEmail()).orElse(null);
@@ -91,7 +90,7 @@ public class AuthenticationService {
                 .expiredTime(jwtService.extractExpiration(accessToken).getTime() - new Date().getTime())
                 .build();
 
-        redisTokenRepository.save(redisToken);
+        redisTokenService.save(redisToken);
         log.info("Logout success");
     }
 

@@ -20,4 +20,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     boolean existsByDepositIdAndTypeAndStatus(Long depositId, PaymentType type, PaymentStatus status);
     Optional<Payment> findByRental_IdAndType(Long rental_id, PaymentType type);
     Optional<Payment> findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType paymentType, Long rentalId);
+    Optional<Payment> findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType paymentType, Long id);
 }

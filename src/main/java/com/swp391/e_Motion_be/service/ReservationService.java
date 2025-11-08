@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,7 @@ public class ReservationService {
     private final EmailService emailService;
     private final DocumentRepository documentRepository;
     private final UserService userService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -69,7 +71,7 @@ public class ReservationService {
 
         // Check có đang thuê hoặc đặt trước xe khác không
         boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
-        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED, ReservationStatus.CANCELLED));
         if(hasOngoingRental || hasOngoingReservation) {
             throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
         }
@@ -94,6 +96,15 @@ public class ReservationService {
         }
 
         // Check vehicle availability - combine both checks for efficiency
+        String holdVehicle = (String) redisTemplate.opsForValue().get("vehicle:" + request.getVehicleId());
+        if(holdVehicle != null){
+            String[] parts = holdVehicle.split("\\|");
+            LocalDateTime holdStart  = LocalDateTime.parse(parts[0]);
+            LocalDateTime holdEnd  = LocalDateTime.parse(parts[1]);
+            if (isOverlappingOrClose(holdStart, holdEnd, request.getStartTime(), request.getEndTime())) {
+                throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
+            }
+        }
         if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime())) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
@@ -172,6 +183,13 @@ public class ReservationService {
         );
 
         return conflictCount > 0;
+    }
+
+    private boolean isOverlappingOrClose(LocalDateTime holdStart, LocalDateTime holdEnd,
+                                         LocalDateTime newStart, LocalDateTime newEnd) {
+        long bufferMinutes = 180; // 3 tiếng
+        return !(newEnd.isBefore(holdStart.minusMinutes(bufferMinutes))
+                || newStart.isAfter(holdEnd.plusMinutes(bufferMinutes)));
     }
 
     // Check if the time is on the exact hour (e.g., 1:00, 2:00)
@@ -303,10 +321,19 @@ public class ReservationService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(user.getEmail());
-        return reservations.stream()
+        List<ReservationResponse> response = reservations.stream()
                 .sorted(Comparator.comparing(Reservation::getCreatedAt).reversed())
                 .map(reservationMapper::toReservationResponse)
                 .toList();
+        for(ReservationResponse res : response){
+            Reservation reservation = reservationRepository.findByCode(res.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+            String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+            if(redisValue != null){
+                res.setPaymentUrl(redisValue);
+            }
+        }
+        return response;
     }
 
     public List<ReservationResponse> getReservationsByStationName(String name) {
@@ -450,5 +477,11 @@ public class ReservationService {
                 .toList();
 
         return new PageAndFilterReservationResponse(reservations, reservationPage.getTotalPages());
+    }
+
+    public ReservationResponse getReservationById(long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+        return reservationMapper.toReservationResponse(reservation);
     }
 }

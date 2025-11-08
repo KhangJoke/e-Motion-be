@@ -1,30 +1,100 @@
 package com.swp391.e_Motion_be.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
+import com.swp391.e_Motion_be.entity.Payment;
+import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.service.PaymentService;
+import com.swp391.e_Motion_be.service.ReservationService;
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.stereotype.Component;
 
+@Slf4j
 @Configuration
 public class RedisConfiguration {
 
-    @Value("${spring.data.redis.host}")
-    private String host;
-    @Value("${spring.data.redis.port}")
-    private int port;
-    @Value("${spring.data.redis.username}")
-    private String username;
-    @Value("${spring.data.redis.password}")
-    private String password;
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        // Bật keyspace notifications
+        enableKeyspaceNotifications(connectionFactory);
+
+        return template;
+    }
+
+    private void enableKeyspaceNotifications(RedisConnectionFactory connectionFactory) {
+        try {
+            RedisConnection connection = connectionFactory.getConnection();
+            connection.setConfig("notify-keyspace-events", "Ex");
+            connection.close();
+            log.info("Redis keyspace notifications enabled");
+        } catch (Exception e) {
+            log.error("Failed to enable Redis keyspace notifications", e);
+        }
+    }
 
     @Bean
-    public LettuceConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(host);
-        config.setPort(port);
-        config.setUsername(username);
-        config.setPassword(password);
-        return new LettuceConnectionFactory(config);
+    public RedisMessageListenerContainer redisMessageListener(
+            RedisConnectionFactory connectionFactory,
+            RedisKeyExpirationListener listener) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(listener, new PatternTopic("__keyevent@0__:expired"));
+        log.info("Redis message listener container configured");
+        return container;
+    }
+
+    @Component
+    public class RedisKeyExpirationListener implements MessageListener {
+
+        private final ReservationService reservationService;
+        private final PaymentService paymentService;
+
+        public RedisKeyExpirationListener(PaymentService paymentService, ReservationService reservationService) {
+            this.reservationService = reservationService;
+            this.paymentService = paymentService;
+        }
+
+        @Transactional
+        @Override
+        public void onMessage(Message message, byte[] pattern) {
+            String expiredKey = new String(message.getBody());
+            log.warn("Expired key detected: {}", expiredKey);
+
+            if (expiredKey.startsWith("reservation:")) {
+                try {
+                    long id = Long.parseLong(expiredKey.split(":")[1]);
+                    log.info("Processing expired reservation: {}", id);
+
+                    ReservationResponse reservation = reservationService.getReservationById(id);
+                    if (reservation != null && reservation.getStatus().equalsIgnoreCase(ReservationStatus.PENDING.toString())) {
+                        Payment payment = paymentService.getPaymentByReservationCode(reservation.getCode());
+                        paymentService.processFailedPayment(payment);
+                        log.info("Processed failed payment for reservation: {}", reservation.getCode());
+                    }
+                } catch (Exception e) {
+                    log.error("Error processing expired key: {}", expiredKey, e);
+                }
+            }
+        }
     }
 }
+
+
