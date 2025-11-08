@@ -91,8 +91,12 @@ public class ReservationService {
 
         // Check reservation time validity
         if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
-        request.getStartTime().isAfter(LocalDateTime.now().plusYears(1))) {
+        request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
             throw new AppException(ErrorCode.RESERVATION_TIME_MUST_AFTER_NOW_3HOURS);
+        }
+
+        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
+            throw new AppException(ErrorCode.RESERVATION_END_TIME_INVALID);
         }
 
         // Check vehicle availability - combine both checks for efficiency

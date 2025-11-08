@@ -110,6 +110,7 @@ public enum ErrorCode {
     RESERVATION_TIME_MUST_AFTER_NOW_3HOURS(HttpStatus.BAD_REQUEST, "Thời gian đặt chỗ phải sau thời điểm hiện tại ít nhất 3 giờ"),
     RENT_TIME_MUST_MINIMUM_4_HOURS(HttpStatus.BAD_REQUEST, "Thời gian thuê tối thiểu là 4 giờ"),
     RESERVATION_STATUS_INVALID(HttpStatus.BAD_REQUEST, "Trạng thái đặt chỗ không hợp lệ"),
+    RESERVATION_END_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian 1 chuyến thuê tối đa là 1 tháng"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tiền đặt cọc"),

@@ -101,6 +101,9 @@ public class RentalService {
         if(hour < 4){
             throw new AppException(ErrorCode.DURATION_MINIUM);
         }
+        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
+            throw new AppException(ErrorCode.RESERVATION_END_TIME_INVALID);
+        }
         // kiểm tra có tồn tại object ko
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
