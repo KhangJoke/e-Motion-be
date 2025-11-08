@@ -188,11 +188,8 @@ public class ReservationService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName();
-        boolean isUser = authentication.getAuthorities()
-                .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
 
-        if (isUser && !currentUserEmail.equals(reservation.getUser().getEmail())) {
+        if (!currentUserEmail.equals(reservation.getUser().getEmail())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
