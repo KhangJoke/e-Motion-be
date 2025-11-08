@@ -12,7 +12,6 @@ import org.mapstruct.MappingTarget;
 public interface ImgVehicleMapper {
 
     ImgVehicle toEntity(ImgVehicleCreationRequest request);
-    @Mapping(source = "vehicle.id", target = "vehicleId")
     ImgVehicleResponse toResponse(ImgVehicle entity);
     void updateEntityFromRequest(@MappingTarget ImgVehicle entity, ImgVehicleUpdateRequest request);
 }
