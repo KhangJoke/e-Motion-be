@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class ImgVehicleResponse {
     private String url;
     private boolean main;
-    private Long vehicleId;
 }
