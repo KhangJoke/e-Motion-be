@@ -20,7 +20,7 @@ public class ImgVehicle {
     private String url;       // Img url
 
     @Column(name="main_img")
-    private boolean isMain;
+    private boolean main;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

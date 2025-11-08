@@ -25,5 +25,5 @@ public class VehicleListResponse {
     private Double batteryCapacity;
     private Long stationId;
     private StationCity city;
-    private String isMain;
+    private String main;
 }

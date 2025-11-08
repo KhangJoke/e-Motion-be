@@ -16,5 +16,5 @@ public class ImgVehicleCreationRequest {
     private String url;
 
     @NotNull(message = "Main Image is required")
-    private boolean isMain;
+    private boolean main;
 }
