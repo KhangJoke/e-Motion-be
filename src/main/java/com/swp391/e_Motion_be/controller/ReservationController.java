@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationR
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationHistoryListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.service.ReservationService;
@@ -74,6 +75,19 @@ public class ReservationController {
         return response;
     }
 
+    @GetMapping("/me/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<ReservationResponse> getOwnReservationById(@PathVariable long id) {
+        ReservationResponse reservationResponse = reservationService.getOwnReservationById(id);
+
+        ApiResponse<ReservationResponse> response = new ApiResponse<>();
+        response.setData(reservationResponse);
+        response.setMessage("Fetched reservation successfully");
+        response.setStatus(200);
+
+        return response;
+    }
+
     @PatchMapping("/update-status")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<ReservationResponse> updateReservationStatus(@RequestBody @Valid UpdateReservationStatusRequest request) {
@@ -101,9 +115,9 @@ public class ReservationController {
 
     @GetMapping("/email/{email}")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<ReservationResponse>> getReservationsByUserEmail(@PathVariable String email) {
-        List<ReservationResponse> data = reservationService.getReservationsByUserEmail(email);
-        ApiResponse<List<ReservationResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<ReservationHistoryListResponse>> getReservationsByUserEmail(@PathVariable String email) {
+        List<ReservationHistoryListResponse> data = reservationService.getReservationsByUserEmail(email);
+        ApiResponse<List<ReservationHistoryListResponse>> response = new ApiResponse<>();
         response.setData(data);
         response.setMessage("Fetched reservations by user email successfully");
         response.setStatus(200);
