@@ -16,5 +16,4 @@ public class ReservationHistoryListResponse {
     private String stationName;
     private String status;
     private LocalDateTime createdAt;
-    private String paymentUrl;
 }

@@ -329,10 +329,6 @@ public class ReservationService {
         List<ReservationHistoryListResponse> response = new ArrayList<>();
         for(Reservation res : reservations){
             ReservationHistoryListResponse reservationResponse = reservationMapper.toReservationHistoryListResponse(res);
-            String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + res.getId());
-            if(redisValue != null){
-                reservationResponse.setPaymentUrl(redisValue);
-            }
             reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
             response.add(reservationResponse);
         }
@@ -486,7 +482,12 @@ public class ReservationService {
     public ReservationResponse getReservationById(long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-        return reservationMapper.toReservationResponse(reservation);
+        ReservationResponse response = reservationMapper.toReservationResponse(reservation);
+        String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+        if(redisValue != null){
+            response.setPaymentUrl(redisValue);
+        }
+        return response;
     }
 
     public ReservationResponse getOwnReservationById(long id) {
@@ -497,7 +498,13 @@ public class ReservationService {
 
         if(!reservation.getUser().getEmail().equals(currentUser.getEmail())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+
+        ReservationResponse response = reservationMapper.toReservationResponse(reservation);
+        String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+        if(redisValue != null){
+            response.setPaymentUrl(redisValue);
         }
-        return reservationMapper.toReservationResponse(reservation);
+        return response;
     }
 }

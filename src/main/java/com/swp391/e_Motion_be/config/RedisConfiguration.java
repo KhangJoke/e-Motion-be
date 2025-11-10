@@ -85,6 +85,7 @@ public class RedisConfiguration {
 
                     ReservationResponse reservation = reservationService.getReservationById(id);
                     if (reservation != null && reservation.getStatus().equalsIgnoreCase(ReservationStatus.PENDING.toString())) {
+                        log.info("Reservation {} is pending. Processing failed payment.", reservation.getCode());
                         Payment payment = paymentService.getPaymentByReservationCode(reservation.getCode());
                         paymentService.processFailedPayment(payment);
                         log.info("Processed failed payment for reservation: {}", reservation.getCode());
