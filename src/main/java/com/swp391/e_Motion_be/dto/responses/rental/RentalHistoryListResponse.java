@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RentalHistoryListResponse {
+    private Long id;
     private String vehicleName;
     private String vehicleImage;
     private String stationName;
