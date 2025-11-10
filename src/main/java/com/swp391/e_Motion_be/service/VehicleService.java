@@ -1,14 +1,15 @@
 package com.swp391.e_Motion_be.service;
 
-import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.*;
+import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterManageVehicleRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterVehicleRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
-import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
-import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.*;
-import com.swp391.e_Motion_be.entity.*;
+import com.swp391.e_Motion_be.entity.Reservation;
+import com.swp391.e_Motion_be.entity.Station;
+import com.swp391.e_Motion_be.entity.User;
+import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
@@ -241,15 +242,7 @@ public class VehicleService {
 
         long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
 
-        List<Long> ids = vehicleRepository
-                .findByStation_CityAndStatusIn(
-                        request.getCity(),
-                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
-                ).stream()
-                .map(Vehicle::getId)
-                .toList();
-
-        List<VehicleListResponse> avaiList = vehicleRepository
+        List<Long> availableIdList = vehicleRepository
                 .findByStation_CityAndStatusIn(
                         request.getCity(),
                         List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
@@ -266,11 +259,14 @@ public class VehicleService {
                                         && r.getStatus() != RentalStatus.CANCELLED)
                                 .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
                                         && r.getEndTime().isAfter(request.getStartTime()))
-                ).map(v -> vehicleMapper.toVehicleListResponse(v, Duration.between(request.getStartTime(), request.getEndTime()).toHours())).toList();
+                ).map(Vehicle::getId)
+                .toList();
 
-        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(ids, brandsList, categoryList, request.getSearch(), pageable);
-
-        return new PageAndFilterVehicleResponse(avaiList, vehiclePage.getTotalPages());
+        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(availableIdList, brandsList, categoryList, request.getSearch(), pageable);
+        List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, hours))
+                .toList();
+        return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
     }
 
     public PageAndFilterVehicleResponse findUnavailableVehicles(PageAndFilterVehicleRequest request) {
@@ -286,15 +282,7 @@ public class VehicleService {
 
         long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
 
-        List<Long> ids = vehicleRepository
-                .findByStation_CityAndStatusIn(
-                        request.getCity(),
-                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
-                ).stream()
-                .map(Vehicle::getId)
-                .toList();
-
-        List<VehicleListResponse> unavaiList  = vehicleRepository
+        List<Long> unavailableIdList  = vehicleRepository
                 .findByStation_CityAndStatusIn(
                         request.getCity(),
                         List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
@@ -311,11 +299,16 @@ public class VehicleService {
                                         && r.getStatus() != RentalStatus.CANCELLED)
                                 .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime())
                                         && r.getEndTime().isAfter(request.getStartTime()))
-                ).map(v -> vehicleMapper.toVehicleListResponse(v, Duration.between(request.getStartTime(), request.getEndTime()).toHours())).toList();
+                ).map(Vehicle::getId)
+                .toList();
 
-        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(ids, brandsList, categoryList, request.getSearch(), pageable);
+        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(unavailableIdList, brandsList, categoryList, request.getSearch(), pageable);
 
-        return new PageAndFilterVehicleResponse(unavaiList , vehiclePage.getTotalPages());
+        List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, hours))
+                .toList();
+
+        return new PageAndFilterVehicleResponse(vehicles , vehiclePage.getTotalPages());
     }
 
     public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
