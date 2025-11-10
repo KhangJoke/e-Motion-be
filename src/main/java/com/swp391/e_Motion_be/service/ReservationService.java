@@ -332,8 +332,8 @@ public class ReservationService {
             String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + res.getId());
             if(redisValue != null){
                 reservationResponse.setPaymentUrl(redisValue);
-                reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
             }
+            reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
             response.add(reservationResponse);
         }
         response.sort(Comparator.comparing(ReservationHistoryListResponse::getCreatedAt).reversed());
