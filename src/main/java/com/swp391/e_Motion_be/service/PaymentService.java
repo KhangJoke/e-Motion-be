@@ -852,8 +852,8 @@ public class PaymentService {
         return paymentMapper.toPaymentResponse(payment);
     }
 
-    public Payment getPaymentByReservationCode(String code) {
-        Deposit deposit = depositRepository.findByReservation_Code(code)
+    public Payment getPaymentByReservationId(long id) {
+        Deposit deposit = depositRepository.findByReservation_Id(id)
                 .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
         return paymentRepository.findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType.RESERVATION, deposit.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));

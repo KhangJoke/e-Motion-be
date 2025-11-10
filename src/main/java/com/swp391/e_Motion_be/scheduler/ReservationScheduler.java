@@ -27,4 +27,9 @@ public class ReservationScheduler {
     public void checkCancelReservation() {
         reservationService.notifyCancelReservations();
     }
+
+    @Scheduled(fixedRate = 300000)
+    public void cancelFailedReservation() {
+        reservationService.cancelFailedReservations();
+    }
 }

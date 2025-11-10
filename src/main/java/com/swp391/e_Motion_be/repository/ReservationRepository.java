@@ -32,4 +32,5 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     Page<Reservation> findByUser_EmailContainingIgnoreCaseAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId, Pageable pageable);
     Page<Reservation> findByCodeContainingAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId,
                                                       Pageable pageable);
+    List<Reservation> findByStatusInAndCreatedAtBefore(List<ReservationStatus> failed, LocalDateTime limitTime);
 }

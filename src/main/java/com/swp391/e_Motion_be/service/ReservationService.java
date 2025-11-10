@@ -414,6 +414,19 @@ public class ReservationService {
         });
     }
 
+    @Transactional
+    public void cancelFailedReservations() {
+        LocalDateTime limitTime = LocalDateTime.now().minusMinutes(15);
+        List<Reservation> cancelReservations = reservationRepository.findByStatusInAndCreatedAtBefore(
+                List.of(ReservationStatus.FAILED),
+                limitTime
+        );
+        cancelReservations.forEach(reservation -> {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationRepository.save(reservation);
+        });
+    }
+
     public ReservationResponse extendReservationReturnTime(String code, LocalDateTime newReturnTime) {
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
@@ -488,6 +501,11 @@ public class ReservationService {
             response.setPaymentUrl(redisValue);
         }
         return response;
+    }
+
+    public Reservation getById(long id) {
+        return reservationRepository.findById(id)
+                .orElse(null);
     }
 
     public ReservationResponse getOwnReservationById(long id) {
