@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,6 +35,18 @@ public class ImgVehicleService {
         ImgVehicleResponse response = imgVehicleMapper.toResponse(imgVehicleRepository.save(entity));
         return response;
     }
+
+    public List<ImgVehicleResponse> createMultipleImagesForVehicle(Vehicle vehicle,List<ImgVehicleCreationRequest> request) {
+        List<ImgVehicleResponse> images = new ArrayList<>();
+        for (ImgVehicleCreationRequest imgVehicleCreationRequest : request) {
+            ImgVehicle entity = imgVehicleMapper.toEntity(imgVehicleCreationRequest);
+            entity.setVehicle(vehicle);
+            imgVehicleRepository.save(entity);
+            images.add(imgVehicleMapper.toResponse(entity));
+        }
+        return images;
+    }
+
 
     // Find all images
     public List<ImgVehicleResponse> findAll() {
