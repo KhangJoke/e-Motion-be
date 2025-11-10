@@ -113,8 +113,8 @@ public class VehicleController {
 
     @PostMapping("/manage")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> manageCar(@RequestBody PageAndFilterManageVehicleRequest request){
-        ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<PageAndFilterManageVehicleResponse>> manageCar(@RequestBody PageAndFilterManageVehicleRequest request){
+        ApiResponse<PageAndFilterManageVehicleResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(vehicleService.manageCar(request));
         apiResponse.setMessage("Get vehicles successfully");
         return ResponseEntity.ok(apiResponse);

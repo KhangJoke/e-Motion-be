@@ -283,7 +283,7 @@ public class VehicleService {
         return new PageAndFilterVehicleResponse(fullList,vehiclePage.getTotalPages());
     }
 
-    public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
+    public PageAndFilterManageVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
         User user = userService.currentUser();
 
         List<VehicleStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
@@ -305,6 +305,6 @@ public class VehicleService {
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .toList();
 
-        return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
+        return new PageAndFilterManageVehicleResponse(vehicles, vehiclePage.getTotalPages());
     }
 }
