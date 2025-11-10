@@ -24,6 +24,7 @@ import com.swp391.e_Motion_be.util.QRCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -38,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -52,6 +54,7 @@ public class PaymentService {
     private final VNPayConfig vnPayConfig;
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
@@ -154,6 +157,20 @@ public class PaymentService {
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + query;
         log.info("Payment URL created successfully for txnRef: {}", vnp_TxnRef);
 
+        // tạo redis cho reservation
+        Reservation reservation = null;
+        if(deposit != null){
+            reservation = deposit.getReservation();
+        }
+        if(payment.getType().equals(PaymentType.RESERVATION) && reservation != null){
+            String key = "reservation:" + reservation.getId();
+            redisTemplate.opsForValue().set(key, paymentUrl, 15, TimeUnit.MINUTES);
+            log.info("Redis key created for reservation payment: {}", key);
+            String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+            redisTemplate.opsForValue().set(vehicleKey, reservation.getStartTime() + "|" + reservation.getEndTime(), 15, TimeUnit.MINUTES);
+            log.info("Redis key created for vehicle reservation: {}", vehicleKey);
+        }
+
         return new VnpayResponse(paymentUrl, QRCode.generateVnpayQR(paymentUrl));
     }
 
@@ -250,7 +267,7 @@ public class PaymentService {
     }
 
     @Transactional
-    protected void processFailedPayment(Payment payment) {
+    public void processFailedPayment(Payment payment) {
         PaymentType type = payment.getType();
 
         switch (type) {
@@ -293,6 +310,10 @@ public class PaymentService {
                 reservationRepository.save(reservation);
                 emailService.sendReservationCodeEmail(reservation);
                 log.info("Reservation confirmed: {}", reservation.getCode());
+                String reservationKey = "reservation:" + reservation.getId();
+                redisTemplate.delete(reservationKey);
+                String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+                redisTemplate.delete(vehicleKey);
             }
             log.info("Reservation payment processed: {}", payment.getId());
         }
@@ -368,6 +389,10 @@ public class PaymentService {
                 reservation.setStatus(ReservationStatus.FAILED);
                 reservationRepository.save(reservation);
                 log.info("Deleted failed reservation: {}", reservation.getId());
+                String reservationKey = "reservation:" + reservation.getId();
+                redisTemplate.delete(reservationKey);
+                String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+                redisTemplate.delete(vehicleKey);
             }
         }
         payment.setStatus(PaymentStatus.FAILED);
@@ -825,5 +850,12 @@ public class PaymentService {
         Payment payment = paymentRepository.findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType.RENTAL, rentalId)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
         return paymentMapper.toPaymentResponse(payment);
+    }
+
+    public Payment getPaymentByReservationCode(String code) {
+        Deposit deposit = depositRepository.findByReservation_Code(code)
+                .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+        return paymentRepository.findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType.RESERVATION, deposit.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
     }
 }

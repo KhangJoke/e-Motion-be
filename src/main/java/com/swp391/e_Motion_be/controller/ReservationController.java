@@ -144,7 +144,7 @@ public class ReservationController {
     }
 
     @PostMapping("/{code}/cancel")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Boolean> cancelReservation(@PathVariable String code, HttpServletRequest httpReq) {
         ApiResponse<Boolean> response = new ApiResponse<>();
         response.setData(reservationService.cancelReservation(code, httpReq));

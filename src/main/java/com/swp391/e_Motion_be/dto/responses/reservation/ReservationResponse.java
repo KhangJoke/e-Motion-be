@@ -20,5 +20,6 @@ public class ReservationResponse {
     private String userEmail;
     private VehicleDetailResponse vehicle;
     private Long stationId;
+    private String paymentUrl;
 }
 

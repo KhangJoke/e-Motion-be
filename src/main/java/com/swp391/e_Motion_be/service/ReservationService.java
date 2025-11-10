@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,7 @@ public class ReservationService {
     private final EmailService emailService;
     private final DocumentRepository documentRepository;
     private final UserService userService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -69,7 +71,7 @@ public class ReservationService {
 
         // Check có đang thuê hoặc đặt trước xe khác không
         boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
-        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED, ReservationStatus.CANCELLED));
         if(hasOngoingRental || hasOngoingReservation) {
             throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
         }
@@ -89,11 +91,24 @@ public class ReservationService {
 
         // Check reservation time validity
         if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
-        request.getStartTime().isAfter(LocalDateTime.now().plusYears(1))) {
+        request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
             throw new AppException(ErrorCode.RESERVATION_TIME_MUST_AFTER_NOW_3HOURS);
         }
 
+        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
+            throw new AppException(ErrorCode.RESERVATION_END_TIME_INVALID);
+        }
+
         // Check vehicle availability - combine both checks for efficiency
+        String holdVehicle = (String) redisTemplate.opsForValue().get("vehicle:" + request.getVehicleId());
+        if(holdVehicle != null){
+            String[] parts = holdVehicle.split("\\|");
+            LocalDateTime holdStart  = LocalDateTime.parse(parts[0]);
+            LocalDateTime holdEnd  = LocalDateTime.parse(parts[1]);
+            if (isOverlappingOrClose(holdStart, holdEnd, request.getStartTime(), request.getEndTime())) {
+                throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
+            }
+        }
         if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime())) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
@@ -174,6 +189,13 @@ public class ReservationService {
         return conflictCount > 0;
     }
 
+    private boolean isOverlappingOrClose(LocalDateTime holdStart, LocalDateTime holdEnd,
+                                         LocalDateTime newStart, LocalDateTime newEnd) {
+        long bufferMinutes = 180; // 3 tiếng
+        return !(newEnd.isBefore(holdStart.minusMinutes(bufferMinutes))
+                || newStart.isAfter(holdEnd.plusMinutes(bufferMinutes)));
+    }
+
     // Check if the time is on the exact hour (e.g., 1:00, 2:00)
     private boolean isExactHour(LocalDateTime dateTime) {
         return dateTime.getMinute() == 0 && dateTime.getSecond() == 0;
@@ -188,11 +210,8 @@ public class ReservationService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName();
-        boolean isUser = authentication.getAuthorities()
-                .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
 
-        if (isUser && !currentUserEmail.equals(reservation.getUser().getEmail())) {
+        if (!currentUserEmail.equals(reservation.getUser().getEmail())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -306,10 +325,17 @@ public class ReservationService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(user.getEmail());
-        return reservations.stream()
-                .sorted(Comparator.comparing(Reservation::getCreatedAt).reversed())
-                .map(reservationMapper::toReservationResponse)
-                .toList();
+        List<ReservationResponse> response = new ArrayList<>();
+        for(Reservation res : reservations){
+            ReservationResponse reservationResponse = reservationMapper.toReservationResponse(res);
+            String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + res.getId());
+            if(redisValue != null){
+                reservationResponse.setPaymentUrl(redisValue);
+            }
+            response.add(reservationResponse);
+        }
+        response.sort(Comparator.comparing(ReservationResponse::getCreatedAt).reversed());
+        return response;
     }
 
     public List<ReservationResponse> getReservationsByStationName(String name) {
@@ -453,5 +479,11 @@ public class ReservationService {
                 .toList();
 
         return new PageAndFilterReservationResponse(reservations, reservationPage.getTotalPages());
+    }
+
+    public ReservationResponse getReservationById(long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+        return reservationMapper.toReservationResponse(reservation);
     }
 }
