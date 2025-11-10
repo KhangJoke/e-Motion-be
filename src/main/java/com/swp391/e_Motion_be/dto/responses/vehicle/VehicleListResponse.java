@@ -14,7 +14,6 @@ public class VehicleListResponse {
 
     private Long id;
     private String name;
-    private String type;
     private VehicleStatus status;
     private String category;
     private VehicleBrand brand;

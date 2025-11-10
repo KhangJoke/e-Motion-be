@@ -23,7 +23,7 @@ public abstract class VehicleMapper {
     @Value("${price.day.rate}")
     double priceDayRate;
 
-    @Mapping(source = "stationId", target = "station.id")// handle manually in service
+    @Mapping(source = "stationId", target = "station.id")
     @Mapping(source = "brand", target = "brand")
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
@@ -36,7 +36,6 @@ public abstract class VehicleMapper {
 
     @Mapping(source = "vehicle.station.id", target = "stationId")
     @Mapping(source = "vehicle.station.city", target = "city") // map Station -> city
-    @Mapping(source = "vehicle.type", target = "type")
     @Mapping(source = "vehicle.status", target = "status")
     @Mapping(source = "vehicle.brand", target = "brand")
     @Mapping(source = "vehicle.category", target = "category")

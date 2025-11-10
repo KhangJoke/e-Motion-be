@@ -1,9 +1,6 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterVehicleRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicle.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.*;
 import com.swp391.e_Motion_be.service.VehicleService;
@@ -76,15 +73,6 @@ public class VehicleController {
         return new ApiResponse<>(200, "Vehicle deleted successfully", null);
     }
 
-    // Search bằng thanh tìm kiếm
-    @PostMapping("/search")
-    @PreAuthorize("permitAll()")
-    public ApiResponse<List<VehicleListResponse>> searchVehicles(@RequestBody @Valid VehicleFindRequest request){
-        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
-        response.setData(vehicleService.searchVehicles(request));
-        return response;
-    }
-
     // Get ra danh sách đang thuê và đặt trước của xe
     @GetMapping("/schedule/{vid}")
     @PreAuthorize("isAuthenticated()")
@@ -119,11 +107,16 @@ public class VehicleController {
     public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterVehicleRequest request){
         ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(vehicleService.findByPageAndFilterAndSearch(request));
-        if(apiResponse.getData().getContent().isEmpty()) {
-            apiResponse.setMessage("No vehicle found");
-        }else {
-            apiResponse.setMessage("Get vehicles successfully");
-        }
+        apiResponse.setMessage("Get vehicles successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/manage")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> manageCar(@RequestBody PageAndFilterManageVehicleRequest request){
+        ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(vehicleService.manageCar(request));
+        apiResponse.setMessage("Get vehicles successfully");
         return ResponseEntity.ok(apiResponse);
     }
 }

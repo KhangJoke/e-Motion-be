@@ -3,7 +3,6 @@ package com.swp391.e_Motion_be.dto.requests.vehicle;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,9 +20,6 @@ public class VehicleCreationRequest {
 
     @NotNull(message = "Description is required")
     private String description;
-
-    @NotNull(message = "Vehicle type is required")
-    private VehicleType type;
 
     @NotNull(message = "Category is required")
     private VehicleCategory category;
