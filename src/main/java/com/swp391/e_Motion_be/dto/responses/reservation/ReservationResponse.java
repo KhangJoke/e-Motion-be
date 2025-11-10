@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReservationResponse {
+    private Long id;
     private String code;
     private String status;
     private LocalDateTime createdAt;

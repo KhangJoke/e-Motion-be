@@ -110,7 +110,7 @@ public class ReservationService {
                 throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
             }
         }
-        if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime())) {
+        if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime(), null, null)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
@@ -172,19 +172,21 @@ public class ReservationService {
     }
 
     // Check if vehicle is unavailable due to existing reservations or rentals
-    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime, Long excludeReservationId, Long excludeRentalId) {
         // Time minimum 4hours validation
-        long hour = Duration.between(startTime,endTime).toHours();
+        long hour = Duration.between(startTime, endTime).toHours();
         if(hour < 4){
-           throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
+            throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
         }
 
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
                 startTime,
                 endTime,
-                List.of("PENDING", "CONFIRM"), // Trạng thái cần kiểm tra của Reservation
-                List.of("COMPLETED", "CANCELLED", "OVERDUE")   // Trạng thái cần loại trừ của Rental
+                List.of("PENDING", "CONFIRM"),
+                List.of("COMPLETED", "CANCELLED", "OVERDUE"),
+                excludeReservationId,
+                excludeRentalId
         );
 
         return conflictCount > 0;
@@ -439,8 +441,8 @@ public class ReservationService {
         if (newReturnTime.isBefore(reservation.getEndTime().plusHours(1))) {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
-        // Extension requests must be made at least 2 hours before current start time
-        if(reservation.getStartTime().isAfter(LocalDateTime.now().plusHours(2))) {
+        // Extension requests must be made at least 3 hours before current start time
+        if(reservation.getStartTime().isAfter(LocalDateTime.now().plusHours(3))) {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Only CONFIRM reservations can be extended
@@ -448,7 +450,7 @@ public class ReservationService {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Check if vehicle is available for the extended period
-        if (isVehicleUnavailable(reservation.getVehicle().getId(), reservation.getEndTime(), newReturnTime)) {
+        if (isVehicleUnavailable(reservation.getVehicle().getId(), reservation.getStartTime(), newReturnTime, reservation.getId(), null)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 

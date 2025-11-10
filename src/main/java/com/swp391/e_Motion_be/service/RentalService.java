@@ -393,7 +393,7 @@ public class RentalService {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
         // Check if vehicle is available for the extended period
-        if (isVehicleUnavailable(rental.getVehicle().getId(), rental.getEndTime(), newReturnTime)) {
+        if (isVehicleUnavailable(rental.getVehicle().getId(), rental.getStartTime(), newReturnTime, null, rental.getId())) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
@@ -423,13 +423,21 @@ public class RentalService {
     }
 
     // Check if vehicle is unavailable due to existing reservations or rentals
-    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime, Long excludeReservationId, Long excludeRentalId) {
+        // Time minimum 4hours validation
+        long hour = Duration.between(startTime, endTime).toHours();
+        if(hour < 4){
+            throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
+        }
+
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
                 startTime,
                 endTime,
-                List.of("PENDING", "CONFIRM"), // Trạng thái cần kiểm tra của Reservation
-                List.of("COMPLETED", "CANCELLED", "OVERDUE")   // Trạng thái cần loại trừ của Rental
+                List.of("PENDING", "CONFIRM"),
+                List.of("COMPLETED", "CANCELLED", "OVERDUE"),
+                excludeReservationId,
+                excludeRentalId
         );
 
         return conflictCount > 0;
