@@ -1,7 +1,7 @@
 package com.swp391.e_Motion_be.mapper;
 
 import com.swp391.e_Motion_be.dto.requests.rental.RentalCreateRequest;
-import com.swp391.e_Motion_be.dto.responses.StaffResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.RentalHistoryListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.entity.*;
@@ -38,4 +38,8 @@ public interface RentalMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "deposit", ignore = true)
     Rental fromReservationToRental(Reservation reservation);
+
+    @Mapping(source = "vehicle.name", target = "vehicleName")
+    @Mapping(source = "station.name", target = "stationName")
+    RentalHistoryListResponse toRentalHistoryListResponse(Rental rental);
 }

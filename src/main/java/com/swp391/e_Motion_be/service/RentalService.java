@@ -5,10 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.*;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
@@ -498,14 +495,18 @@ public class RentalService {
                 .toList();
     }
 
-    public List<RentalResponse> getRentalsByUserEmail(String email) {
+    public List<RentalHistoryListResponse> getRentalsByUserEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Rental> rentals = rentalRepository.findByUser_Id(user.getId());
         return rentals.stream()
                 .sorted(Comparator.comparing(Rental::getCreatedAt).reversed())
-                .map(rentalMapper::toRentalResponse)
+                .map(rental -> {
+                    RentalHistoryListResponse rentalHistoryListResponse = rentalMapper.toRentalHistoryListResponse(rental);
+                    rentalHistoryListResponse.setVehicleImage(rental.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
+                    return rentalHistoryListResponse;
+                })
                 .toList();
     }
 

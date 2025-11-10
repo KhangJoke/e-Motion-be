@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRe
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationHistoryListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
@@ -320,21 +321,22 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
-    public List<ReservationResponse> getReservationsByUserEmail(String email) {
+    public List<ReservationHistoryListResponse> getReservationsByUserEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(user.getEmail());
-        List<ReservationResponse> response = new ArrayList<>();
+        List<ReservationHistoryListResponse> response = new ArrayList<>();
         for(Reservation res : reservations){
-            ReservationResponse reservationResponse = reservationMapper.toReservationResponse(res);
+            ReservationHistoryListResponse reservationResponse = reservationMapper.toReservationHistoryListResponse(res);
             String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + res.getId());
             if(redisValue != null){
                 reservationResponse.setPaymentUrl(redisValue);
+                reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
             }
             response.add(reservationResponse);
         }
-        response.sort(Comparator.comparing(ReservationResponse::getCreatedAt).reversed());
+        response.sort(Comparator.comparing(ReservationHistoryListResponse::getCreatedAt).reversed());
         return response;
     }
 
@@ -484,6 +486,18 @@ public class ReservationService {
     public ReservationResponse getReservationById(long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+        return reservationMapper.toReservationResponse(reservation);
+    }
+
+    public ReservationResponse getOwnReservationById(long id) {
+        User currentUser = userService.currentUser();
+
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if(!reservation.getUser().getEmail().equals(currentUser.getEmail())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
         return reservationMapper.toReservationResponse(reservation);
     }
 }
