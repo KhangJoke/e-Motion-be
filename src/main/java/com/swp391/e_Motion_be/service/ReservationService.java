@@ -325,18 +325,16 @@ public class ReservationService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(user.getEmail());
-        List<ReservationResponse> response = reservations.stream()
-                .sorted(Comparator.comparing(Reservation::getCreatedAt).reversed())
-                .map(reservationMapper::toReservationResponse)
-                .toList();
-        for(ReservationResponse res : response){
-            Reservation reservation = reservationRepository.findByCode(res.getCode())
-                    .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-            String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+        List<ReservationResponse> response = new ArrayList<>();
+        for(Reservation res : reservations){
+            ReservationResponse reservationResponse = reservationMapper.toReservationResponse(res);
+            String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + res.getId());
             if(redisValue != null){
-                res.setPaymentUrl(redisValue);
+                reservationResponse.setPaymentUrl(redisValue);
             }
+            response.add(reservationResponse);
         }
+        response.sort(Comparator.comparing(ReservationResponse::getCreatedAt).reversed());
         return response;
     }
 
