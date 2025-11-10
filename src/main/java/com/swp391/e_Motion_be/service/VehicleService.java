@@ -63,7 +63,15 @@ public class VehicleService {
     public VehicleDetailResponse findVehicleById(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        return vehicleMapper.toVehicleDetailResponse(vehicle);
+
+        List<VehicleListResponse> similarVehicles = vehicleRepository.findByCategory(vehicle.getCategory())
+                .stream()
+                .filter(v -> !v.getId().equals(vehicle.getId()))
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .toList();
+        VehicleDetailResponse vehicleDetailResponse = vehicleMapper.toVehicleDetailResponse(vehicle);
+        vehicleDetailResponse.setSimilarVehicleList(similarVehicles);
+        return vehicleDetailResponse;
     }
 
     // Find by PlateNumber
@@ -92,6 +100,7 @@ public class VehicleService {
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .collect(Collectors.toList());
     }
+
 
     // Find all
     public List<VehicleListResponse> findAllVehicles() {

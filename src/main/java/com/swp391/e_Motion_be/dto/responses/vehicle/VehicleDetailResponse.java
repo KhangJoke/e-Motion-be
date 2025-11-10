@@ -35,4 +35,5 @@ public class VehicleDetailResponse {
     private LocalDateTime lastMaintenance;
     private StationResponse station;
     private List<ImgVehicleResponse> images;
+    private List<VehicleListResponse> similarVehicleList;
 }
