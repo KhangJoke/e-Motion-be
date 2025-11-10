@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageAndFilterVehicleResponse {
-    private FullVehicleListResponse content;
-    private int totalPages;
+public class FullVehicleListResponse {
+    List<VehicleListResponse> availableVehicles;
+    List<VehicleListResponse> unavailableVehicles;
 }
