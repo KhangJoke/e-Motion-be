@@ -102,19 +102,28 @@ public class VehicleController {
     }
 
 
-    @PostMapping("/filter")
+    @PostMapping("/filter/available")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterVehicleRequest request){
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> getAvailableVehicles(@RequestBody PageAndFilterVehicleRequest request){
         ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setData(vehicleService.findByPageAndFilterAndSearch(request));
+        apiResponse.setData(vehicleService.findAvailableVehicles(request));
+        apiResponse.setMessage("Get vehicles successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/filter/unavailable")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> getUnavailableVehicles(@RequestBody PageAndFilterVehicleRequest request){
+        ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(vehicleService.findUnavailableVehicles(request));
         apiResponse.setMessage("Get vehicles successfully");
         return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/manage")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<PageAndFilterManageVehicleResponse>> manageCar(@RequestBody PageAndFilterManageVehicleRequest request){
-        ApiResponse<PageAndFilterManageVehicleResponse> apiResponse = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> manageCar(@RequestBody PageAndFilterManageVehicleRequest request){
+        ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(vehicleService.manageCar(request));
         apiResponse.setMessage("Get vehicles successfully");
         return ResponseEntity.ok(apiResponse);

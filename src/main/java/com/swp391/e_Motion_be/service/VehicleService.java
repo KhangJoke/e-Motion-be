@@ -228,7 +228,7 @@ public class VehicleService {
                 .toList();
     }
 
-    public PageAndFilterVehicleResponse findByPageAndFilterAndSearch(PageAndFilterVehicleRequest request) {
+    public PageAndFilterVehicleResponse findAvailableVehicles(PageAndFilterVehicleRequest request) {
         List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
                 ? Arrays.asList(VehicleBrand.values())
                 : request.getBrands();
@@ -241,8 +241,50 @@ public class VehicleService {
 
         long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
 
-        List<VehicleListResponse> avaiList = new ArrayList<>();
-        List<VehicleListResponse> unAvaiList = new ArrayList<>();
+        List<Long> ids = vehicleRepository
+                .findByStation_CityAndStatusIn(
+                        request.getCity(),
+                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
+                ).stream()
+                .map(Vehicle::getId)
+                .toList();
+
+        List<VehicleListResponse> avaiList = vehicleRepository
+                .findByStation_CityAndStatusIn(
+                        request.getCity(),
+                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
+                ).stream()
+                .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
+                                && r.getStatus() != ReservationStatus.CANCELLED
+                                && r.getStatus() != ReservationStatus.FAILED)
+                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                && r.getEndTime().isAfter(request.getStartTime()))
+                        &&
+                        v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
+                                        && r.getStatus() != RentalStatus.CANCELLED)
+                                .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                        && r.getEndTime().isAfter(request.getStartTime()))
+                ).map(v -> vehicleMapper.toVehicleListResponse(v, Duration.between(request.getStartTime(), request.getEndTime()).toHours())).toList();
+
+        Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(ids, brandsList, categoryList, request.getSearch(), pageable);
+
+        return new PageAndFilterVehicleResponse(avaiList, vehiclePage.getTotalPages());
+    }
+
+    public PageAndFilterVehicleResponse findUnavailableVehicles(PageAndFilterVehicleRequest request) {
+        List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
+                ? Arrays.asList(VehicleBrand.values())
+                : request.getBrands();
+
+        List<VehicleCategory> categoryList = (request.getCategories() == null || request.getCategories().isEmpty())
+                ? Arrays.asList(VehicleCategory.values())
+                : request.getCategories();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+
+        long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
 
         List<Long> ids = vehicleRepository
                 .findByStation_CityAndStatusIn(
@@ -252,38 +294,31 @@ public class VehicleService {
                 .map(Vehicle::getId)
                 .toList();
 
-        vehicleRepository
+        List<VehicleListResponse> unavaiList  = vehicleRepository
                 .findByStation_CityAndStatusIn(
                         request.getCity(),
                         List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
-                ).forEach(v -> {
-                    boolean isAvailable = v.getReservations().stream()
-                            .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
-                                    && r.getStatus() != ReservationStatus.CANCELLED
-                                    && r.getStatus() != ReservationStatus.FAILED)
-                            .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
-                                    && r.getEndTime().isAfter(request.getStartTime()))
-                            &&
-                            v.getRentals().stream()
-                                    .filter(r -> r.getStatus() != RentalStatus.COMPLETED
-                                            && r.getStatus() != RentalStatus.CANCELLED)
-                                    .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
-                                            && r.getEndTime().isAfter(request.getStartTime()));
-
-                    if (isAvailable) {
-                        avaiList.add(vehicleMapper.toVehicleListResponse(v, 4));
-                    } else {
-                        unAvaiList.add(vehicleMapper.toVehicleListResponse(v, 4));
-                    }
-                });
+                ).stream()
+                .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
+                                && r.getStatus() != ReservationStatus.CANCELLED
+                                && r.getStatus() != ReservationStatus.FAILED)
+                        .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                && r.getEndTime().isAfter(request.getStartTime()))
+                        ||
+                        v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
+                                        && r.getStatus() != RentalStatus.CANCELLED)
+                                .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                        && r.getEndTime().isAfter(request.getStartTime()))
+                ).map(v -> vehicleMapper.toVehicleListResponse(v, Duration.between(request.getStartTime(), request.getEndTime()).toHours())).toList();
 
         Page<Vehicle> vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(ids, brandsList, categoryList, request.getSearch(), pageable);
 
-        FullVehicleListResponse fullList = new FullVehicleListResponse(avaiList, unAvaiList);
-        return new PageAndFilterVehicleResponse(fullList,vehiclePage.getTotalPages());
+        return new PageAndFilterVehicleResponse(unavaiList , vehiclePage.getTotalPages());
     }
 
-    public PageAndFilterManageVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
+    public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
         User user = userService.currentUser();
 
         List<VehicleStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
@@ -305,6 +340,6 @@ public class VehicleService {
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .toList();
 
-        return new PageAndFilterManageVehicleResponse(vehicles, vehiclePage.getTotalPages());
+        return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
     }
 }
