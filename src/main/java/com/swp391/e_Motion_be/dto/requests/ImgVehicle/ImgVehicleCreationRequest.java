@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImgVehicleCreationRequest {
-    @NotNull(message = "VehicleId is required")
-    private Long vehicleId;
-
     @NotNull(message = "Image URL is required")
     private String url;
 

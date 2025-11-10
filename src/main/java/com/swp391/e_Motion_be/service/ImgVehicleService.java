@@ -25,16 +25,16 @@ public class ImgVehicleService {
     private final VehicleRepository vehicleRepository;
     private final CloudinaryService cloudinaryService;
 
-    public ImgVehicleResponse create(ImgVehicleCreationRequest request) {
-        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
-                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-
-        ImgVehicle entity = imgVehicleMapper.toEntity(request);
-        entity.setVehicle(vehicle);
-
-        ImgVehicleResponse response = imgVehicleMapper.toResponse(imgVehicleRepository.save(entity));
-        return response;
-    }
+//    public ImgVehicleResponse create(ImgVehicleCreationRequest request) {
+//        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+//                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+//
+//        ImgVehicle entity = imgVehicleMapper.toEntity(request);
+//        entity.setVehicle(vehicle);
+//
+//        ImgVehicleResponse response = imgVehicleMapper.toResponse(imgVehicleRepository.save(entity));
+//        return response;
+//    }
 
     public List<ImgVehicleResponse> createMultipleImagesForVehicle(Vehicle vehicle,List<ImgVehicleCreationRequest> request) {
         List<ImgVehicleResponse> images = new ArrayList<>();
