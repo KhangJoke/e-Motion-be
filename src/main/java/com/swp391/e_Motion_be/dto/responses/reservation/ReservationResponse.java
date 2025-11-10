@@ -15,6 +15,7 @@ public class ReservationResponse {
     private String code;
     private String status;
     private LocalDateTime createdAt;
+    private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Boolean overdueNotified;
     private Boolean expiringNotified;

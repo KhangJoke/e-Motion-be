@@ -6,10 +6,7 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.*;
-import com.swp391.e_Motion_be.entity.Reservation;
-import com.swp391.e_Motion_be.entity.Station;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
@@ -334,5 +331,22 @@ public class VehicleService {
                 .toList();
 
         return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
+    }
+
+    public List<VehicleScheduleResponse> getVehicleFullSchedule(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+        List<VehicleScheduleResponse> schedules = new ArrayList<>();
+        List<Rental> rentals = rentalRepository.findByVehicle_IdAndStatusNotInAndStartTimeAfter(id, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED), LocalDateTime.now());
+        schedules.addAll(rentals.stream()
+                .map(rental -> new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
+                .toList());
+        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusInAndStartTimeAfter(id, List.of(ReservationStatus.OVERDUE, ReservationStatus.CONFIRM), LocalDateTime.now());
+        schedules.addAll(reservations.stream()
+                .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
+                .toList());
+
+        return schedules;
     }
 }

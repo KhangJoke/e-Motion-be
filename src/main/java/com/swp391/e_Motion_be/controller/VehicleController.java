@@ -128,4 +128,13 @@ public class VehicleController {
         apiResponse.setMessage("Get vehicles successfully");
         return ResponseEntity.ok(apiResponse);
     }
+
+    @GetMapping("/{id}/schedule")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<VehicleScheduleResponse>> getVehicleFullSchedule(@PathVariable Long id){
+        ApiResponse<List<VehicleScheduleResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.getVehicleFullSchedule(id));
+        response.setMessage("Get vehicle schedule successfully");
+        return response;
+    }
 }

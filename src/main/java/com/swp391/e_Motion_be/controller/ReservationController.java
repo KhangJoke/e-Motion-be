@@ -154,10 +154,9 @@ public class ReservationController {
         return response;
     }
 
-    //Chua lam phan quyen
-    @PostMapping("/{code}/extend/")
+    @PostMapping("/{code}/extend")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<ReservationResponse> extendReservationReturnTime(@PathVariable String code, @RequestParam LocalDateTime newReturnTime)
+    public ApiResponse<ReservationResponse> extendReservationReturnTime(@PathVariable String code, @RequestBody LocalDateTime newReturnTime)
     {
         ApiResponse<ReservationResponse> response = new ApiResponse<>();
         response.setData(reservationService.extendReservationReturnTime(code, newReturnTime));
