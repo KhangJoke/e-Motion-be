@@ -39,6 +39,7 @@ public abstract class VehicleMapper {
     @Mapping(source = "vehicle.status", target = "status")
     @Mapping(source = "vehicle.brand", target = "brand")
     @Mapping(source = "vehicle.category", target = "category")
+    @Mapping(target = "seats", expression = "java(vehicle.getSeats())")
     @Mapping(target = "main", expression = "java(getMainImage(vehicle))")
     @Mapping(target = "hourRate", expression = "java(getHourRate(hours))")
     @Mapping(target = "priceRate", expression = "java(getPriceRate(vehicle, hours))")
