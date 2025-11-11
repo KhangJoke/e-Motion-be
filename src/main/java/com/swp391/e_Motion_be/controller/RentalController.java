@@ -3,10 +3,7 @@ package com.swp391.e_Motion_be.controller;
 import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.*;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -109,7 +106,7 @@ public class RentalController {
     //Chưa làm phân quyền
     @PostMapping("/{id}/extend")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<VnpayResponse> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
+    public ApiResponse<VnpayResponse> extendRentalReturnTime(@PathVariable Long id, @RequestBody LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
         ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
         return response;
@@ -143,8 +140,8 @@ public class RentalController {
 
     @GetMapping("/email/{email}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalsByUserEmail(@PathVariable String email){
-        ApiResponse<List<RentalResponse>> apiResponse = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<List<RentalHistoryListResponse>>> getRentalsByUserEmail(@PathVariable String email){
+        ApiResponse<List<RentalHistoryListResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get user rental history successfully");
         apiResponse.setData(rentalService.getRentalsByUserEmail(email));
         return ResponseEntity.ok(apiResponse);

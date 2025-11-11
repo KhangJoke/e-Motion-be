@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.controller;
 
-import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
@@ -20,12 +19,12 @@ public class ImgVehicleController {
     private final ImgVehicleService imgVehicleService;
 
     // Create
-    @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ApiResponse<ImgVehicleResponse> create(@RequestBody @Valid ImgVehicleCreationRequest request) {
-        ImgVehicleResponse response = imgVehicleService.create(request);
-        return new ApiResponse<>(200, "Image created successfully", response);
-    }
+//    @PostMapping
+//    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+//    public ApiResponse<ImgVehicleResponse> create(@RequestBody @Valid ImgVehicleCreationRequest request) {
+//        ImgVehicleResponse response = imgVehicleService.create(request);
+//        return new ApiResponse<>(200, "Image created successfully", response);
+//    }
 
     // Find all
     @GetMapping

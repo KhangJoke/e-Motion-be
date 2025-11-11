@@ -101,11 +101,21 @@ public class VehicleController {
         return response;
     }
 
-    @PostMapping("/filter")
+
+    @PostMapping("/filter/available")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterVehicleRequest request){
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> getAvailableVehicles(@RequestBody PageAndFilterVehicleRequest request){
         ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setData(vehicleService.findByPageAndFilterAndSearch(request));
+        apiResponse.setData(vehicleService.findAvailableVehicles(request));
+        apiResponse.setMessage("Get vehicles successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/filter/unavailable")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> getUnavailableVehicles(@RequestBody PageAndFilterVehicleRequest request){
+        ApiResponse<PageAndFilterVehicleResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setData(vehicleService.findUnavailableVehicles(request));
         apiResponse.setMessage("Get vehicles successfully");
         return ResponseEntity.ok(apiResponse);
     }
@@ -117,5 +127,14 @@ public class VehicleController {
         apiResponse.setData(vehicleService.manageCar(request));
         apiResponse.setMessage("Get vehicles successfully");
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/{id}/schedule")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<VehicleScheduleResponse>> getVehicleFullSchedule(@PathVariable Long id){
+        ApiResponse<List<VehicleScheduleResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.getVehicleFullSchedule(id));
+        response.setMessage("Get vehicle schedule successfully");
+        return response;
     }
 }

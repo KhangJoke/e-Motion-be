@@ -11,9 +11,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReservationResponse {
+    private Long id;
     private String code;
     private String status;
     private LocalDateTime createdAt;
+    private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Boolean overdueNotified;
     private Boolean expiringNotified;

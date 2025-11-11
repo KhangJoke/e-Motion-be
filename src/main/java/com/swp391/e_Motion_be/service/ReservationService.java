@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRe
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.ReservationHistoryListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.entity.*;
@@ -109,7 +110,7 @@ public class ReservationService {
                 throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
             }
         }
-        if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime())) {
+        if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime(), null, null)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
@@ -172,19 +173,21 @@ public class ReservationService {
     }
 
     // Check if vehicle is unavailable due to existing reservations or rentals
-    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime, Long excludeReservationId, Long excludeRentalId) {
         // Time minimum 4hours validation
-        long hour = Duration.between(startTime,endTime).toHours();
+        long hour = Duration.between(startTime, endTime).toHours();
         if(hour < 4){
-           throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
+            throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
         }
 
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
                 startTime,
                 endTime,
-                List.of("PENDING", "CONFIRM"), // Trạng thái cần kiểm tra của Reservation
-                List.of("COMPLETED", "CANCELLED", "OVERDUE")   // Trạng thái cần loại trừ của Rental
+                List.of("PENDING", "CONFIRM"),
+                List.of("COMPLETED", "CANCELLED", "OVERDUE"),
+                excludeReservationId,
+                excludeRentalId
         );
 
         return conflictCount > 0;
@@ -321,21 +324,18 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
-    public List<ReservationResponse> getReservationsByUserEmail(String email) {
+    public List<ReservationHistoryListResponse> getReservationsByUserEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(user.getEmail());
-        List<ReservationResponse> response = new ArrayList<>();
+        List<ReservationHistoryListResponse> response = new ArrayList<>();
         for(Reservation res : reservations){
-            ReservationResponse reservationResponse = reservationMapper.toReservationResponse(res);
-            String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + res.getId());
-            if(redisValue != null){
-                reservationResponse.setPaymentUrl(redisValue);
-            }
+            ReservationHistoryListResponse reservationResponse = reservationMapper.toReservationHistoryListResponse(res);
+            reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
             response.add(reservationResponse);
         }
-        response.sort(Comparator.comparing(ReservationResponse::getCreatedAt).reversed());
+        response.sort(Comparator.comparing(ReservationHistoryListResponse::getCreatedAt).reversed());
         return response;
     }
 
@@ -417,6 +417,19 @@ public class ReservationService {
         });
     }
 
+    @Transactional
+    public void cancelFailedReservations() {
+        LocalDateTime limitTime = LocalDateTime.now().minusMinutes(15);
+        List<Reservation> cancelReservations = reservationRepository.findByStatusInAndCreatedAtBefore(
+                List.of(ReservationStatus.FAILED),
+                limitTime
+        );
+        cancelReservations.forEach(reservation -> {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationRepository.save(reservation);
+        });
+    }
+
     public ReservationResponse extendReservationReturnTime(String code, LocalDateTime newReturnTime) {
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
@@ -429,8 +442,8 @@ public class ReservationService {
         if (newReturnTime.isBefore(reservation.getEndTime().plusHours(1))) {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
-        // Extension requests must be made at least 2 hours before current start time
-        if(reservation.getStartTime().isAfter(LocalDateTime.now().plusHours(2))) {
+        // Extension requests must be made at least 3 hours before current start time
+        if(reservation.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Only CONFIRM reservations can be extended
@@ -438,7 +451,7 @@ public class ReservationService {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Check if vehicle is available for the extended period
-        if (isVehicleUnavailable(reservation.getVehicle().getId(), reservation.getEndTime(), newReturnTime)) {
+        if (isVehicleUnavailable(reservation.getVehicle().getId(), reservation.getStartTime(), newReturnTime, reservation.getId(), null)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
@@ -485,6 +498,34 @@ public class ReservationService {
     public ReservationResponse getReservationById(long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-        return reservationMapper.toReservationResponse(reservation);
+        ReservationResponse response = reservationMapper.toReservationResponse(reservation);
+        String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+        if(redisValue != null){
+            response.setPaymentUrl(redisValue);
+        }
+        return response;
+    }
+
+    public Reservation getById(long id) {
+        return reservationRepository.findById(id)
+                .orElse(null);
+    }
+
+    public ReservationResponse getOwnReservationById(long id) {
+        User currentUser = userService.currentUser();
+
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if(!reservation.getUser().getEmail().equals(currentUser.getEmail())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+
+        ReservationResponse response = reservationMapper.toReservationResponse(reservation);
+        String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+        if(redisValue != null){
+            response.setPaymentUrl(redisValue);
+        }
+        return response;
     }
 }

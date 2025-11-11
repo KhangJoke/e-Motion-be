@@ -21,6 +21,10 @@ public class PageAndFilterVehicleRequest {
     private Integer page;
     private Integer limit;
     private String search;
+    private Long stationId;
+    private Double minPrice;
+    private Double maxPrice;
+    private Integer seats;
     @NotNull(message = "City must not be null")
     StationCity city;
     @NotNull(message = "Start time must not be null")

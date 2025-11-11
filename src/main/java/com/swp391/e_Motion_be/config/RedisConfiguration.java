@@ -1,8 +1,7 @@
 package com.swp391.e_Motion_be.config;
 
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
 import com.swp391.e_Motion_be.entity.Payment;
-import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.entity.Reservation;
 import com.swp391.e_Motion_be.service.PaymentService;
 import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.transaction.Transactional;
@@ -62,7 +61,7 @@ public class RedisConfiguration {
     }
 
     @Component
-    public class RedisKeyExpirationListener implements MessageListener {
+    public static class RedisKeyExpirationListener implements MessageListener {
 
         private final ReservationService reservationService;
         private final PaymentService paymentService;
@@ -83,11 +82,13 @@ public class RedisConfiguration {
                     long id = Long.parseLong(expiredKey.split(":")[1]);
                     log.info("Processing expired reservation: {}", id);
 
-                    ReservationResponse reservation = reservationService.getReservationById(id);
-                    if (reservation != null && reservation.getStatus().equalsIgnoreCase(ReservationStatus.PENDING.toString())) {
-                        Payment payment = paymentService.getPaymentByReservationCode(reservation.getCode());
+                    Reservation reservation = reservationService.getById(id);
+                    if (reservation != null && "PENDING".equals(reservation.getStatus().toString())) {
+                        Payment payment = paymentService.getPaymentByReservationId(reservation.getId());
                         paymentService.processFailedPayment(payment);
-                        log.info("Processed failed payment for reservation: {}", reservation.getCode());
+                        log.info("Handled expired reservation: {}", id);
+                    } else {
+                        log.info("No action needed for reservation: {}", id);
                     }
                 } catch (Exception e) {
                     log.error("Error processing expired key: {}", expiredKey, e);

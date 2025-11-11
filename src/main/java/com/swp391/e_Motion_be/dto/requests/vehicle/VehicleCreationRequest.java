@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
+import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -9,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -62,4 +64,7 @@ public class VehicleCreationRequest {
 
     @NotNull(message = "Station ID is required")
     private Long stationId; // <--Station by ID
+
+    @NotNull(message = "Images are required")
+    private List<ImgVehicleCreationRequest> images;
 }

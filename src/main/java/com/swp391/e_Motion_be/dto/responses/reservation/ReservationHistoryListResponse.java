@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReservationListResponse {
-    private String code;
-    private String userEmail;
+public class ReservationHistoryListResponse {
+    private Long id;
+    private String vehicleName;
+    private String vehicleImage;
+    private String stationName;
     private String status;
     private LocalDateTime createdAt;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
 }

@@ -348,7 +348,19 @@ public class PaymentService {
             rental.setRentFee(rental.getPendingRentFee());
             rental.setPendingEndTime(null);
             rental.setPendingRentFee(null);
-            rental.setStatus(RentalStatus.CONFIRM);
+            if(rental.getPreStatus() == RentalStatus.OVERDUE) {
+                if(rental.getEndTime().isBefore(LocalDateTime.now())) {
+                    rental.setStatus(RentalStatus.OVERDUE);
+                }else{
+                    rental.setStatus(RentalStatus.ONGOING);
+                    rental.setExpiringNotified(false);
+                    rental.setOverdueNotified(false);
+                }
+                rental.setPreStatus(null);
+            }else {
+                rental.setStatus(rental.getPreStatus());
+                rental.setPreStatus(null);
+            }
             rentalRepository.save(rental);
             log.info("Rental extension payment processed: {}", payment.getId());
         }
@@ -360,7 +372,7 @@ public class PaymentService {
         if (rental != null) {
             rental.setPendingEndTime(null);
             rental.setPendingRentFee(null);
-            rental.setStatus(RentalStatus.CONFIRM);
+            rental.setStatus(rental.getPreStatus());
             rentalRepository.save(rental);
             log.info("Reverted failed extension for rental: {}", rental.getId());
         }
@@ -852,8 +864,8 @@ public class PaymentService {
         return paymentMapper.toPaymentResponse(payment);
     }
 
-    public Payment getPaymentByReservationCode(String code) {
-        Deposit deposit = depositRepository.findByReservation_Code(code)
+    public Payment getPaymentByReservationId(long id) {
+        Deposit deposit = depositRepository.findByReservation_Id(id)
                 .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
         return paymentRepository.findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType.RESERVATION, deposit.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));

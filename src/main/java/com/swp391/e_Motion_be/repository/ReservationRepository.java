@@ -25,11 +25,10 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     List<Reservation> findByStatusInAndStartTimeBetweenAndExpiringNotifiedFalse(Collection<ReservationStatus> status, LocalDateTime endTime, LocalDateTime endTime2);
     List<Reservation> findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(List<ReservationStatus> status, LocalDateTime time);
     List<Reservation> findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(Collection<ReservationStatus> status, LocalDateTime startTime);
-
     Page<Reservation> findByUser_EmailContainingIgnoreCaseAndStatusIn(String keyword, List<ReservationStatus> status, Pageable pageable);
-    Page<Reservation> findByCodeContainingAndStatusIn(String keyword, List<ReservationStatus> status,
-                                                      Pageable pageable);
+    Page<Reservation> findByCodeContainingAndStatusIn(String keyword, List<ReservationStatus> status, Pageable pageable);
     Page<Reservation> findByUser_EmailContainingIgnoreCaseAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId, Pageable pageable);
-    Page<Reservation> findByCodeContainingAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId,
-                                                      Pageable pageable);
+    Page<Reservation> findByCodeContainingAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId, Pageable pageable);
+    List<Reservation> findByStatusInAndCreatedAtBefore(List<ReservationStatus> failed, LocalDateTime limitTime);
+    List<Reservation> findByVehicle_IdAndStatusInAndStartTimeAfter(Long id, List<ReservationStatus> overdue, LocalDateTime now);
 }

@@ -5,10 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalOverviewResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.*;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
@@ -388,15 +385,15 @@ public class RentalService {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
         // Extension requests must be made at least 2 hours before current start time
-        if(rental.getStartTime().isAfter(LocalDateTime.now().plusHours(2))) {
+        if(rental.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
         // Only CONFIRM reservations can be extended
-        if(rental.getStatus() != RentalStatus.CONFIRM) {
+        if(rental.getStatus() != RentalStatus.CONFIRM && rental.getStatus() != RentalStatus.ONGOING && rental.getStatus() != RentalStatus.OVERDUE) {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
         // Check if vehicle is available for the extended period
-        if (isVehicleUnavailable(rental.getVehicle().getId(), rental.getEndTime(), newReturnTime)) {
+        if (isVehicleUnavailable(rental.getVehicle().getId(), rental.getStartTime(), newReturnTime, null, rental.getId())) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
@@ -411,6 +408,7 @@ public class RentalService {
         // Store pending values
         rental.setPendingEndTime(newReturnTime);
         rental.setPendingRentFee(newFee);
+        rental.setPreStatus(rental.getStatus());
         rental.setStatus(RentalStatus.PENDING_FEE);
         rentalRepository.save(rental);
 
@@ -426,13 +424,21 @@ public class RentalService {
     }
 
     // Check if vehicle is unavailable due to existing reservations or rentals
-    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime, Long excludeReservationId, Long excludeRentalId) {
+        // Time minimum 4hours validation
+        long hour = Duration.between(startTime, endTime).toHours();
+        if(hour < 4){
+            throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
+        }
+
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
                 startTime,
                 endTime,
-                List.of("PENDING", "CONFIRM"), // Trạng thái cần kiểm tra của Reservation
-                List.of("COMPLETED", "CANCELLED", "OVERDUE")   // Trạng thái cần loại trừ của Rental
+                List.of("PENDING", "CONFIRM"),
+                List.of("COMPLETED", "CANCELLED", "OVERDUE"),
+                excludeReservationId,
+                excludeRentalId
         );
 
         return conflictCount > 0;
@@ -498,14 +504,18 @@ public class RentalService {
                 .toList();
     }
 
-    public List<RentalResponse> getRentalsByUserEmail(String email) {
+    public List<RentalHistoryListResponse> getRentalsByUserEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Rental> rentals = rentalRepository.findByUser_Id(user.getId());
         return rentals.stream()
                 .sorted(Comparator.comparing(Rental::getCreatedAt).reversed())
-                .map(rentalMapper::toRentalResponse)
+                .map(rental -> {
+                    RentalHistoryListResponse rentalHistoryListResponse = rentalMapper.toRentalHistoryListResponse(rental);
+                    rentalHistoryListResponse.setVehicleImage(rental.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
+                    return rentalHistoryListResponse;
+                })
                 .toList();
     }
 
