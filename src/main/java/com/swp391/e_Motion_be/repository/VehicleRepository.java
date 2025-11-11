@@ -20,6 +20,7 @@ import java.util.Optional;
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     Optional<Vehicle> findByPlateNumber(String plateNumber);
     List<Vehicle> findByStation_CityAndStatusIn(StationCity city, List<VehicleStatus> statuses);
+    List<Vehicle> findByStation_IdAndStatusIn(Long stationId, List<VehicleStatus> statuses);
     List<Vehicle> findByStatus(VehicleStatus status);
     List<Vehicle> findByBrandAndStatus(VehicleBrand brand,VehicleStatus status);
     List<Vehicle> findByCategory(VehicleCategory category);
@@ -65,4 +66,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     Page<Vehicle> findByIdInAndBrandInAndCategoryInAndNameContains(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, String search, Pageable pageable);
     Page<Vehicle> findByStatusInAndNameContainsAndStation_Id(List<VehicleStatus> statuses, String search, Long stationId, Pageable pageable);
     Page<Vehicle> findByStatusInAndNameContains(List<VehicleStatus> statuses, String search, Pageable pageable);
+    Page<Vehicle> findByIdInAndBrandInAndCategoryInAndSeatsAndNameContainingIgnoreCase(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, Integer seats, String search, Pageable pageable);
 }
