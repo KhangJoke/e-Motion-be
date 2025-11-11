@@ -442,7 +442,7 @@ public class ReservationService {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Extension requests must be made at least 3 hours before current start time
-        if(reservation.getStartTime().isAfter(LocalDateTime.now().plusHours(3))) {
+        if(reservation.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Only CONFIRM reservations can be extended

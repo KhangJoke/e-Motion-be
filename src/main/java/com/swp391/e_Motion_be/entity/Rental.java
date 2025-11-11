@@ -44,6 +44,7 @@ public class Rental {
     private LocalDateTime pendingEndTime;
     @Column(name = "pending_rent_fee")
     private Double pendingRentFee;
+    private RentalStatus preStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

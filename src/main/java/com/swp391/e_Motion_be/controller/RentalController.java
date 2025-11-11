@@ -106,7 +106,7 @@ public class RentalController {
     //Chưa làm phân quyền
     @PostMapping("/{id}/extend")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<VnpayResponse> extendRentalReturnTime(@PathVariable Long id, @RequestParam LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
+    public ApiResponse<VnpayResponse> extendRentalReturnTime(@PathVariable Long id, @RequestBody LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
         ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
         return response;

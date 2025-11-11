@@ -242,7 +242,7 @@ public class VehicleService {
         List<Long> availableIdList = vehicleRepository
                 .findByStation_CityAndStatusIn(
                         request.getCity(),
-                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
+                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING, VehicleStatus.UNAVAILABLE)
                 ).stream()
                 .filter(v -> v.getReservations().stream()
                         .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
@@ -282,7 +282,7 @@ public class VehicleService {
         List<Long> unavailableIdList  = vehicleRepository
                 .findByStation_CityAndStatusIn(
                         request.getCity(),
-                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
+                        List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING, VehicleStatus.UNAVAILABLE)
                 ).stream()
                 .filter(v -> v.getReservations().stream()
                         .filter(r -> r.getStatus() != ReservationStatus.COMPLETED

@@ -34,7 +34,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
         FROM reservations r
         WHERE r.vehicle_id = :vehicleId
           AND r.reservation_status IN (:reservationStatuses)
-          AND (:excludeReservationId IS NULL OR r.id != :excludeReservationId)
+          AND (:excludeReservationId IS NULL OR r.reservation_id != :excludeReservationId)
           -- Áp dụng logic khoảng đệm 3 giờ
           AND :startTime < DATE_ADD(r.reserved_end_time, INTERVAL 3 HOUR)
           AND :endTime > DATE_SUB(r.reserved_start_time, INTERVAL 3 HOUR)
@@ -46,7 +46,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
         FROM rentals rent
         WHERE rent.vehicle_id = :vehicleId
           AND rent.rental_status NOT IN (:excludedRentalStatuses)
-          AND (:excludeRentalId IS NULL OR rent.id != :excludeRentalId)
+          AND (:excludeRentalId IS NULL OR rent.rental_id != :excludeRentalId)
           -- Áp dụng logic khoảng đệm 3 giờ
           AND :startTime < DATE_ADD(rent.end_time, INTERVAL 3 HOUR)
           AND :endTime > DATE_SUB(rent.start_time, INTERVAL 3 HOUR)

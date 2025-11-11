@@ -14,5 +14,6 @@ public class ReservationListResponse {
     private String userEmail;
     private String status;
     private LocalDateTime createdAt;
+    private LocalDateTime startTime;
     private LocalDateTime endTime;
 }

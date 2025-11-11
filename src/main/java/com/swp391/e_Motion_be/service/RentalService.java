@@ -385,11 +385,11 @@ public class RentalService {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
         // Extension requests must be made at least 2 hours before current start time
-        if(rental.getStartTime().isAfter(LocalDateTime.now().plusHours(2))) {
+        if(rental.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
         // Only CONFIRM reservations can be extended
-        if(rental.getStatus() != RentalStatus.CONFIRM) {
+        if(rental.getStatus() != RentalStatus.CONFIRM && rental.getStatus() != RentalStatus.ONGOING && rental.getStatus() != RentalStatus.OVERDUE) {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
         // Check if vehicle is available for the extended period
@@ -408,6 +408,7 @@ public class RentalService {
         // Store pending values
         rental.setPendingEndTime(newReturnTime);
         rental.setPendingRentFee(newFee);
+        rental.setPreStatus(rental.getStatus());
         rental.setStatus(RentalStatus.PENDING_FEE);
         rentalRepository.save(rental);
 
