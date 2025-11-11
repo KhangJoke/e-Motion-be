@@ -66,6 +66,8 @@ public class Vehicle {
 
     private boolean isDelete = false;
 
+    private Integer point;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
     private Station station;

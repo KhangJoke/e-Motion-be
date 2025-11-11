@@ -181,14 +181,20 @@ public class VehicleService {
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         List<FeeResponse> fees = new ArrayList<>();
 
+        long hours = Duration.between( LocalDateTime.parse(start), LocalDateTime.parse(end)).toHours();
+        double feePoint = (vehicle.getPoint()!= null ? vehicle.getPoint() : 0) * ((double) hours /4);
+
         double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
 
         FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
+        FeeResponse pointFee = new FeeResponse("Giảm giá", FeeType.BOOKING_FEE, feePoint * 1000);
         FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
         FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
         FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
                 bookingFeeValue + vehicle.getDepositFee());
+
         fees.add(bookingFee);
+        fees.add(pointFee);
         fees.add(deposit);
         fees.add(holdCar);
         fees.add(total);
@@ -257,12 +263,18 @@ public class VehicleService {
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
         Page<Vehicle> vehiclePage;
 
-        if(user.getRole() == Role.ROLE_STAFF){
-            Station station = stationRepository.findById(user.getStaff().getStation().getId())
+        if(request.getStationId() != null) {
+            Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
             vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
         }else{
-            vehiclePage = vehicleRepository.findByStatusInAndNameContains(statusList, request.getSearch(), pageable);
+            if(user.getRole() == Role.ROLE_STAFF){
+                Station station = stationRepository.findById(user.getStaff().getStation().getId())
+                        .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+                vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+            }else{
+                vehiclePage = vehicleRepository.findByStatusInAndNameContains(statusList, request.getSearch(), pageable);
+            }
         }
 
         List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()

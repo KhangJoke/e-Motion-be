@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {StationMapper.class})
 public abstract class VehicleMapper {
 
     @Value("${price.8h.rate}")
@@ -27,15 +27,11 @@ public abstract class VehicleMapper {
     @Mapping(source = "brand", target = "brand")
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
-    @Mapping(source = "station", target = "station")
     @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")
     @Mapping(target = "pricePer12Hours", expression = "java(getPriceEachRate(vehicle, price12hRate))")
     @Mapping(target = "pricePerDay", expression = "java(getPriceEachRate(vehicle, priceDayRate))")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
-
-    @Mapping(source = "vehicle.station.id", target = "stationId")
-    @Mapping(source = "vehicle.station.city", target = "city") // map Station -> city
     @Mapping(source = "vehicle.status", target = "status")
     @Mapping(source = "vehicle.brand", target = "brand")
     @Mapping(source = "vehicle.category", target = "category")

@@ -101,7 +101,6 @@ public class VehicleController {
         return response;
     }
 
-
     @PostMapping("/filter")
     @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<PageAndFilterVehicleResponse>> findByPageAndFilterAndSearch(@RequestBody PageAndFilterVehicleRequest request){
