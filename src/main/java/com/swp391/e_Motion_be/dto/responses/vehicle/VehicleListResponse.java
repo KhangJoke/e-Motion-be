@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleListResponse {
-
     private Long id;
     private String name;
     private VehicleStatus status;
@@ -24,6 +23,7 @@ public class VehicleListResponse {
     private int hourRate;
     private Double consumptionRate;
     private Double batteryCapacity;
+    private int batteryLevel;
     private StationResponse station;
     private String main;
 }

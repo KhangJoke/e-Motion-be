@@ -51,6 +51,7 @@ public class User implements UserDetails {
     private String forgotPasswordCode;
     @Column(name = "forgot_password_code_expires_at")
     private LocalDateTime forgotPasswordCodeExpiresAt;
+    private int point = 0;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Staff staff;

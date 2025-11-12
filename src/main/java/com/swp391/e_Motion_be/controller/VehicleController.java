@@ -26,6 +26,12 @@ public class VehicleController {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleById(id));
     }
 
+    @GetMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<VehicleUpdateResponse> getUpdateCarById(@PathVariable Long id) {
+        return new ApiResponse<>(200, "success", vehicleService.getUpdateCarById(id));
+    }
+
     // Find by PlateNumber
     @GetMapping("/plate/{plateNumber}")
     @PreAuthorize("isAuthenticated()")
@@ -54,14 +60,14 @@ public class VehicleController {
     // Create a new vehicle
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<VehicleDetailResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
+    public ApiResponse<VehicleListResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
         return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
     }
 
     // Update vehicle by ID
-    @PutMapping("/{id}")
+    @PutMapping("/update")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<VehicleDetailResponse> updateVehicle(@PathVariable Long id, @RequestBody @Valid VehicleUpdateRequest request) {
+    public ApiResponse<VehicleDetailResponse> updateVehicle(@RequestBody @Valid VehicleUpdateRequest request) {
         return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle(id, request));
     }
 

@@ -87,6 +87,13 @@ public class VehicleService {
         return vehicleDetailResponse;
     }
 
+    public VehicleUpdateResponse getUpdateCarById(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+        return vehicleMapper.toVehicleUpdateResponse(vehicle);
+    }
+
     // Find by PlateNumber
     public VehicleDetailResponse findVehicleByPlateNumber(String plateNumber) {
         Vehicle vehicle = vehicleRepository.findByPlateNumber(plateNumber)
@@ -129,7 +136,7 @@ public class VehicleService {
     }
 
     // CREATE
-    public VehicleDetailResponse createVehicle(VehicleCreationRequest request) {
+    public VehicleListResponse createVehicle(VehicleCreationRequest request) {
         //Check Station is FOUNd or NOT
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
@@ -138,18 +145,15 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
-
+        vehicle.setPoint(request.getPoint());
         vehicle.setStation(station);
-
         //SAVE
         vehicleRepository.save(vehicle);
 
-        VehicleDetailResponse vehicleDetailResponse = vehicleMapper.toVehicleDetailResponse(vehicle);
-        List<ImgVehicleResponse> imageResponses = imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
+        VehicleListResponse vehicleListResponse = vehicleMapper.toVehicleListResponse(vehicle, 4);
+        imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
 
-        vehicleDetailResponse.setImages(imageResponses);
-
-        return vehicleDetailResponse;
+        return vehicleListResponse;
     }
 
     private double roundToNearest10(double value) {
@@ -157,15 +161,17 @@ public class VehicleService {
     }
     // UPDATE
     @Transactional
-    public VehicleDetailResponse updateVehicle(Long id, VehicleUpdateRequest request) {
+    public VehicleDetailResponse updateVehicle(VehicleUpdateRequest request) {
 
-        Vehicle existing = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
 
-        if (!existing.getPlateNumber().equals(request.getPlateNumber())
+        if (!vehicle.getPlateNumber().equals(request.getPlateNumber())
                 && vehicleRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
+
+        List<Im>
 
         vehicleMapper.updateVehicleFromRequest(existing, request);
 
@@ -210,7 +216,7 @@ public class VehicleService {
         List<FeeResponse> fees = new ArrayList<>();
 
         long hours = Duration.between( LocalDateTime.parse(start), LocalDateTime.parse(end)).toHours();
-        double feePoint = (vehicle.getPoint()!= null ? vehicle.getPoint() : 0) * ((double) hours /4);
+        double feePoint = vehicle.getPoint() * ((double) hours /4);
 
         double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
 

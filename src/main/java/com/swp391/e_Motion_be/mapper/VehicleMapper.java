@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
+import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleUpdateResponse;
 import com.swp391.e_Motion_be.entity.ImgVehicle;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import org.mapstruct.Mapper;
@@ -13,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {StationMapper.class})
+@Mapper(componentModel = "spring", uses = {StationMapper.class, ImgVehicleMapper.class})
 public abstract class VehicleMapper {
 
     @Value("${price.8h.rate}")
@@ -24,7 +25,7 @@ public abstract class VehicleMapper {
     double priceDayRate;
 
     @Mapping(source = "stationId", target = "station.id")
-    @Mapping(source = "brand", target = "brand")
+    @Mapping(target = "point", ignore = true)
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
     @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")
@@ -32,10 +33,9 @@ public abstract class VehicleMapper {
     @Mapping(target = "pricePerDay", expression = "java(getPriceEachRate(vehicle, priceDayRate))")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
-    @Mapping(source = "vehicle.status", target = "status")
-    @Mapping(source = "vehicle.brand", target = "brand")
-    @Mapping(source = "vehicle.category", target = "category")
-    @Mapping(target = "seats", expression = "java(vehicle.getSeats())")
+    @Mapping(source = "station.id", target = "stationId")
+    public abstract VehicleUpdateResponse toVehicleUpdateResponse(Vehicle vehicle);
+
     @Mapping(target = "main", expression = "java(getMainImage(vehicle))")
     @Mapping(target = "hourRate", expression = "java(getHourRate(hours))")
     @Mapping(target = "priceRate", expression = "java(getPriceRate(vehicle, hours))")
@@ -50,13 +50,6 @@ public abstract class VehicleMapper {
                 .findFirst()
                 .map(ImgVehicle::getUrl)
                 .orElse(null);
-    }
-
-    List<String> getImageUrls(Vehicle vehicle) {
-        if (vehicle.getImages() == null) return List.of();
-        return vehicle.getImages().stream()
-                .map(ImgVehicle::getUrl)
-                .toList();
     }
 
     double getPriceEachRate(Vehicle vehicle, double rate) {
