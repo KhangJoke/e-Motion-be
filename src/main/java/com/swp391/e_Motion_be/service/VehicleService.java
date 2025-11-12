@@ -46,7 +46,6 @@ public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final ImgVehicleService imgVehicleService;
-    private final ImgVehicleMapper imgVehicleMapper;
     private final VehicleMapper vehicleMapper;
     private final StationRepository stationRepository;
     private final RentalRepository rentalRepository;
@@ -152,9 +151,6 @@ public class VehicleService {
         return vehicleDetailResponse;
     }
 
-    private double roundToNearest10(double value) {
-        return Math.round(value / 10.0) * 10.0;
-    }
     // UPDATE
     @Transactional
     public VehicleDetailResponse updateVehicle(Long id, VehicleUpdateRequest request) {
@@ -199,10 +195,6 @@ public class VehicleService {
         return schedules;
     }
 
-    public boolean isAvailable(long id) {
-        List<Vehicle> availableVehicle = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
-        return availableVehicle.stream().anyMatch(v -> v.getId() == id);
-    }
 
     public List<FeeResponse> getListFeeBooking(Long vid, String start, String end){
         Vehicle vehicle = vehicleRepository.findById(vid)

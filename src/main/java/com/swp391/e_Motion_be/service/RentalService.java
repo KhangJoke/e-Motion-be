@@ -140,7 +140,7 @@ public class RentalService {
 
         // save rental
         // set status của xe sang đang thuê
-        vehicle.setStatus(VehicleStatus.UNAVAILABLE);
+        vehicle.setStatus(VehicleStatus.UNAVAILABLE);//hold vehicle for rental
         rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime())); // Tiền thuê
         rentalRepository.save(rental);
         // Create deposit
@@ -270,6 +270,7 @@ public class RentalService {
         );
         cancelRentals.forEach(rental -> {
             emailService.sendRentalCancelEmail(rental);
+            rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
             rental.setStatus(RentalStatus.CANCELLED);
             rental.setCancelNotified(true);
             rentalRepository.save(rental);
