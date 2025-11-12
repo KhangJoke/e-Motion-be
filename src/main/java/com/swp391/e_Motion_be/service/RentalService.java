@@ -265,7 +265,7 @@ public class RentalService {
     public void notifyCancelRentals() {
         LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
         List<Rental> cancelRentals = rentalRepository.findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(
-                List.of(RentalStatus.PENDING, RentalStatus.CONTRACT_PENDING),
+                List.of(RentalStatus.PENDING, RentalStatus.CONFIRM, RentalStatus.CONTRACT_PENDING),
                 limitTime
         );
         cancelRentals.forEach(rental -> {
