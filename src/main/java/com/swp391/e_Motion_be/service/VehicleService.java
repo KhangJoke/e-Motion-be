@@ -121,6 +121,19 @@ public class VehicleService {
     }
 
 
+    //Find 16 for home page
+    public List<VehicleListResponse> findVehiclesForHomePage() {
+        List<Vehicle> vehicles = vehicleRepository.findTop16ByStatusOrderByIdDesc(VehicleStatus.AVAILABLE);
+        if (vehicles.isEmpty()) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
+        }
+
+        return vehicles.stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .collect(Collectors.toList());
+    }
+
+
     // Find all
     public List<VehicleListResponse> findAllVehicles() {
         List<Vehicle> vehicles = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
@@ -167,18 +180,16 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
 
-        List<Im>
-
-        vehicleMapper.updateVehicleFromRequest(existing, request);
+        vehicleMapper.updateVehicleFromRequest(vehicle, request);
 
         if (request.getStationId() != null) {
             Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-            existing.setStation(station);
+            vehicle.setStation(station);
         }
 
         // No need to call save() — transaction will automatically flush changes
-        return vehicleMapper.toVehicleDetailResponse(existing);
+        return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
 
     //DELETE

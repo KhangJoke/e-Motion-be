@@ -39,6 +39,16 @@ public class VehicleController {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleByPlateNumber(plateNumber));
     }
 
+    // Find 16 vehicles for home page
+    @GetMapping("/home")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<VehicleListResponse>> getVehiclesForHomePage() {
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findVehiclesForHomePage());
+        response.setMessage("Get " +response.getData().size()+  " vehicles for home page successfully");
+        return response;
+    }
+
     // Find all available
     @GetMapping
     @PreAuthorize("permitAll()")
@@ -68,7 +78,7 @@ public class VehicleController {
     @PutMapping("/update")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<VehicleDetailResponse> updateVehicle(@RequestBody @Valid VehicleUpdateRequest request) {
-        return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle(id, request));
+        return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle( request));
     }
 
     // Delete vehicle by ID
