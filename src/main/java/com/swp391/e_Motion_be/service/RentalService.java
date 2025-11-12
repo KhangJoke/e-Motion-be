@@ -264,8 +264,8 @@ public class RentalService {
     @Transactional
     public void notifyCancelRentals() {
         LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
-        List<Rental> cancelRentals = rentalRepository.findByStatusAndStartTimeBeforeAndCancelNotifiedFalse(
-                RentalStatus.PENDING,
+        List<Rental> cancelRentals = rentalRepository.findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(
+                List.of(RentalStatus.PENDING, RentalStatus.CONTRACT_PENDING),
                 limitTime
         );
         cancelRentals.forEach(rental -> {
@@ -285,7 +285,6 @@ public class RentalService {
             throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
 
-        double reservationDepositAmount = rental.getReservation()!=null ? rental.getReservation().getDeposit().getAmount() : 0;
         double rentalDepositAmount = rental.getDeposit().getAmount();
 
         CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();

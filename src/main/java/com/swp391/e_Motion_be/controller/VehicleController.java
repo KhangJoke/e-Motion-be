@@ -73,15 +73,6 @@ public class VehicleController {
         return new ApiResponse<>(200, "Vehicle deleted successfully", null);
     }
 
-    // Get ra danh sách đang thuê và đặt trước của xe
-    @GetMapping("/schedule/{vid}")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<VehicleScheduleResponse>> scheduleVehicles(@PathVariable Long vid){
-        ApiResponse<List<VehicleScheduleResponse>> response = new ApiResponse<>();
-        response.setData(vehicleService.getVehicleSchedule(vid));
-        return response;
-    }
-
     @GetMapping("/booking")
     @PreAuthorize("permitAll()")
     public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestParam("id") Long vid,

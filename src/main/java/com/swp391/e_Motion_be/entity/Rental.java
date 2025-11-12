@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.swp391.e_Motion_be.enums.ContractStatus;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,7 +45,12 @@ public class Rental {
     private LocalDateTime pendingEndTime;
     @Column(name = "pending_rent_fee")
     private Double pendingRentFee;
+    @Enumerated(EnumType.STRING)
     private RentalStatus preStatus;
+    private String contractUrl;
+    private String contractDocumentUrl;
+    @Enumerated(EnumType.STRING)
+    private ContractStatus contractStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

@@ -55,6 +55,7 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final DocuSealService docuSealService;
 
     @Transactional
     public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
@@ -325,8 +326,9 @@ public class PaymentService {
         if (deposit != null && rental != null) {
             deposit.setStatus(DepositStatus.HOLD);
             depositRepository.save(deposit);
-            rental.setStatus(RentalStatus.CONFIRM);
+            rental.setStatus(RentalStatus.CONTRACT_PENDING);
             rentalRepository.save(rental);
+            docuSealService.createContract(rental);
             log.info("Rental confirmed: {}", rental.getId());
             log.info("Rental payment processed: {}", payment.getId());
         }

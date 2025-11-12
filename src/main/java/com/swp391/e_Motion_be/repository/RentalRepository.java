@@ -17,7 +17,7 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     List<Rental> findByVehicle_IdAndStatusNotIn(Long vehicleId, List<RentalStatus> status);
     List<Rental> findByStatus(RentalStatus status);
     List<Rental> findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(RentalStatus status, LocalDateTime time);
-    List<Rental> findByStatusAndStartTimeBeforeAndCancelNotifiedFalse(RentalStatus status, LocalDateTime time);
+    List<Rental> findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(List<RentalStatus> status, LocalDateTime time);
     boolean existsByUser_IdAndStatusNotIn(long userId, List<RentalStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String user_email, List<RentalStatus> status);
     List<Rental> findByStation_Id(long stationId);
@@ -26,4 +26,6 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     Page<Rental> findByStatusInAndUser_EmailContains(List<RentalStatus> statusList, String search, Pageable pageable);
     Page<Rental> findByStatusInAndUser_EmailContainsAndStation_Id(List<RentalStatus> statusList, String search, Long stationId, Pageable pageable);
     List<Rental> findByVehicle_IdAndStatusNotInAndStartTimeAfter(Long id, List<RentalStatus> completed, LocalDateTime now);
+    Optional<Rental> findByContractUrl(String contractUrl);
+    Optional<Rental> findTopByUserEmailOrderByCreatedAtDesc(String email);
 }

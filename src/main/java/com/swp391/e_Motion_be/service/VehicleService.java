@@ -187,18 +187,6 @@ public class VehicleService {
         vehicleRepository.save(vehicle);
     }
 
-    public List<VehicleScheduleResponse> getVehicleSchedule(Long vid){
-        List<VehicleScheduleResponse> schedules = new ArrayList<>();
-        rentalRepository.findByVehicle_Id(vid).ifPresent(rental ->
-                schedules.add(new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
-        );
-        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusIn(vid, List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM));
-        schedules.addAll(reservations.stream()
-                .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
-                .toList());
-        return schedules;
-    }
-
     public boolean isAvailable(long id) {
         List<Vehicle> availableVehicle = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
         return availableVehicle.stream().anyMatch(v -> v.getId() == id);

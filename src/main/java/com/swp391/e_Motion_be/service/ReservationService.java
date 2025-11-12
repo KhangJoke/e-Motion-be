@@ -410,6 +410,11 @@ public class ReservationService {
         );
         cancelReservations.forEach(reservation -> {
             emailService.sendReservationCancelEmail(reservation);
+            Deposit deposit = reservation.getDeposit();
+            if(deposit != null && deposit.getStatus() == DepositStatus.HOLD) {
+                deposit.setStatus(DepositStatus.FORFEITED);
+                depositRepository.save(deposit);
+            }
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservation.setCancelNotified(true);
             reservationRepository.save(reservation);

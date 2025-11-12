@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReservationHistoryListResponse {
     private Long id;
+    private String code;
     private String vehicleName;
     private String vehicleImage;
     private String stationName;
