@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.RentalCheckList;
 import com.swp391.e_Motion_be.entity.Staff;
+import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
@@ -72,10 +73,12 @@ public class RentalCheckListService {
         }
         // check if check out and rental is ongoing or overdue
         else if (request.getType() == CheckType.CHECK_OUT) {
-                if (!rental.getStatus().equals(RentalStatus.ONGOING) && !rental.getStatus().equals(RentalStatus.OVERDUE)) {
-                    throw new AppException(ErrorCode.RENTAL_IS_NOT_ONGOING_OR_OVERDUE_FOR_CHECK_OUT);
-                }
+            if (!rental.getStatus().equals(RentalStatus.ONGOING) && !rental.getStatus().equals(RentalStatus.OVERDUE)) {
+                throw new AppException(ErrorCode.RENTAL_IS_NOT_ONGOING_OR_OVERDUE_FOR_CHECK_OUT);
             }
+            Vehicle vehicle = rental.getVehicle();
+            vehicle.setBatteryLevel(request.getCurrentBattery());
+        }
 
         RentalCheckList checkList = rentalCheckListMapper.toCheckListEntity(request);
         checkList.setRental(rental);

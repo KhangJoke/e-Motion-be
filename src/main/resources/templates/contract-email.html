@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hợp đồng thuê xe</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #3B82F6;
+            color: white;
+            text-align: center;
+            padding: 24px;
+        }
+        .content {
+            padding: 24px;
+            line-height: 1.6;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3B82F6;
+            color: white !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 16px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            padding: 16px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Hợp đồng thuê xe</h1>
+    </div>
+    <div class="content">
+        <p>Xin chào <strong th:text="${renterName}">Tên người thuê</strong>,</p>
+        <p>Hợp đồng thuê xe của bạn đã được tạo thành công. Vui lòng truy cập vào liên kết bên dưới để xem và ký hợp đồng.</p>
+
+        <p style="text-align: center;">
+            <a th:href="${contractUrl}" class="btn" target="_blank">Ký hợp đồng ngay</a>
+        </p>
+
+        <p><strong>Thông tin hợp đồng:</strong></p>
+        <ul>
+            <li><b>Xe:</b> <span th:text="${carName}"></span> (<span th:text="${carBrand}"></span> - <span th:text="${carCategory}"></span>)</li>
+            <li><b>Biển số:</b> <span th:text="${plateNumber}"></span></li>
+            <li><b>Giá thuê:</b> <span th:text="${rentFee}"></span> VNĐ</li>
+            <li><b>Bắt đầu:</b> <span th:text="${startTime}"></span></li>
+            <li><b>Kết thúc:</b> <span th:text="${endTime}"></span></li>
+            <li><b>Địa điểm:</b> <span th:text="${stationName}"></span></li>
+            <li><b>Ngày thanh toán:</b> <span th:text="${payDate}"></span></li>
+        </ul>
+
+        <p>Nếu bạn cần hỗ trợ, vui lòng phản hồi lại email này hoặc liên hệ đội ngũ CSKH của chúng tôi.</p>
+        <p>Trân trọng,<br><b>Đội ngũ thuê xe thông minh</b></p>
+    </div>
+    <div class="footer">
+        © 2025 e-Motion | Mọi quyền được bảo lưu.
+    </div>
+</div>
+</body>
+</html>

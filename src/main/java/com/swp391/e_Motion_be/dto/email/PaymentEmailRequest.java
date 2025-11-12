@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -22,6 +21,7 @@ public class PaymentEmailRequest {
     private double penaltyTotal;
     private double total;
     private double rentalFee;
+    private double extraHourFee;
     private double totalDeposit;
     private double refundAmount;
 }

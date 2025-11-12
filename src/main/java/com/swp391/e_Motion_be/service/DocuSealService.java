@@ -31,6 +31,8 @@ public class DocuSealService {
     private String url;
     @Autowired
     private RentalRepository rentalRepository;
+    @Autowired
+    private EmailService emailService;
 
     public String createContract(Rental rental) {
 
@@ -62,13 +64,10 @@ public class DocuSealService {
         Map<String, Object> payload = Map.of(
                 "template_id", templateId,
                 "submitters", List.of(renter),
-                "send_email", true,
+                "send_email", false,
                 "send_sms", false,
                 "order", "preserved",
-                "message", Map.of(
-                        "subject", "Ký hợp đồng thuê xe",
-                        "body", "Xin chào, vui lòng ký hợp đồng thuê xe tại link dưới đây."
-                )
+                "message", Map.of()
         );
 
         HttpHeaders headers = new HttpHeaders();
@@ -84,6 +83,7 @@ public class DocuSealService {
                 responseType
         );
         String contractUrl = (String) response.getBody().get(0).get("embed_src");
+        emailService.sendContractEmail(rental, contractUrl);
         rental.setContractStatus(ContractStatus.PENDING);
         rentalRepository.save(rental);
         return contractUrl;

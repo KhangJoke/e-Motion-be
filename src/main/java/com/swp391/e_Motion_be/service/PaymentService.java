@@ -228,6 +228,7 @@ public class PaymentService {
         // Process payment result
         if ("00".equals(responseCode)) {
             payment.setStatus(PaymentStatus.SUCCESS);
+            paymentRepository.save(payment);
             processSuccessfulPayment(payment);
             log.info("Payment successful for txnRef: {}", vnp_TxnRef);
             paymentRepository.save(payment);
@@ -579,7 +580,7 @@ public class PaymentService {
             }else if ("91".equals(responseCode)) {
                 log.warn("Refund failed for txnRef: {} with code: {}", responseParams.get("vnp_TxnRef"), responseCode);
                 throw new AppException(ErrorCode.REFUND_IS_NOT_FOUND);
-            } else if(!"00".equals(responseCode)){
+            } else if(!"00".equals(responseCode) && !"99".equals(responseCode)){
                 log.error("Refund failed with response code: {}", responseCode);
                 throw new AppException(ErrorCode.REFUND_FAILED);
             }

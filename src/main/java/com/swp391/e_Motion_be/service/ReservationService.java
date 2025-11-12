@@ -260,7 +260,7 @@ public class ReservationService {
 
         PaymentResponse refundResponse = paymentService.refundPayment(refundRequest);
 
-        if (refundResponse != null && "00".equals(refundResponse.getResponseCode())) {
+        if (refundResponse != null && ("00".equals(refundResponse.getResponseCode()) || "99".equals(refundResponse.getResponseCode()))) {
             // Update deposit status only if refund was successful
             deposit.setStatus(DepositStatus.RELEASED);
             depositRepository.save(deposit);
