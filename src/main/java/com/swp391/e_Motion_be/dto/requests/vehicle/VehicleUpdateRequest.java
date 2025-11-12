@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
+import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -9,12 +10,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleUpdateRequest {
 
+    @NotNull(message = "Vehicle ID is required")
+    private Long id;
     @NotBlank(message = "Vehicle name is required")
     private String name;
 
@@ -26,9 +30,6 @@ public class VehicleUpdateRequest {
 
     @NotNull(message = "Brand is required")
     private VehicleBrand brand;
-
-    @NotNull(message = "Vehicle status is required")
-    private VehicleStatus status;
 
     @NotNull(message = "Seats is required")
     @Positive(message = "Seats must be positive")
@@ -46,9 +47,9 @@ public class VehicleUpdateRequest {
     private Double consumptionRate;
 
     @NotNull(message = "Battery level is required")
-    @DecimalMin(value = "0.0", message = "Battery level cannot be less than 0")
-    @DecimalMax(value = "1.0", message = "Battery level cannot be greater than 1")
-    private Double batteryLevel;
+    @Min(value = 0, message = "Battery level cannot be less than 0")
+    @Max(value = 100, message = "Battery level cannot be greater than 100")
+    private int batteryLevel;
 
     @NotNull(message = "Battery capacity is required")
     @Positive(message = "Battery capacity must be positive")
@@ -57,9 +58,9 @@ public class VehicleUpdateRequest {
     @NotBlank(message = "Plate number is required")
     private String plateNumber;
 
-    @NotNull(message = "Date for last maintenance is required")
-    private LocalDateTime lastMaintenance;
-
     @NotNull(message = "Station ID is required")
     private Long stationId; // Link to station entity by ID
+
+    @NotNull(message = "Images are required")
+    private List<ImgVehicleCreationRequest> images;
 }

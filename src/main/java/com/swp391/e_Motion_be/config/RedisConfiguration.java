@@ -31,7 +31,6 @@ public class RedisConfiguration {
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-
         // Bật keyspace notifications
         enableKeyspaceNotifications(connectionFactory);
 

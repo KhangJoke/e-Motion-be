@@ -29,15 +29,16 @@ public class VehicleCreationRequest {
     @NotNull(message = "Brand is required")
     private VehicleBrand brand;
 
-    @NotNull(message = "Vehicle status is required")
-    private VehicleStatus status;
-
     @NotNull(message = "Depsoit fee status is required")
     private double depositFee;
 
     @NotNull(message = "Seats is required")
     @Positive(message = "Seats must be positive")
     private int seats;
+
+    @NotNull(message = "Point is required")
+    @Positive(message = "Point must be positive")
+    private int point;
 
     @NotNull(message = "Price 4 hours hour is required")
     @Positive(message = "Price 4 hours hour must be positive")
@@ -48,9 +49,9 @@ public class VehicleCreationRequest {
     private Double consumptionRate;
 
     @NotNull(message = "Battery level is required")
-    @DecimalMin(value = "0.0", message = "Battery level cannot be less than 0")
-    @DecimalMax(value = "1.0", message = "Battery level cannot be greater than 1")
-    private Double batteryLevel;
+    @Min(value = 0, message = "Battery level cannot be less than 0")
+    @Max(value = 100, message = "Battery level cannot be greater than 100")
+    private int batteryLevel;
 
     @NotNull(message = "Capacity is required")
     @Positive(message = "Battery capacity must be positive")
@@ -59,11 +60,8 @@ public class VehicleCreationRequest {
     @NotBlank(message = "Plate number is required")
     private String plateNumber;
 
-    @NotNull(message = "Date for last maintenance is required")
-    private LocalDateTime lastMaintenance;
-
     @NotNull(message = "Station ID is required")
-    private Long stationId; // <--Station by ID
+    private Long stationId;
 
     @NotNull(message = "Images are required")
     private List<ImgVehicleCreationRequest> images;

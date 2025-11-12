@@ -128,6 +128,7 @@ public class ReservationService {
         if(vehicle.getStatus().equals(VehicleStatus.CHECKING) || vehicle.getStatus().equals(VehicleStatus.MAINTAINED)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_READY);
         }
+
         // Create reservation
         Reservation reservation = reservationMapper.toReservationEntity(request);
         reservation.setUser(user);

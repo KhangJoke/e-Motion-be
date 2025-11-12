@@ -46,7 +46,6 @@ public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final ImgVehicleService imgVehicleService;
-    private final ImgVehicleMapper imgVehicleMapper;
     private final VehicleMapper vehicleMapper;
     private final StationRepository stationRepository;
     private final RentalRepository rentalRepository;
@@ -87,6 +86,13 @@ public class VehicleService {
         return vehicleDetailResponse;
     }
 
+    public VehicleUpdateResponse getUpdateCarById(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+        return vehicleMapper.toVehicleUpdateResponse(vehicle);
+    }
+
     // Find by PlateNumber
     public VehicleDetailResponse findVehicleByPlateNumber(String plateNumber) {
         Vehicle vehicle = vehicleRepository.findByPlateNumber(plateNumber)
@@ -115,6 +121,19 @@ public class VehicleService {
     }
 
 
+    //Find 16 for home page
+    public List<VehicleListResponse> findVehiclesForHomePage() {
+        List<Vehicle> vehicles = vehicleRepository.findTop16ByStatusOrderByIdDesc(VehicleStatus.AVAILABLE);
+        if (vehicles.isEmpty()) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
+        }
+
+        return vehicles.stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .collect(Collectors.toList());
+    }
+
+
     // Find all
     public List<VehicleListResponse> findAllVehicles() {
         List<Vehicle> vehicles = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
@@ -129,7 +148,7 @@ public class VehicleService {
     }
 
     // CREATE
-    public VehicleDetailResponse createVehicle(VehicleCreationRequest request) {
+    public VehicleListResponse createVehicle(VehicleCreationRequest request) {
         //Check Station is FOUNd or NOT
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
@@ -138,45 +157,39 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
-
+        vehicle.setPoint(request.getPoint());
         vehicle.setStation(station);
-
         //SAVE
         vehicleRepository.save(vehicle);
 
-        VehicleDetailResponse vehicleDetailResponse = vehicleMapper.toVehicleDetailResponse(vehicle);
-        List<ImgVehicleResponse> imageResponses = imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
+        VehicleListResponse vehicleListResponse = vehicleMapper.toVehicleListResponse(vehicle, 4);
+        imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
 
-        vehicleDetailResponse.setImages(imageResponses);
-
-        return vehicleDetailResponse;
+        return vehicleListResponse;
     }
 
-    private double roundToNearest10(double value) {
-        return Math.round(value / 10.0) * 10.0;
-    }
     // UPDATE
     @Transactional
-    public VehicleDetailResponse updateVehicle(Long id, VehicleUpdateRequest request) {
+    public VehicleDetailResponse updateVehicle(VehicleUpdateRequest request) {
 
-        Vehicle existing = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
 
-        if (!existing.getPlateNumber().equals(request.getPlateNumber())
+        if (!vehicle.getPlateNumber().equals(request.getPlateNumber())
                 && vehicleRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
 
-        vehicleMapper.updateVehicleFromRequest(existing, request);
+        vehicleMapper.updateVehicleFromRequest(vehicle, request);
 
         if (request.getStationId() != null) {
             Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-            existing.setStation(station);
+            vehicle.setStation(station);
         }
 
         // No need to call save() — transaction will automatically flush changes
-        return vehicleMapper.toVehicleDetailResponse(existing);
+        return vehicleMapper.toVehicleDetailResponse(vehicle);
     }
 
     //DELETE
@@ -187,24 +200,38 @@ public class VehicleService {
         vehicleRepository.save(vehicle);
     }
 
-    public boolean isAvailable(long id) {
-        List<Vehicle> availableVehicle = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
-        return availableVehicle.stream().anyMatch(v -> v.getId() == id);
+    public List<VehicleScheduleResponse> getVehicleSchedule(Long vid){
+        List<VehicleScheduleResponse> schedules = new ArrayList<>();
+        rentalRepository.findByVehicle_Id(vid).ifPresent(rental ->
+                schedules.add(new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
+        );
+        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusIn(vid, List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM));
+        schedules.addAll(reservations.stream()
+                .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
+                .toList());
+        return schedules;
     }
+
 
     public List<FeeResponse> getListFeeBooking(Long vid, String start, String end){
         Vehicle vehicle = vehicleRepository.findById(vid)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         List<FeeResponse> fees = new ArrayList<>();
 
+        long hours = Duration.between( LocalDateTime.parse(start), LocalDateTime.parse(end)).toHours();
+        double feePoint = vehicle.getPoint() * ((double) hours /4);
+
         double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
 
         FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
+        FeeResponse pointFee = new FeeResponse("Giảm giá", FeeType.BOOKING_FEE, feePoint * 1000);
         FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
         FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
         FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
                 bookingFeeValue + vehicle.getDepositFee());
+
         fees.add(bookingFee);
+        fees.add(pointFee);
         fees.add(deposit);
         fees.add(holdCar);
         fees.add(total);
@@ -406,12 +433,18 @@ public class VehicleService {
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
         Page<Vehicle> vehiclePage;
 
-        if(user.getRole() == Role.ROLE_STAFF){
-            Station station = stationRepository.findById(user.getStaff().getStation().getId())
+        if(request.getStationId() != null) {
+            Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
             vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
         }else{
-            vehiclePage = vehicleRepository.findByStatusInAndNameContains(statusList, request.getSearch(), pageable);
+            if(user.getRole() == Role.ROLE_STAFF){
+                Station station = stationRepository.findById(user.getStaff().getStation().getId())
+                        .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+                vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+            }else{
+                vehiclePage = vehicleRepository.findByStatusInAndNameContains(statusList, request.getSearch(), pageable);
+            }
         }
 
         List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
