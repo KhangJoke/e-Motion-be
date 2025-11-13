@@ -29,7 +29,6 @@ public class RentalResponse {
     VehicleDetailResponse vehicle;
     String reservationCode;
     String userEmail;
-    String contractDocumentUrl;
     ContractStatus contractStatus;
     DepositResponse rentalDeposit;
     DepositResponse reservationDeposit;
