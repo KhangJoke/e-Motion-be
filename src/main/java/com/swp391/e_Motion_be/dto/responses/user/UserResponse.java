@@ -20,6 +20,7 @@ public class UserResponse {
     private String phone;
     private Role role;
     private LocalDate createdAt;
+    private int point;
     private boolean blocked;
     private List<DocumentResponse> documents;
     private Long staffId;

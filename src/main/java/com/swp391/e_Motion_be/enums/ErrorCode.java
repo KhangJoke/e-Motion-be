@@ -26,6 +26,9 @@ public enum ErrorCode {
     DOCUMENT_NUMBER_EXISTS(HttpStatus.CONFLICT, "Số giấy tờ đã tồn tại"),
     DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy giấy tờ"),
     USER_ALREADY_HAS_DOCUMENT_OF_TYPE(HttpStatus.CONFLICT, "Người dùng đã có giấy tờ của loại này"),
+    DOCUMENT_NUMBER_INVALID(HttpStatus.BAD_REQUEST, "Số giấy tờ không hợp lệ"),
+    DOCUMENT_EXPIRED(HttpStatus.BAD_REQUEST, "Giấy tờ đã hết hạn"),
+    LICENSE_NOT_VALID_FOR_VEHICLE(HttpStatus.BAD_REQUEST, "Bằng lái xe không hợp lệ cho phương tiện này"),
 
     // Vehicle errors
     VEHICLE_EXIST(HttpStatus.CONFLICT, "Phương tiện đã tồn tại"),
@@ -85,6 +88,7 @@ public enum ErrorCode {
     NOT_FOUND_FOLDER_DATASET(HttpStatus.NOT_FOUND, "Không tìm thấy thư mục dữ liệu"),
     FAIL_COPY_DATASET(HttpStatus.INTERNAL_SERVER_ERROR, "Sao chép thư mục dữ liệu thất bại"),
     CREATE_FOLDER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tạo thư mục thất bại"),
+    DOCUMENT_INVALID(HttpStatus.NOT_FOUND, "Document không hợp lệ"),
 
     // Station errors
     STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy trạm"),

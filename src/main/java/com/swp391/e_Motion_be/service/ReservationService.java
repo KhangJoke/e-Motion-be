@@ -19,6 +19,7 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.document.DocumentService;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -42,19 +43,22 @@ import java.util.*;
 @Slf4j
 public class ReservationService {
 
-    private final ReservationRepository reservationRepository;
     private final ReservationMapper reservationMapper;
+
+    private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
     private final PaymentRepository paymentRepository;
-    private final PaymentService paymentService;
     private final DepositRepository depositRepository;
     private final RentalRepository rentalRepository;
+    private final DocumentRepository documentRepository;
+
     private final DepositService depositService;
     private final EmailService emailService;
-    private final DocumentRepository documentRepository;
     private final UserService userService;
+    private final PaymentService paymentService;
+    private final DocumentService documentService;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
@@ -84,12 +88,14 @@ public class ReservationService {
         if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocumentType.LICENSE)){
             throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
         }
-
+        // Check expired document
+        if(documentService.checkExpiredDocumentByUserEmail(request.getUserEmail())){
+            throw new AppException(ErrorCode.DOCUMENT_EXPIRED);
+        }
         // Check if start and end times are exact hours
         if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
             throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
         }
-
         // Check reservation time validity
         if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
         request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
