@@ -15,9 +15,9 @@ public class RentalCheckListCreateRequest {
     private CheckType type;
 
     @NotNull(message = "Current battery is required")
-    @DecimalMin(value = "0.0", message = "Current battery must be greater than or equal to 0")
-    @DecimalMax(value = "100.0", message = "Current battery must be less than or equal to 100")
-    private Double currentBattery;
+    @Min(value = 0, message = "Current battery must be greater than or equal to 0")
+    @Max(value = 100, message = "Current battery must be less than or equal to 100")
+    private int currentBattery;
 
     @NotNull(message = "Rental ID is required")
     private Long rentalId;

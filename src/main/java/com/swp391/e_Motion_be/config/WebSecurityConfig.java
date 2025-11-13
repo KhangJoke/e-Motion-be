@@ -68,7 +68,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/vehicles/**", "/api/stations/**", "/api/ratings/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/filter").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/filter/**").permitAll()
-                        .requestMatchers("/api/chat/**").permitAll()
+                        .requestMatchers("/api/chat/**", "/api/contracts/webhook").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

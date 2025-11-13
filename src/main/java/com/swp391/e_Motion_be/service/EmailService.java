@@ -1,5 +1,12 @@
 package com.swp391.e_Motion_be.service;
 
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import com.swp391.e_Motion_be.dto.email.PaymentEmailRequest;
 import com.swp391.e_Motion_be.dto.email.PaymentItem;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
@@ -9,26 +16,23 @@ import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.repository.PaymentRepository;
 import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.util.CurrencyFee;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import com.sendgrid.*;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Email;
-import com.sendgrid.helpers.mail.objects.Content;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -38,9 +42,8 @@ public class EmailService {
 
     @Value("${sendgrid.api.key}")
     private String sendGridApiKey;
-
-    private final JavaMailSender emailSender;
     private final RentalCheckListRepository rentalCheckListRepository;
+    private final PaymentRepository paymentRepository;
 
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
         Email from = new Email("030739230108@st.buh.edu.vn"); // verified sender
@@ -127,6 +130,7 @@ public class EmailService {
         context.setVariable("vehicleDamagesTotal", emailModel.getVehicleDamagesTotal());
         context.setVariable("penaltyTotal", emailModel.getPenaltyTotal());
         context.setVariable("rentalFee", emailModel.getRentalFee());
+        context.setVariable("extraHourFee", emailModel.getExtraHourFee());
         context.setVariable("total", emailModel.getTotal());
         context.setVariable("url", url);
         context.setVariable("totalDeposit", emailModel.getTotalDeposit());
@@ -206,14 +210,13 @@ public class EmailService {
                     .label("Reservation Deposit Fee")
                     .amount(reservation.getDeposit().getAmount())
                     .build());
-            total -= reservation.getDeposit().getAmount();
         }
 
         return PaymentEmailRequest.builder()
                 .subject("Rental Started - Payment Receipt")
                 .message("Your rental has started! Below are your payment details.")
                 .paymentType(PaymentType.RENTAL)
-                .paymentStatus(payment.getStatus().toString())
+                .paymentStatus(rental.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
                 .items(items)
                 .vehicleDamages(vehicleLogItems)
@@ -228,6 +231,8 @@ public class EmailService {
         double penaltyTotal = 0;
         double damageTotal = 0;
         double totalDeposit = rental.getDeposit() != null ? rental.getDeposit().getAmount() : 0;
+        totalDeposit += rental.getReservation() != null && rental.getReservation().getDeposit() != null
+                ? rental.getReservation().getDeposit().getAmount() : 0;
         double rentalFee = rental.getRentFee();
         double total = 0;
 
@@ -267,19 +272,26 @@ public class EmailService {
             penaltyTotal += damageTotal;
         }
 
-        total = (totalDeposit  + rentalFee) - penaltyTotal;
+        total = Math.abs(totalDeposit - penaltyTotal);
+        Payment extraPayment = paymentRepository.findTopByDescriptionOrderByCreatedAtDesc("Extension Payment for Rental ID: "+rental.getId()).orElse(null);
+        double extraHourFee = 0;
+        if(extraPayment != null){
+            extraHourFee = extraPayment.getAmount();
+            total += extraPayment.getAmount();
+        }
 
         return PaymentEmailRequest.builder()
                 .subject("Rental Completed - Final Payment Receipt")
                 .message("Your rental has been completed. Below is your final payment summary.")
                 .paymentType(PaymentType.PENALTY_FEE_RENTAL)
-                .paymentStatus(payment.getStatus().toString())
+                .paymentStatus(rental.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
                 .items(items)
                 .vehicleDamages(vehicleDamages)
                 .vehicleDamagesTotal(damageTotal)
                 .totalDeposit(totalDeposit)
                 .rentalFee(rentalFee)
+                .extraHourFee(extraHourFee)
                 .total(total)
                 .penaltyTotal(penaltyTotal)
                 .build();
@@ -321,6 +333,8 @@ public class EmailService {
         }
 
         double totalDeposit = rental.getDeposit() != null ? rental.getDeposit().getAmount() : 0;
+        totalDeposit += rental.getReservation() != null && rental.getReservation().getDeposit() != null
+                ? rental.getReservation().getDeposit().getAmount() : 0;
         List<PaymentItem> items = new ArrayList<>();
         double penaltyTotal = 0;
         double damageTotal = 0;
@@ -371,7 +385,7 @@ public class EmailService {
                 .subject("Refund Processed - Payment Receipt")
                 .message("Your refund has been processed! Below are your refund details.")
                 .paymentType(PaymentType.REFUND)
-                .paymentStatus(payment.getStatus().toString())
+                .paymentStatus(rental.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
                 .items(items)
                 .vehicleDamages(vehicleDamages)
@@ -579,6 +593,31 @@ public class EmailService {
 
         try {
             sendVerificationEmail(rental.getUser().getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
+
+    public void sendContractEmail(Rental rental, String contractUrl) {
+        String subject = "Hợp đồng thuê xe của bạn";
+
+        Context context = new Context();
+        context.setVariable("renterName", rental.getUser().getFullName());
+        context.setVariable("contractUrl", contractUrl);
+        context.setVariable("carName", rental.getVehicle().getName());
+        context.setVariable("carBrand", rental.getVehicle().getBrand());
+        context.setVariable("carCategory", rental.getVehicle().getCategory());
+        context.setVariable("plateNumber", rental.getVehicle().getPlateNumber());
+        context.setVariable("rentFee", rental.getRentFee());
+        context.setVariable("startTime", rental.getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        context.setVariable("endTime", rental.getEndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("payDate", rental.getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+
+        String htmlContent = templateEngine.process("contract-email", context);
+
+        try {
+            sendVerificationEmail(rental.getUser().getEmail(), subject, htmlContent);
         } catch (MessagingException e) {
             throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
         }

@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.responses.rental.*;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
+import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
@@ -264,8 +265,8 @@ public class RentalService {
     @Transactional
     public void notifyCancelRentals() {
         LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
-        List<Rental> cancelRentals = rentalRepository.findByStatusAndStartTimeBeforeAndCancelNotifiedFalse(
-                RentalStatus.PENDING,
+        List<Rental> cancelRentals = rentalRepository.findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(
+                List.of(RentalStatus.PENDING, RentalStatus.CONFIRM, RentalStatus.CONTRACT_PENDING),
                 limitTime
         );
         cancelRentals.forEach(rental -> {
@@ -286,7 +287,6 @@ public class RentalService {
             throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
 
-        double reservationDepositAmount = rental.getReservation()!=null ? rental.getReservation().getDeposit().getAmount() : 0;
         double rentalDepositAmount = rental.getDeposit().getAmount();
 
         CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
@@ -347,7 +347,7 @@ public class RentalService {
                 RefundRequest refundRequest = new RefundRequest();
                 refundRequest.setIpAddr(remoteAddr);
                 refundRequest.setTxnRef(
-                        rental.getPayments().get(rental.getPayments().size() - 1).getTxnRef()
+                        paymentRepository.findByRental_idAndTypeAndStatus(rental.getId(),PaymentType.RENTAL, PaymentStatus.SUCCESS).getTxnRef()
                 );
                 refundRequest.setAmount(Math.abs(balance));
                 refundRequest.setFullRefund(false);

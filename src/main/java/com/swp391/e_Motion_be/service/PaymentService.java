@@ -55,6 +55,7 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final DocuSealService docuSealService;
 
     @Transactional
     public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
@@ -227,6 +228,7 @@ public class PaymentService {
         // Process payment result
         if ("00".equals(responseCode)) {
             payment.setStatus(PaymentStatus.SUCCESS);
+            paymentRepository.save(payment);
             processSuccessfulPayment(payment);
             log.info("Payment successful for txnRef: {}", vnp_TxnRef);
             paymentRepository.save(payment);
@@ -325,8 +327,9 @@ public class PaymentService {
         if (deposit != null && rental != null) {
             deposit.setStatus(DepositStatus.HOLD);
             depositRepository.save(deposit);
-            rental.setStatus(RentalStatus.CONFIRM);
+            rental.setStatus(RentalStatus.CONTRACT_PENDING);
             rentalRepository.save(rental);
+            docuSealService.createContract(rental);
             log.info("Rental confirmed: {}", rental.getId());
             log.info("Rental payment processed: {}", payment.getId());
         }
@@ -577,7 +580,7 @@ public class PaymentService {
             }else if ("91".equals(responseCode)) {
                 log.warn("Refund failed for txnRef: {} with code: {}", responseParams.get("vnp_TxnRef"), responseCode);
                 throw new AppException(ErrorCode.REFUND_IS_NOT_FOUND);
-            } else if(!"00".equals(responseCode)){
+            } else if(!"00".equals(responseCode) && !"99".equals(responseCode)){
                 log.error("Refund failed with response code: {}", responseCode);
                 throw new AppException(ErrorCode.REFUND_FAILED);
             }

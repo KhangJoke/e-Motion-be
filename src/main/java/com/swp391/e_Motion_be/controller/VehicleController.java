@@ -39,6 +39,16 @@ public class VehicleController {
         return new ApiResponse<>(200, "success", vehicleService.findVehicleByPlateNumber(plateNumber));
     }
 
+    // Find 16 vehicles for home page
+    @GetMapping("/home")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<VehicleListResponse>> getVehiclesForHomePage() {
+        ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findVehiclesForHomePage());
+        response.setMessage("Get " +response.getData().size()+  " vehicles for home page successfully");
+        return response;
+    }
+
     // Find all available
     @GetMapping
     @PreAuthorize("permitAll()")
@@ -54,6 +64,15 @@ public class VehicleController {
     public ApiResponse<List<VehicleListResponse>> getVehiclesByBrand(@PathVariable String brand) {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findVehicleByBrand(brand));
+        response.setMessage("Get " +response.getData().size()+  " vehicles by brand successfully");
+        return response;
+    }
+
+    @GetMapping("/brand")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<VehicleBrandResponse>> findAllVehicleBrands() {
+        ApiResponse<List<VehicleBrandResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findAllVehicleBrands());
         return response;
     }
 
@@ -80,15 +99,6 @@ public class VehicleController {
     public ApiResponse<String> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicleById(id);
         return new ApiResponse<>(200, "Vehicle deleted successfully", null);
-    }
-
-    // Get ra danh sách đang thuê và đặt trước của xe
-    @GetMapping("/schedule/{vid}")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<VehicleScheduleResponse>> scheduleVehicles(@PathVariable Long vid){
-        ApiResponse<List<VehicleScheduleResponse>> response = new ApiResponse<>();
-        response.setData(vehicleService.getVehicleSchedule(vid));
-        return response;
     }
 
     @GetMapping("/booking")

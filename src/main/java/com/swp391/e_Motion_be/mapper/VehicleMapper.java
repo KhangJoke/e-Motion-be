@@ -36,6 +36,8 @@ public abstract class VehicleMapper {
     @Mapping(source = "station.id", target = "stationId")
     public abstract VehicleUpdateResponse toVehicleUpdateResponse(Vehicle vehicle);
 
+    @Mapping(source = "vehicle.station", target = "station")
+    @Mapping(target = "seats", expression = "java(vehicle.getSeats())")
     @Mapping(target = "main", expression = "java(getMainImage(vehicle))")
     @Mapping(target = "hourRate", expression = "java(getHourRate(hours))")
     @Mapping(target = "priceRate", expression = "java(getPriceRate(vehicle, hours))")

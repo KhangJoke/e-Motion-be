@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
@@ -132,10 +132,10 @@
 <div class="container">
     <!-- Header -->
     <div class="header">
-        <h2 th:text="${subject}">Payment Confirmation</h2>
-        <p th:text="${message}">Thank you for your payment</p>
+        <h2 th:text="${subject}">Xác nhận thanh toán</h2>
+        <p th:text="${message}">Cảm ơn bạn đã thanh toán</p>
         <div>
-            <strong>Status: </strong>
+            <strong>Trạng thái: </strong>
             <span class="status-badge"
                   th:style="'background-color:' + ${statusColor} + '; color: white;'"
                   th:text="${paymentStatus}"></span>
@@ -144,35 +144,33 @@
 
     <!-- Payment Type Badge (Optional) -->
     <div th:if="${paymentType}" style="margin-bottom: 20px;">
-            <span style="background-color: #e6f2ff; color: #2b6cb0; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: 600;">
-                <span th:text="${paymentType}"></span>
-            </span>
+        <span style="background-color: #e6f2ff; color: #2b6cb0; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: 600;">
+            <span th:text="${paymentType}"></span>
+        </span>
     </div>
 
     <!-- Payment Summary -->
-    <h3 style="color: #2d3748; margin-bottom: 15px;">Payment Summary</h3>
+    <h3 style="color: #2d3748; margin-bottom: 15px;">Tổng kết thanh toán</h3>
     <table class="summary-table" th:if="${items != null and !items.isEmpty()}">
         <tr th:each="item : ${items}">
-            <td class="label" th:text="${item.label}">Item Label</td>
-            <td class="amount" th:text="${#numbers.formatDecimal(item.amount, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-            >0.00đ</td>
+            <td class="label" th:text="${item.label}">Tên khoản</td>
+            <td class="amount" th:text="${#numbers.formatDecimal(item.amount, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
         </tr>
     </table>
 
     <!-- Vehicle Damage Charges -->
     <div class="damage-section" th:if="${vehicleDamages != null and !vehicleDamages.isEmpty()}">
-        <h3>⚠️ Vehicle Damage Charges</h3>
+        <h3>Chi phí sửa chữa thiệt hại xe</h3>
         <table class="damage-table">
             <tr th:each="damage : ${vehicleDamages}">
-                <td th:text="${damage.description}">Damage Description</td>
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(damage.cost, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-                >0.00đ</td>
+                <td th:text="${damage.description}">Mô tả thiệt hại</td>
+                <td style="text-align: right;"
+                    th:text="${#numbers.formatDecimal(damage.cost, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
             </tr>
             <tr class="damage-total">
-                <td>Total Damage Cost</td>
+                <td>Tổng chi phí thiệt hại</td>
                 <td style="text-align: right;"
-                    th:text="${#numbers.formatDecimal(vehicleDamagesTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-                >0.00đ</td>
+                    th:text="${#numbers.formatDecimal(vehicleDamagesTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
@@ -181,9 +179,9 @@
     <div class="total-section" th:if="${penaltyTotal!=0}">
         <table>
             <tr>
-                <td>Total Penalty</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(penaltyTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-                >0.00đ</td>
+                <td>Tổng phí phạt</td>
+                <td class="total-amount"
+                    th:text="${#numbers.formatDecimal(penaltyTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
@@ -192,9 +190,9 @@
     <div class="total-section" th:if="${totalDeposit!=0}">
         <table>
             <tr>
-                <td>Total Deposit</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(totalDeposit, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-                >0.00đ</td>
+                <td>Tiền đặt cọc</td>
+                <td class="total-amount"
+                    th:text="${#numbers.formatDecimal(totalDeposit, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
@@ -203,9 +201,20 @@
     <div class="total-section" th:if="${rentalFee!=0}">
         <table>
             <tr>
-                <td>Rental Fee</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(rentalFee, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-                >0.00đ</td>
+                <td>Phí thuê xe</td>
+                <td class="total-amount"
+                    th:text="${#numbers.formatDecimal(rentalFee, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Extra Rental Fee -->
+    <div class="total-section" th:if="${extraHourFee!=0}">
+        <table>
+            <tr>
+                <td>Phí gia hạn hợp đồng</td>
+                <td class="total-amount"
+                    th:text="${#numbers.formatDecimal(extraHourFee, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
@@ -214,9 +223,9 @@
     <div class="total-section total-section-pay-and-refund">
         <table>
             <tr>
-                <td>Total Pay</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-                >0.00đ</td>
+                <td>Tổng thanh toán</td>
+                <td class="total-amount"
+                    th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
@@ -225,24 +234,24 @@
     <div class="total-section total-section-pay-and-refund" th:if="${refundAmount!=0}">
         <table>
             <tr>
-                <td>Refund Amount</td>
-                <td class="total-amount" th:text="${#numbers.formatDecimal(refundAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"
-                >0.00đ</td>
+                <td>Số tiền hoàn lại</td>
+                <td class="total-amount"
+                    th:text="${#numbers.formatDecimal(refundAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">0.00đ</td>
             </tr>
         </table>
     </div>
 
     <!-- Payment URL -->
     <div class="url-section" th:if="${url != null and !url.isEmpty()}">
-        <h3>Payment Url</h3>
+        <h3>Liên kết thanh toán</h3>
         <p th:text="${url}"></p>
-        <h4>Click to VNPay Link to continue</h4>
+        <h4>Nhấn vào liên kết VNPay để tiếp tục thanh toán</h4>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-        <p>If you have any questions about this payment, please feel free to reply to this email or contact our support team.</p>
-        <p class="footer-note">Thank you for choosing our service! 🚗</p>
+        <p>Nếu bạn có bất kỳ thắc mắc nào về giao dịch này, vui lòng trả lời email này hoặc liên hệ đội ngũ hỗ trợ của chúng tôi.</p>
+        <p class="footer-note">Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi!</p>
     </div>
 </div>
 </body>

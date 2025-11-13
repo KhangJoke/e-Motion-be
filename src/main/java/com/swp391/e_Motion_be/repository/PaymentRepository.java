@@ -21,4 +21,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByRental_IdAndType(Long rental_id, PaymentType type);
     Optional<Payment> findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType paymentType, Long rentalId);
     Optional<Payment> findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType paymentType, Long id);
+    Optional<Payment> findTopByDescriptionOrderByCreatedAtDesc(String s);
+    Payment findByRental_idAndTypeAndStatus(Long id, PaymentType paymentType, PaymentStatus paymentStatus);
 }

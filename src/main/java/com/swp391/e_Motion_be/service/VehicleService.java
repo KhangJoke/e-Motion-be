@@ -5,7 +5,6 @@ import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterManageVehicleReq
 import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterVehicleRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
 import com.swp391.e_Motion_be.dto.responses.vehicle.*;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -17,7 +16,6 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.mapper.ImgVehicleMapper;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
 import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.user.UserService;
@@ -115,6 +113,26 @@ public class VehicleService {
         List<Vehicle> vehicles = vehicleRepository.findByBrandAndStatus(vehicleBrand,VehicleStatus.AVAILABLE );
 
         if (vehicles == null || vehicles.isEmpty()) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
+        }
+
+        return vehicles.stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .collect(Collectors.toList());
+    }
+
+
+
+    public List<VehicleBrandResponse> findAllVehicleBrands() {
+        return Arrays.stream(VehicleBrand.values())
+                .map(VehicleBrandResponse::new)
+                .toList();
+    }
+
+    //Find 16 for home page
+    public List<VehicleListResponse> findVehiclesForHomePage() {
+        List<Vehicle> vehicles = vehicleRepository.findTop16ByStatusOrderByIdDesc(VehicleStatus.AVAILABLE);
+        if (vehicles.isEmpty()) {
             throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
         }
 
@@ -236,14 +254,14 @@ public class VehicleService {
         double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
 
         FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
-        FeeResponse pointFee = new FeeResponse("Giảm giá", FeeType.BOOKING_FEE, feePoint * 1000);
+//        FeeResponse pointFee = new FeeResponse("Giảm giá", FeeType.BOOKING_FEE, feePoint * 1000);
         FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
         FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
         FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
                 bookingFeeValue + vehicle.getDepositFee());
 
         fees.add(bookingFee);
-        fees.add(pointFee);
+//        fees.add(pointFee);
         fees.add(deposit);
         fees.add(holdCar);
         fees.add(total);
