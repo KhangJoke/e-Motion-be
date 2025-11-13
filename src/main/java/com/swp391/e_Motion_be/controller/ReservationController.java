@@ -148,7 +148,17 @@ public class ReservationController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Boolean> cancelReservation(@PathVariable String code, HttpServletRequest httpReq) {
         ApiResponse<Boolean> response = new ApiResponse<>();
-        response.setData(reservationService.cancelReservation(code, httpReq));
+        response.setData(reservationService.cancelReservation(code, false, httpReq));
+        response.setMessage("Cancelled reservation successfully");
+        response.setStatus(200);
+        return response;
+    }
+
+    @PostMapping("/manage/{code}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<Boolean> cancelReservationByManager(@PathVariable String code, @RequestBody boolean isRefunded, HttpServletRequest httpReq) {
+        ApiResponse<Boolean> response = new ApiResponse<>();
+        response.setData(reservationService.cancelReservation(code, isRefunded, httpReq));
         response.setMessage("Cancelled reservation successfully");
         response.setStatus(200);
         return response;

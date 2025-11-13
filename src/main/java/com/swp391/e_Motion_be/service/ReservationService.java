@@ -212,7 +212,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public boolean cancelReservation(String code, HttpServletRequest request) {
+    public boolean cancelReservation(String code, boolean isForceRefunded, HttpServletRequest request) {
         log.info("Processing cancellation for reservation: {}", code);
 
         Reservation reservation = reservationRepository.findByCode(code)
@@ -261,7 +261,7 @@ public class ReservationService {
         ).orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_PAYMENT_NOT_FOUND));
 
         // Process refund
-        if(isRefunded){
+        if(isRefunded || isForceRefunded) {
             RefundRequest refundRequest = new RefundRequest();
             refundRequest.setIpAddr(request.getRemoteAddr());
             refundRequest.setTxnRef(depositPayment.getTxnRef());
