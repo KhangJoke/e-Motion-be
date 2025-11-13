@@ -80,7 +80,10 @@ public class VehicleController {
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<VehicleListResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
-        return new ApiResponse<>(200, "Vehicle created successfully", vehicleService.createVehicle(request));
+        ApiResponse<VehicleListResponse> response = new ApiResponse<>();
+        response.setData(vehicleService.createVehicle(request));
+        response.setMessage("Vehicle created successfully");
+        return response;
     }
 
     // Update vehicle by ID
@@ -98,7 +101,9 @@ public class VehicleController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicleById(id);
-        return new ApiResponse<>(200, "Vehicle deleted successfully", null);
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setMessage("Vehicle deleted successfully");
+        return response;
     }
 
     @GetMapping("/booking")
