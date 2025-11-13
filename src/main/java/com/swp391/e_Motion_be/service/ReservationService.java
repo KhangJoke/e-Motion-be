@@ -211,11 +211,11 @@ public class ReservationService {
 
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-
+        boolean isRefunded = true;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = authentication.getName();
+        User loginUser = (User) authentication.getPrincipal();
 
-        if (!currentUserEmail.equals(reservation.getUser().getEmail())) {
+        if (!loginUser.getEmail().equals(reservation.getUser().getEmail()) && loginUser.getRole().equals(Role.ROLE_USER)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -226,7 +226,10 @@ public class ReservationService {
 
         // Check if cancellation is within allowed timeframe (5 days before start)
         if (reservation.getStartTime().isBefore(LocalDateTime.now().plusDays(5))) {
-            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID_TO_CANCEL);
+            isRefunded = false;
+            if(loginUser.getRole() == Role.ROLE_USER) {
+                throw new AppException(ErrorCode.RESERVATION_TIME_INVALID_TO_CANCEL);
+            }
         }
 
         // Process refund if deposit exists
@@ -252,24 +255,39 @@ public class ReservationService {
         ).orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_PAYMENT_NOT_FOUND));
 
         // Process refund
-        RefundRequest refundRequest = new RefundRequest();
-        refundRequest.setIpAddr(request.getRemoteAddr());
-        refundRequest.setTxnRef(depositPayment.getTxnRef());
-        refundRequest.setAmount(depositPayment.getAmount());
-        refundRequest.setFullRefund(true);
+        if(isRefunded){
+            RefundRequest refundRequest = new RefundRequest();
+            refundRequest.setIpAddr(request.getRemoteAddr());
+            refundRequest.setTxnRef(depositPayment.getTxnRef());
+            refundRequest.setAmount(depositPayment.getAmount());
+            refundRequest.setFullRefund(true);
 
-        PaymentResponse refundResponse = paymentService.refundPayment(refundRequest);
+            PaymentResponse refundResponse = paymentService.refundPayment(refundRequest);
 
-        if (refundResponse != null && ("00".equals(refundResponse.getResponseCode()) || "99".equals(refundResponse.getResponseCode()))) {
-            // Update deposit status only if refund was successful
-            deposit.setStatus(DepositStatus.RELEASED);
+            if (refundResponse != null && ("00".equals(refundResponse.getResponseCode()) || "99".equals(refundResponse.getResponseCode()))) {
+                // Update deposit status only if refund was successful
+                deposit.setStatus(DepositStatus.RELEASED);
+                depositRepository.save(deposit);
+                log.info("Refund processed successfully for reservation: {}", code);
+
+                // Update reservation status
+                reservation.setStatus(ReservationStatus.CANCELLED);
+                reservationRepository.save(reservation);
+                emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null),null);
+
+                log.info("Reservation cancelled: {}", code);
+                return true;
+            }
+        }else {
+            // Update deposit status
+            deposit.setStatus(DepositStatus.FORFEITED);
             depositRepository.save(deposit);
-            log.info("Refund processed successfully for reservation: {}", code);
+            log.info("FORFEITED Deposit processed successfully for reservation: {}", code);
 
             // Update reservation status
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
-            emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null),null);
+            emailService.sendReservationCancelEmail(reservation);
 
             log.info("Reservation cancelled: {}", code);
             return true;

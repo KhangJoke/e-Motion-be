@@ -139,7 +139,7 @@ public enum ErrorCode {
     RENTAL_HAS_CONFLICT(HttpStatus.CONFLICT, "Phương tiện đã có lịch thuê trong khoảng thời gian này, vui lòng chọn thời gian khác"),
     INVALID_RENTAL_STATUS(HttpStatus.BAD_REQUEST, "Trạng thái thuê xe không hợp lệ"),
     USER_HAS_ONGOING_RENTAL(HttpStatus.CONFLICT, "Người dùng đã thuê phương tiện"),
-    USER_NEED_HAS_CCCD(HttpStatus.BAD_REQUEST, "Người thuê cần có CCCD"),
+    USER_NEED_HAS_CCCD(HttpStatus.BAD_REQUEST, "Người thuê cần có CCCD và GPLX"),
     USER_NEED_HAS_LICENSE(HttpStatus.BAD_REQUEST, "Người thuê cần có bằng lái xe"),
     RENTAL_EXTEND_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian gia hạn thuê xe phải sau thời gian kết thúc hiện tại"),
     NOT_SAME_RENTAL(HttpStatus.BAD_REQUEST, "Mã thuê xe không khớp với mã thuê xe trong danh sách kiểm tra"),
