@@ -254,10 +254,6 @@ public class EmailService {
             penaltyTotal += checkOut.getFee();
         }
 
-        if(penaltyTotal==0){
-            penaltyTotal = vehicleLog.getCost();
-        }
-
         // Thêm các damage charges (sẽ hiển thị chi tiết ở bảng riêng)
         List<VehicleLogItem> vehicleDamages = new ArrayList<>();
         if (vehicleLog != null && vehicleLog.getRepairItems() != null && !vehicleLog.getRepairItems().isEmpty()) {
@@ -277,7 +273,9 @@ public class EmailService {
         double extraHourFee = 0;
         if(extraPayment != null){
             extraHourFee = extraPayment.getAmount();
-            total += extraPayment.getAmount();
+            if(rentalFee==0){
+                total += extraPayment.getAmount();
+            }
         }
 
         return PaymentEmailRequest.builder()
