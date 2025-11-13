@@ -67,8 +67,11 @@ public class VehicleController {
     // Update vehicle by ID
     @PutMapping("/update")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<VehicleDetailResponse> updateVehicle(@RequestBody @Valid VehicleUpdateRequest request) {
-        return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle(id, request));
+    public ApiResponse<String> updateVehicle(@RequestBody @Valid VehicleUpdateRequest request) {
+        ApiResponse<String> response = new ApiResponse<>();
+        vehicleService.updateVehicle(request);
+        response.setMessage("Vehicle updated successfully");
+        return response;
     }
 
     // Delete vehicle by ID

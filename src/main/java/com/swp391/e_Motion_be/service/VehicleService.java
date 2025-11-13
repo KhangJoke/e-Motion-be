@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterManageVehicleRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterVehicleRequest;
 import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
@@ -18,10 +19,7 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ImgVehicleMapper;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
-import com.swp391.e_Motion_be.repository.RentalRepository;
-import com.swp391.e_Motion_be.repository.ReservationRepository;
-import com.swp391.e_Motion_be.repository.StationRepository;
-import com.swp391.e_Motion_be.repository.VehicleRepository;
+import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,13 +45,17 @@ public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final ImgVehicleService imgVehicleService;
-    private final VehicleMapper vehicleMapper;
     private final StationRepository stationRepository;
     private final RentalRepository rentalRepository;
     private final ReservationRepository reservationRepository;
+    private final ImgVehicleRepository imgVehicleRepository;
 
     private final RentalService rentalService;
     private final UserService userService;
+    private final CloudinaryService cloudinaryService;
+
+    private final VehicleMapper vehicleMapper;
+    private final ImgVehicleMapper imgVehicleMapper;
 
     @Value("${vat.percentage}")
     private double vatPercentage;
@@ -157,28 +160,48 @@ public class VehicleService {
 
     // UPDATE
     @Transactional
-    public VehicleDetailResponse updateVehicle(VehicleUpdateRequest request) {
+    public void updateVehicle(VehicleUpdateRequest request) {
 
         Vehicle vehicle = vehicleRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        Station station = stationRepository.findById(request.getStationId())
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        vehicle.setStation(station);
 
         if (!vehicle.getPlateNumber().equals(request.getPlateNumber())
                 && vehicleRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
 
-        List<Im>
+        // Xóa ảnh đã up trên cloud mà request gửi update ko còn url
+        List<ImgVehicle> oldImages = imgVehicleRepository.findByVehicle_Id(vehicle.getId());
+        Set<String> newUrls = request.getImages().stream()
+                .map(ImgVehicleCreationRequest::getUrl)
+                .collect(Collectors.toSet());
 
-        vehicleMapper.updateVehicleFromRequest(existing, request);
+        oldImages.stream()
+                .filter(img -> !newUrls.contains(img.getUrl()))
+                .forEach(img -> {
+                    // Lấy public_id từ URL
+                    String publicId = cloudinaryService.getPublicIdFromUrl(img.getUrl());
+                    cloudinaryService.delete(publicId);  // xóa trên Cloudinary
+                    imgVehicleRepository.delete(img);    // xóa record DB
+                });
 
-        if (request.getStationId() != null) {
-            Station station = stationRepository.findById(request.getStationId())
-                    .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-            existing.setStation(station);
-        }
+        request.getImages().forEach(imgReq -> {
+            ImgVehicle imgVehicle = imgVehicleRepository.findByVehicle_IdAndUrl(vehicle.getId(), imgReq.getUrl())
+                    .orElseGet(() -> {
+                        ImgVehicle imgVehicleEntity = new ImgVehicle();
+                        imgVehicleEntity.setVehicle(vehicle);
+                        imgVehicleEntity.setUrl(imgReq.getUrl());
+                        return imgVehicleEntity;
+                    });
+            imgVehicle.setMain(imgReq.isMain());
+            imgVehicleRepository.save(imgVehicle);
+        });
 
-        // No need to call save() — transaction will automatically flush changes
-        return vehicleMapper.toVehicleDetailResponse(existing);
+        vehicleMapper.updateVehicleFromRequest(vehicle, request);
+        vehicleRepository.save(vehicle);
     }
 
     //DELETE

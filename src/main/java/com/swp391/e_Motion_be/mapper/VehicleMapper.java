@@ -41,6 +41,7 @@ public abstract class VehicleMapper {
     @Mapping(target = "priceRate", expression = "java(getPriceRate(vehicle, hours))")
     public abstract VehicleListResponse toVehicleListResponse(Vehicle vehicle, long hours);
 
+    @Mapping(target = "images", ignore = true)
     public abstract void updateVehicleFromRequest(@MappingTarget Vehicle vehicle, VehicleUpdateRequest request);
 
     String getMainImage(Vehicle vehicle) {

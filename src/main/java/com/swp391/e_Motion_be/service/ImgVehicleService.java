@@ -40,10 +40,7 @@ public class ImgVehicleService {
     public List<ImgVehicleResponse> findAll() {
         return imgVehicleRepository.findAll()
                 .stream()
-                .map(entity -> {
-                    ImgVehicleResponse response = imgVehicleMapper.toResponse(entity);
-                    return response;
-                })
+                .map(imgVehicleMapper::toResponse)
                 .toList();
     }
 
@@ -52,12 +49,9 @@ public class ImgVehicleService {
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
 
-        return imgVehicleRepository.findByVehicle(vehicle)
+        return imgVehicleRepository.findByVehicle_Id(vehicle.getId())
                 .stream()
-                .map(entity -> {
-                    ImgVehicleResponse response = imgVehicleMapper.toResponse(entity);
-                    return response;
-                })
+                .map(imgVehicleMapper::toResponse)
                 .toList();
     }
 

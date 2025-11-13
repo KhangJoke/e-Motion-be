@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleUpdateResponse {
+    private Long id;
     private String name;
     private String description;
     private VehicleCategory category;
