@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.requests.document.DocumentUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.DocumentResponse;
 import com.swp391.e_Motion_be.service.document.DocumentService;
+import com.swp391.e_Motion_be.service.document.OcrService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +21,16 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DocumentController {
 
+    OcrService ocrService;
     DocumentService documentService;
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     ApiResponse<DocumentResponse> createDocument(@RequestBody @Valid DocumentCreationRequest request){
-        ApiResponse<DocumentResponse> ApiResponse = new ApiResponse<>();
-        ApiResponse.setData(documentService.createDocument(request));
-        return ApiResponse;
+        ApiResponse<DocumentResponse> response = new ApiResponse<>();
+        response.setData(documentService.createDocument(request));
+        response.setMessage("Create document successfully");
+        return response;
     }
 
     @GetMapping

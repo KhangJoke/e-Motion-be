@@ -15,6 +15,7 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.document.DocumentService;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,8 @@ public class RentalService {
     private final StationRepository stationRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+
+    private final DocumentService documentService;
     private final EmailService emailService;
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
@@ -88,7 +91,7 @@ public class RentalService {
         rental.setStaff(staff);
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservationRepository.save(reservation);
-        return createRentalCommon(rental, reservation.getUser().getId() ,reservation.getVehicle(), reservation.getStation().getId(), reservation.getDeposit().getAmount());
+        return createRentalCommon(rental, reservation.getUser(),reservation.getVehicle(), reservation.getStation().getId(), reservation.getDeposit().getAmount());
     }
 
     // Hàm tạo rental khi renter thuê trực tiếp tại trạm
@@ -113,20 +116,24 @@ public class RentalService {
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
         Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
-        return createRentalCommon(rental, user.getId(), vehicle, station.getId(),0);
+        return createRentalCommon(rental, user, vehicle, station.getId(),0);
     }
 
     // Hàm này chứa các action chung của 2 hàm cách tạo rental
-    private RentalResponse createRentalCommon(Rental rental, Long userId, Vehicle vehicle, Long stationId, double reservationDepositAmount){
+    private RentalResponse createRentalCommon(Rental rental, User user, Vehicle vehicle, Long stationId, double reservationDepositAmount){
         // Kiểm tra CCCD và GPLX của renter
-        if(!documentRepository.existsByUser_IdAndType(userId, DocumentType.CCCD)){
+        if(!documentRepository.existsByUser_IdAndType(user.getId(), DocumentType.CCCD)){
             throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
         }
-        if(!documentRepository.existsByUser_IdAndType(userId, DocumentType.LICENSE)){
+        if(!documentRepository.existsByUser_IdAndType(user.getId(), DocumentType.LICENSE)){
             throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
         }
+        // Check expired document
+        if(documentService.checkExpiredDocumentByUserEmail(user.getEmail())){
+            throw new AppException(ErrorCode.DOCUMENT_EXPIRED);
+        }
         // Kiểm tra user có đơn thuê nào chưa trả ko
-        boolean hasOngoingRental = rentalRepository.existsByUser_IdAndStatusNotIn(userId, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
+        boolean hasOngoingRental = rentalRepository.existsByUser_IdAndStatusNotIn(user.getId(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
         if(hasOngoingRental){
             throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
         }
