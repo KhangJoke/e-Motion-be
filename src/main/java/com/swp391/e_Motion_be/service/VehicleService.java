@@ -16,6 +16,7 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.mapper.ImgVehicleMapper;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
 import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.user.UserService;
@@ -53,10 +54,6 @@ public class VehicleService {
     private final CloudinaryService cloudinaryService;
 
     private final VehicleMapper vehicleMapper;
-    private final ImgVehicleMapper imgVehicleMapper;
-
-    @Value("${vat.percentage}")
-    private double vatPercentage;
 
     @Value("${hold.fee.value}")
     private double holdCarFee;
