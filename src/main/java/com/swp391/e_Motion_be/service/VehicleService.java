@@ -119,6 +119,13 @@ public class VehicleService {
     }
 
 
+
+    public List<VehicleBrandResponse> findAllVehicleBrands() {
+        return Arrays.stream(VehicleBrand.values())
+                .map(VehicleBrandResponse::new)
+                .toList();
+    }
+
     //Find 16 for home page
     public List<VehicleListResponse> findVehiclesForHomePage() {
         List<Vehicle> vehicles = vehicleRepository.findTop16ByStatusOrderByIdDesc(VehicleStatus.AVAILABLE);
