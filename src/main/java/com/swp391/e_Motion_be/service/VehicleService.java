@@ -307,12 +307,17 @@ public class VehicleService {
             }
             vehicles = vehicleRepository.findByStation_IdAndStatusIn(
                     request.getStationId(),
-                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING));
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
         }else{
             vehicles = vehicleRepository.findByStation_CityAndStatusIn(
                     request.getCity(),
-                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
-            );
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
         }
         // --- Lọc những xe còn trống trong khung giờ ---
         List<Long> availableIdList = vehicles
@@ -392,12 +397,17 @@ public class VehicleService {
             }
             vehicles = vehicleRepository.findByStation_IdAndStatusIn(
                     request.getStationId(),
-                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING));
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
         }else{
             vehicles = vehicleRepository.findByStation_CityAndStatusIn(
                     request.getCity(),
-                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING)
-            );
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
         }
 
         List<Long> unavailableIdList  = vehicles
