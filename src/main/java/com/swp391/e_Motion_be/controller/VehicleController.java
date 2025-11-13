@@ -79,9 +79,9 @@ public class VehicleController {
     // Create a new vehicle
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<String> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
-        ApiResponse<String> response = new ApiResponse<>();
-        vehicleService.createVehicle(request);
+    public ApiResponse<VehicleListResponse> createVehicle(@RequestBody @Valid VehicleCreationRequest request) {
+        ApiResponse<VehicleListResponse> response = new ApiResponse<>();
+        response.setData(vehicleService.createVehicle(request));
         response.setMessage("Vehicle created successfully");
         return response;
     }
