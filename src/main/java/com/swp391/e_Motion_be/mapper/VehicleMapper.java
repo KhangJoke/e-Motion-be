@@ -25,7 +25,7 @@ public abstract class VehicleMapper {
     double priceDayRate;
 
     @Mapping(source = "stationId", target = "station.id")
-    @Mapping(target = "point", ignore = true)
+    @Mapping(target = "images", ignore = true)
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
     @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")
@@ -36,11 +36,11 @@ public abstract class VehicleMapper {
     @Mapping(source = "station.id", target = "stationId")
     public abstract VehicleUpdateResponse toVehicleUpdateResponse(Vehicle vehicle);
 
-    @Mapping(source = "vehicle.station", target = "station")
     @Mapping(target = "seats", expression = "java(vehicle.getSeats())")
     @Mapping(target = "main", expression = "java(getMainImage(vehicle))")
     @Mapping(target = "hourRate", expression = "java(getHourRate(hours))")
     @Mapping(target = "priceRate", expression = "java(getPriceRate(vehicle, hours))")
+    @Mapping(target = "id", source = "vehicle.id")
     public abstract VehicleListResponse toVehicleListResponse(Vehicle vehicle, long hours);
 
     @Mapping(target = "images", ignore = true)

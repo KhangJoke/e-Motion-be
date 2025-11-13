@@ -2,11 +2,9 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.enums.ContractStatus;
-import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.RentalStatus;
-import com.swp391.e_Motion_be.enums.Role;
+import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +36,8 @@ public class DocuSealService {
     private RentalRepository rentalRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private DocumentRepository documentRepository;
 
     public String createContract(Rental rental) {
 
@@ -53,7 +53,7 @@ public class DocuSealService {
                         Map.of("name", "month", "default_value", LocalDate.now().getMonthValue(), "readonly", true),
                         Map.of("name", "year", "default_value", LocalDate.now().getYear(), "readonly", true),
                         Map.of("name", "at", "default_value", rental.getStation().getName(), "readonly", true),
-                        Map.of("name", "renterName", "default_value", rental.getUser().getFullName(), "readonly", true),
+                        Map.of("name", "renterName", "default_value", rental.getUser().getFullName(), "readonly", false),
                         Map.of("name", "carName", "default_value", rental.getVehicle().getName(), "readonly", true),
                         Map.of("name", "carType", "default_value", rental.getVehicle().getCategory(), "readonly", true),
                         Map.of("name", "numberOfSeat", "default_value", rental.getVehicle().getSeats(), "readonly", true),
@@ -62,7 +62,9 @@ public class DocuSealService {
                         Map.of("name", "rentLength", "default_value", rental.getStartTime().getHour()-rental.getEndTime().getHour(), "readonly", true),
                         Map.of("name", "rentFee", "default_value", String.valueOf(rental.getRentFee()), "readonly", true),
                         Map.of("name", "paymentMethod", "default_value", "VNPay", "readonly", true),
-                        Map.of("name", "payDate", "default_value", LocalDateTime.now(), "readonly", true)
+                        Map.of("name", "payDate", "default_value", LocalDateTime.now(), "readonly", true),
+                        Map.of("name", "CCCD", "default_value", documentRepository.findByUser_EmailAndType(rental.getUser().getEmail(), DocumentType.CCCD).getNumber(), "readonly", false),
+                        Map.of("name", "GPLX", "default_value", documentRepository.findByUser_EmailAndType(rental.getUser().getEmail(), DocumentType.LICENSE).getNumber(), "readonly", false)
                 )
         );
 

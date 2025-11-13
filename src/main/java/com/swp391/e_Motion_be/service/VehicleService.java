@@ -152,8 +152,9 @@ public class VehicleService {
                 .collect(Collectors.toList());
     }
 
+    // CREATE
     @Transactional
-    public void createVehicle(VehicleCreationRequest request) {
+    public VehicleListResponse createVehicle(VehicleCreationRequest request) {
         //Check Station is FOUNd or NOT
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
@@ -162,10 +163,18 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
-        vehicle.setPoint(request.getPoint());
-        vehicle.setStation(station);
-        imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
+        vehicle.setLastMaintenance(LocalDateTime.now());
+
         vehicleRepository.save(vehicle);
+        imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
+
+        //Reload vehicle to get images and staion for reponse
+        vehicle = vehicleRepository.findById(vehicle.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        vehicle.setStation(station);
+        vehicle.setImages(imgVehicleRepository.findByVehicle_Id(vehicle.getId()));
+
+        return vehicleMapper.toVehicleListResponse(vehicle, 4);
     }
 
     // UPDATE
