@@ -162,15 +162,20 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
-        vehicle.setPoint(request.getPoint());
-        vehicle.setStation(station);
+        vehicle.setLastMaintenance(LocalDateTime.now());
+
         //SAVE
         vehicleRepository.save(vehicle);
-
-        VehicleListResponse vehicleListResponse = vehicleMapper.toVehicleListResponse(vehicle, 4);
         imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
 
-        return vehicleListResponse;
+
+        //Reload vehicle to get images and staion for reponse
+        vehicle = vehicleRepository.findById(vehicle.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        vehicle.setStation(station);
+        vehicle.setImages(imgVehicleRepository.findByVehicle_Id(vehicle.getId()));
+        
+        return vehicleMapper.toVehicleListResponse(vehicle, 4);
     }
 
     // UPDATE
