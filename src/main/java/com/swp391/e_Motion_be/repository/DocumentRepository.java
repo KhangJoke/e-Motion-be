@@ -12,4 +12,5 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     boolean existsByNumber(String docNumber );
     boolean existsByUser_IdAndType(long userId, DocumentType type);
     boolean existsByUser_EmailAndType(String email, DocumentType type);
+    Document findByUser_EmailAndType(String email, DocumentType type);
 }
