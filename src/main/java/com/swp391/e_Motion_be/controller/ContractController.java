@@ -38,4 +38,14 @@ public class ContractController {
         response.setMessage("Webhook processed successfully");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/view/{rentalId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<String>> viewContract(@PathVariable long rentalId) {
+        String contractUrl = docuSealService.getContractUrl(rentalId);
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setMessage("Contract URL retrieved successfully");
+        response.setData(contractUrl);
+        return ResponseEntity.ok(response);
+    }
 }

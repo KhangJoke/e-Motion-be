@@ -47,8 +47,8 @@ public class Rental {
     private Double pendingRentFee;
     @Enumerated(EnumType.STRING)
     private RentalStatus preStatus;
-    private String contractUrl;
-    private String contractDocumentUrl;
+    private long submissionId;
+    private String submissionUrl;
     @Enumerated(EnumType.STRING)
     private ContractStatus contractStatus;
 

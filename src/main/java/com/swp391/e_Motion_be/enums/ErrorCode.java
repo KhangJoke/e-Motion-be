@@ -166,7 +166,11 @@ public enum ErrorCode {
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Xóa hình ảnh thất bại"),
 
     //Reservation email
-    RESERVATION_EMAIL(HttpStatus.EXPECTATION_FAILED, "Gửi email thất bại");
+    RESERVATION_EMAIL(HttpStatus.EXPECTATION_FAILED, "Gửi email thất bại"),
+
+    //Contract errors
+    DOCUSEAL_FETCH_FAILED(HttpStatus.BAD_REQUEST, "Lấy thông tin từ DocuSeal thất bại"),
+    DOCUSEAL_DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tài liệu trong DocuSeal");
 
     private final HttpStatus statusCode;
     private final String message;
