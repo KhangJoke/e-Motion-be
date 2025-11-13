@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -110,8 +111,11 @@ public class VehicleLogService {
 
         // Update vehicle status -> maintance
         vehicle.setStatus(VehicleStatus.MAINTAINED);
+        vehicle.setLastMaintenance(LocalDateTime.now());
 
+        vehicleRepository.save(vehicle);
         vehicleLogRepository.save(vehicleLog);
+
         return vehicleLogMapper.toResponse(vehicleLog);
     }
 

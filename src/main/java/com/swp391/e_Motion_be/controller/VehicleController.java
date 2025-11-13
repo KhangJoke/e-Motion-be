@@ -64,6 +64,15 @@ public class VehicleController {
     public ApiResponse<List<VehicleListResponse>> getVehiclesByBrand(@PathVariable String brand) {
         ApiResponse<List<VehicleListResponse>> response = new ApiResponse<>();
         response.setData(vehicleService.findVehicleByBrand(brand));
+        response.setMessage("Get " +response.getData().size()+  " vehicles by brand successfully");
+        return response;
+    }
+
+    @GetMapping("/brand")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<VehicleBrandResponse>> findAllVehicleBrands() {
+        ApiResponse<List<VehicleBrandResponse>> response = new ApiResponse<>();
+        response.setData(vehicleService.findAllVehicleBrands());
         return response;
     }
 
@@ -77,8 +86,11 @@ public class VehicleController {
     // Update vehicle by ID
     @PutMapping("/update")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<VehicleDetailResponse> updateVehicle(@RequestBody @Valid VehicleUpdateRequest request) {
-        return new ApiResponse<>(200, "Vehicle updated successfully", vehicleService.updateVehicle( request));
+    public ApiResponse<String> updateVehicle(@RequestBody @Valid VehicleUpdateRequest request) {
+        ApiResponse<String> response = new ApiResponse<>();
+        vehicleService.updateVehicle(request);
+        response.setMessage("Vehicle updated successfully");
+        return response;
     }
 
     // Delete vehicle by ID
