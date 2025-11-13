@@ -152,8 +152,8 @@ public class VehicleService {
                 .collect(Collectors.toList());
     }
 
-    // CREATE
-    public VehicleListResponse createVehicle(VehicleCreationRequest request) {
+    @Transactional
+    public void createVehicle(VehicleCreationRequest request) {
         //Check Station is FOUNd or NOT
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
@@ -164,13 +164,8 @@ public class VehicleService {
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
         vehicle.setPoint(request.getPoint());
         vehicle.setStation(station);
-        //SAVE
-        vehicleRepository.save(vehicle);
-
-        VehicleListResponse vehicleListResponse = vehicleMapper.toVehicleListResponse(vehicle, 4);
         imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
-
-        return vehicleListResponse;
+        vehicleRepository.save(vehicle);
     }
 
     // UPDATE
