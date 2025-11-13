@@ -25,15 +25,12 @@ public class ImgVehicleService {
     private final VehicleRepository vehicleRepository;
     private final CloudinaryService cloudinaryService;
 
-    public List<ImgVehicleResponse> createMultipleImagesForVehicle(Vehicle vehicle,List<ImgVehicleCreationRequest> request) {
-        List<ImgVehicleResponse> images = new ArrayList<>();
+    public void createMultipleImagesForVehicle(Vehicle vehicle,List<ImgVehicleCreationRequest> request) {
         for (ImgVehicleCreationRequest imgVehicleCreationRequest : request) {
             ImgVehicle entity = imgVehicleMapper.toEntity(imgVehicleCreationRequest);
             entity.setVehicle(vehicle);
             imgVehicleRepository.save(entity);
-            images.add(imgVehicleMapper.toResponse(entity));
         }
-        return images;
     }
 
     // Find all images
