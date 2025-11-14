@@ -1,0 +1,83 @@
+package com.swp391.e_Motion_be.service;
+
+import com.swp391.e_Motion_be.dto.requests.report.ReportCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.report.ReportUpdateStatusRequest;
+import com.swp391.e_Motion_be.dto.responses.report.ReportResponse;
+import com.swp391.e_Motion_be.entity.Report;
+import com.swp391.e_Motion_be.entity.User;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.ReportStatus;
+import com.swp391.e_Motion_be.exception.AppException;
+import com.swp391.e_Motion_be.mapper.ReportMapper;
+import com.swp391.e_Motion_be.repository.ReportRepository;
+import com.swp391.e_Motion_be.repository.UserRepository;
+import com.swp391.e_Motion_be.service.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
+
+@Service
+public class ReportService {
+
+    @Autowired
+    private ReportRepository reportRepository;
+
+    @Autowired
+    private ReportMapper reportMapper;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    public ReportResponse createReport(ReportCreationRequest report){
+        User user = userRepository.findById(report.getUserId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+        Report newReport = reportMapper.toReportEntity(report);
+        newReport.setUser(user);
+        return  reportMapper.toResponse(reportRepository.save(newReport));
+    }
+
+    public ReportResponse updateReportStatus(ReportUpdateStatusRequest request){
+        Report report = reportRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
+
+        report.setStatus(request.getStatus());
+
+        if(request.getStatus() == ReportStatus.APPROVED){
+            User user = report.getUser();
+            user.setBlocked(true);
+            userRepository.save(user);
+        }
+        return reportMapper.toResponse(reportRepository.save(report));
+    }
+
+
+    public List<ReportResponse> findAllReports(){
+        List<Report> reports = reportRepository.findAll()
+                .stream()
+                .filter(report -> !report.isDelete())
+                .sorted(Comparator.comparing(Report::getCreatedAt).reversed())
+                .toList();
+        return reports.stream().map(reportMapper::toResponse).toList();
+    }
+
+    public List<ReportResponse> findAllReportsByUser(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));;
+
+        List<Report> reports = reportRepository.findByUser(user)
+                .stream()
+                .filter(report -> !report.isDelete())
+                .sorted(Comparator.comparing(Report::getCreatedAt).reversed())
+                .toList();;
+        return reports.stream().map(reportMapper::toResponse).toList();
+    }
+
+    public void deleteReport(Long reportId){
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
+        report.setDelete(true);
+        reportRepository.save(report);
+    }
+}
