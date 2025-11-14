@@ -229,6 +229,9 @@ public class ReservationService {
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new AppException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
         }
+        if(reservation.getStatus() == ReservationStatus.COMPLETED) {
+            throw new AppException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
+        }
 
         // Check if cancellation is within allowed timeframe (5 days before start)
         if (reservation.getStartTime().isBefore(LocalDateTime.now().plusDays(5))) {

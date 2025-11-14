@@ -116,6 +116,7 @@ public enum ErrorCode {
     RENT_TIME_MUST_MINIMUM_4_HOURS(HttpStatus.BAD_REQUEST, "Thời gian thuê tối thiểu là 4 giờ"),
     RESERVATION_STATUS_INVALID(HttpStatus.BAD_REQUEST, "Trạng thái đặt chỗ không hợp lệ"),
     RESERVATION_END_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian 1 chuyến thuê tối đa là 1 tháng"),
+    RESERVATION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "Đặt chỗ đã được hoàn thành"),
 
     // Deposit errors
     DEPOSIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tiền đặt cọc"),
