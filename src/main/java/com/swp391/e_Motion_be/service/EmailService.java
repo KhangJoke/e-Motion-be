@@ -98,10 +98,17 @@ public class EmailService {
     }
 
     public void sendReservationCodeEmail(Reservation reservation) {
-        String subject = "Mã đặt chỗ của bạn";
-        String message = "Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.";
-        String htmlMessage = buildReservationHtml(reservation, subject, message);
-        sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
+        String subject = "Xác nhận đặt chỗ - Mã đặt xe " + reservation.getCode();
+        String header = "Xác nhận đặt chỗ";
+        String message = "Cảm ơn bạn đã đặt trước xe tại E-Motion. Thông tin chi tiết như sau:";
+
+        String html = buildReservationHtml(reservation, header, message);
+
+        try {
+            sendEmail(reservation.getUser().getEmail(), subject, html);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
     }
 
     // format pickup time: e.g. "01 Oct 2025, 14:30"
@@ -111,25 +118,16 @@ public class EmailService {
                 ? reservation.getStartTime().format(formatter)
                 : "Not specified";
 
-        return "<html style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f9f9f9; padding: 20px;\">"
-                + "<h2 style=\"color: #2c3e50;\">" + header + "</h2>"
-                + "<p style=\"font-size: 16px; color: #555;\">" + message + "</p>"
-                    + "<div style=\"background-color: #ffffff; padding: 20px; border-radius: 8px; "
-                    + "border: 1px solid #ddd; margin: 20px 0; text-align: center;\">"
-                    + "<h3 style=\"color: #333; margin-bottom: 10px;\">Your Reservation Code</h3>"
-                    + "<p style=\"font-size: 22px; font-weight: bold; color: #007bff; letter-spacing: 2px;\">"
-                    + reservation.getCode() + "</p>"
-                    + "</div>"
-                + "<p style=\"font-size: 15px; color: #444;\"><strong>Pickup Time:</strong> "
-                + pickupTime + "</p>"
-                + "<p style=\"font-size: 15px; color: #444;\">"
-                + "Please go to the station and provide this code to our staff to proceed with your rental."
-                + "</p>"
-                + "</p>"
-                + "</div>"
-                + "</html>";
+        Context ctx = new Context();
+        ctx.setVariable("header", header);
+        ctx.setVariable("message", message);
+        ctx.setVariable("reservationCode", reservation.getCode());
+        ctx.setVariable("pickupTime", pickupTime);
+        ctx.setVariable("stationName", reservation.getStation().getName());
+
+        return templateEngine.process("reservation-email", ctx);
     }
+
 
     public void sendPaymentStatusToEmail(Payment payment, String url) {
         PaymentEmailRequest emailModel = createEmailContentModel(payment);
