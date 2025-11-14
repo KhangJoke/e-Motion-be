@@ -6,7 +6,8 @@ import com.swp391.e_Motion_be.dto.responses.report.ReportResponse;
 import com.swp391.e_Motion_be.entity.Report;
 import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.ReportStatus;
+import com.swp391.e_Motion_be.enums.report.ReportStatus;
+import com.swp391.e_Motion_be.enums.report.ReportType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReportMapper;
 import com.swp391.e_Motion_be.repository.ReportRepository;
@@ -29,25 +30,34 @@ public class ReportService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
     public ReportResponse createReport(ReportCreationRequest report){
-        User user = userRepository.findById(report.getUserId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-        Report newReport = reportMapper.toReportEntity(report);
-        newReport.setUser(user);
-        return  reportMapper.toResponse(reportRepository.save(newReport));
+        Report newReport = new Report();
+        if(report.getType().equals(ReportType.REPORT_USER)){
+            User user = userRepository.findById(report.getUserId())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+            newReport = reportMapper.toReportEntity(report);
+            newReport.setUser(user);
+        }
+
+        newReport.setStaff(userService.currentUser().getStaff());
+        reportRepository.save(newReport);
+        return  reportMapper.toResponse(newReport);
     }
 
     public ReportResponse updateReportStatus(ReportUpdateStatusRequest request){
         Report report = reportRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
-
         report.setStatus(request.getStatus());
 
         if(request.getStatus() == ReportStatus.APPROVED){
-            User user = report.getUser();
-            user.setBlocked(true);
-            userRepository.save(user);
+            if(report.getType().equals(ReportType.REPORT_USER)){
+                User user = report.getUser();
+                user.setBlocked(true);
+                userRepository.save(user);
+            }
         }
         return reportMapper.toResponse(reportRepository.save(report));
     }

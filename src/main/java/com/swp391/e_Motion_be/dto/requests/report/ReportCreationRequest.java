@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.report;
 
+import com.swp391.e_Motion_be.enums.report.ReportType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +14,8 @@ public class ReportCreationRequest {
     private String title;
     @NotNull(message = "Description is required")
     private String description;
+    @NotNull(message = "Report Type is required")
+    private ReportType type;
     @NotNull(message = "User ID is required")
     private Long userId;
 }

@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.entity;
 
-import com.swp391.e_Motion_be.enums.ReportStatus;
+import com.swp391.e_Motion_be.enums.report.ReportStatus;
+import com.swp391.e_Motion_be.enums.report.ReportType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +29,10 @@ public class Report {
     @Enumerated(EnumType.STRING)
     private ReportStatus status = ReportStatus.PENDING;
 
+    @Column(name= "type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ReportType type;
+
     @Column(nullable = false, name = "is_deleted")
     private boolean delete = false;
 
@@ -37,5 +42,9 @@ public class Report {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "staff_id")
+    private Staff staff;
 
 }
