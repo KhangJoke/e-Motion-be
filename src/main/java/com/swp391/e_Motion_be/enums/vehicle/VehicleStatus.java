@@ -15,6 +15,7 @@ public enum VehicleStatus {
     CHECKING("Đang kiểm tra"),
     MAINTAINED("Đang bảo trì"),
     ONGOING("Đang thuê"),
+    TRANSFERRING("Đang chuyển trạm"),
     RECHARGE("Đang xạc pin");
 
     private final String description;

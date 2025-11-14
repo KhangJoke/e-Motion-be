@@ -1,10 +1,7 @@
 package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterManageVehicleRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.PageAndFilterVehicleRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicle.*;
 import com.swp391.e_Motion_be.dto.responses.vehicle.*;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -16,7 +13,6 @@ import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.mapper.ImgVehicleMapper;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
 import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.user.UserService;
@@ -510,5 +506,28 @@ public class VehicleService {
                 .toList());
 
         return schedules;
+    }
+
+    @Transactional
+    public void dispatchVehicle(VehicleDispatchRequest request) {
+        Station station = stationRepository.findById(request.getStationId())
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        for(Long vehicleId : request.getVehicleIds()) {
+            Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                    .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+            if(vehicle.getStatus() != VehicleStatus.AVAILABLE || !isVehicleAvailableToDispatch(vehicle)) {
+                throw new AppException(ErrorCode.VEHICLE_NOT_READY);
+            }
+            vehicle.setStatus(VehicleStatus.TRANSFERRING);
+            vehicle.setStation(station);
+            vehicleRepository.save(vehicle);
+        }
+    }
+
+    private boolean isVehicleAvailableToDispatch(Vehicle vehicle) {
+        Reservation reservedVehicle = reservationRepository.findByVehicle_IdAndStartTimeAfter(vehicle.getId(), LocalDateTime.now())
+                .orElse(null);
+        return reservedVehicle == null;
     }
 }

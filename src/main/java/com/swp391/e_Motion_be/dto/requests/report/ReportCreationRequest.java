@@ -16,6 +16,5 @@ public class ReportCreationRequest {
     private String description;
     @NotNull(message = "Report Type is required")
     private ReportType type;
-    @NotNull(message = "User ID is required")
     private Long userId;
 }

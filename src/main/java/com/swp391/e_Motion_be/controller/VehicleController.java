@@ -161,4 +161,13 @@ public class VehicleController {
         response.setMessage("Get vehicle schedule successfully");
         return response;
     }
+
+    @PostMapping("/dispatch")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> dispatchVehicle(@RequestBody @Valid VehicleDispatchRequest request){
+        vehicleService.dispatchVehicle(request);
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setMessage("Dispatch vehicle successfully");
+        return response;
+    }
 }

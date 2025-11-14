@@ -1,8 +1,6 @@
 package com.swp391.e_Motion_be.service.user;
 
 import com.swp391.e_Motion_be.dto.requests.user.*;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.*;
 import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
 import com.swp391.e_Motion_be.dto.responses.user.StaffStatsResponse;
@@ -337,7 +335,7 @@ public class UserService {
                 throw new AppException(ErrorCode.STATION_NOT_FOUND);
             }
         } else {
-            staffRepository.findByUser_Email(request.getEmail())
+            staffRepository.findByUser_EmailAndIsDeleteFalse(request.getEmail())
                     .ifPresent(staff -> {
                         staff.setDelete(true);
                         staffRepository.save(staff);

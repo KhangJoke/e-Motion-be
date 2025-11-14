@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.dto.requests.staff.DispatchStaffRequest;
 import com.swp391.e_Motion_be.dto.responses.StaffResponse;
 import com.swp391.e_Motion_be.entity.Staff;
 import com.swp391.e_Motion_be.entity.Station;
@@ -11,6 +12,7 @@ import com.swp391.e_Motion_be.mapper.StaffMapper;
 import com.swp391.e_Motion_be.repository.StaffRepository;
 import com.swp391.e_Motion_be.repository.StationRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,19 +42,18 @@ public class StaffService {
     }
 
     public void updateStaff(String email, Long stationId){
-        Staff staff = staffRepository.findByUser_Email(email)
+        Staff staff = staffRepository.findByUser_EmailAndIsDeleteFalse(email)
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
         Station newStation = stationRepository.findById(stationId)
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
 
         staff.setStation(newStation);
-        staff.setDelete(false);
         staffRepository.save(staff);
     }
 
     public void deleteStaff(String email) {
-        Staff staff = staffRepository.findByUser_Email(email)
+        Staff staff = staffRepository.findByUser_EmailAndIsDeleteFalse(email)
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
         User user = staff.getUser();
@@ -67,9 +68,21 @@ public class StaffService {
     }
 
     public StaffResponse getStaffByUserEmail(String email){
-        Staff staff = staffRepository.findByUser_Email(email)
+        Staff staff = staffRepository.findByUser_EmailAndIsDeleteFalse(email)
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
         return staffMapper.toStaffResponse(staff);
+    }
+
+    @Transactional
+    public void dispatchStaffs(DispatchStaffRequest request) {
+        Station station = stationRepository.findById(request.getStationId())
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        for (long id : request.getStaffIds()) {
+            Staff staff = staffRepository.findById(id)
+                    .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+            staff.setStation(station);
+            staffRepository.save(staff);
+        }
     }
 }
