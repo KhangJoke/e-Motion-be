@@ -3,85 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Reservation is Cancelled</title>
+    <title></title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; color:#333;}
+        .container {max-width:600px; margin:0 auto; background:#fff; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); overflow:hidden;}
+        .header {background:#3B82F6; color:#fff; padding:20px; text-align:center;}
+        .header img {width:100px; height:70px;}
+        h1 {margin:0; font-size:22px;}
+        .content {padding:20px 30px; line-height:1.55;}
+        table {width:100%; margin:18px 0; border-collapse:collapse; font-size:14px;}
+        th {width:42%; text-align:left; background:#f9f9f9; font-weight:600; color:#555;}
+        th, td {padding:10px; border-bottom:1px solid #eee; vertical-align:top;}
+        .note {color:#d92d20; font-weight:600;}
+        .action-button {display:block; width:80%; margin:28px auto; padding:14px 22px; background:#3B82F6; color:#fff !important; text-align:center; text-decoration:none; border-radius:6px; font-size:16px; font-weight:bold;}
+        .footer {background:#f2f2f2; color:#555; padding:15px 25px; text-align:center; font-size:12px; border-top:1px solid #3B82F6; line-height:1.5;}
+        .stations-table {font-size:12px; color:#333; border-collapse:collapse;}
+        .stations-table td {padding:0 20px;}
+        .divider {border-left:1px solid #ccc; width:1px;}
+        .copyright {margin:10px 0 0 0; font-size:11px; color:#999; font-weight:normal;}
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; color: #333333;">
-
-<div style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px;
-     box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
-
-    <!-- Header -->
-    <div style="background-color: #3B82F6; color: #ffffff; padding: 20px; text-align: center;">
-        <div style="margin-bottom: 10px;">
-            <img src="https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931450/navxfjt05woc38qvpbtw.png"
-                 alt="Company Logo" width="100" height="70">
+<body>
+<div class="container">
+    <div class="header">
+        <div style="margin-bottom:10px;">
+            <img src="https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931450/navxfjt05woc38qvpbtw.png" alt="Logo công ty">
         </div>
-        <h1 style="margin: 0; font-size: 24px;">Important Notice: Your reservation is Cancelled</h1>
+        <h1>Thông báo: Đơn đặt trước của bạn đã hủy!</h1>
     </div>
-
-    <!-- Content -->
-    <div style="padding: 20px 30px; line-height: 1.6; color: #333333;">
-        <p>Dear: <strong th:text="${userFullName}"></strong>,</p>
-        <p>We would like to inform you that your car reservation has <strong style="color:#ff0000;">Cancelled</strong>.
-            Please review the reservation details below:</p>
-
-        <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 20px 0; border-collapse: collapse;">
+    <div class="content">
+        <p>Kính chào: <strong th:text="${userFullName}"></strong>,</p>
+        <p>Chúng tôi xin thông báo lượt đặt trước xe của bạn đã <strong class="note">hủy</strong>. Vui lòng xem chi tiết bên dưới:</p>
+        <table>
             <tr>
-                <th style="width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee;
-            background-color:#f9f9f9; font-weight:bold; color:#555;">Reservation Code:</th>
-                <td style="padding:10px; border-bottom:1px solid #eee;"><strong th:text="${reservationCode}"></strong></td>
+                <th>Mã đặt trước:</th>
+                <td><strong th:text="${reservationCode}"></strong></td>
             </tr>
             <tr>
-                <th style="width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee;
-            background-color:#f9f9f9; font-weight:bold; color:#555;">Vehicle Model:</th>
-                <td style="padding:10px;"><strong th:text="${vehicleName}"></strong></td>
+                <th>Mẫu xe:</th>
+                <td><strong th:text="${vehicleName}"></strong></td>
             </tr>
             <tr>
-                <th style="width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee;
-            background-color:#f9f9f9; font-weight:bold; color:#555;">End Time:</th>
-                <td style="padding:10px;"><strong th:text="${endTime}"></strong></td>
+                <th>Thời gian bắt đầu đặt chỗ:</th>
+                <td><strong th:text="${startTime}"></strong></td>
             </tr>
             <tr>
-                <th style="width:40%; padding:10px; text-align:left; border-bottom:1px solid #eee;
-            background-color:#f9f9f9; font-weight:bold; color:#555;">Car Return Location:</th>
-                <td style="padding:10px;"><strong th:text="${stationName}"></strong></td>
+                <th>Thời gian kết thúc đặt chỗ:</th>
+                <td><strong th:text="${endTime}"></strong></td>
+            </tr>
+            <tr>
+                <th>Địa điểm nhận xe:</th>
+                <td><strong th:text="${stationName}"></strong></td>
+            </tr>
+            <tr>
+                <th>Địa chỉ nhận xe:</th>
+                <td><strong th:text="${stationAddress}"></strong></td>
             </tr>
         </table>
-
-        <p>If you have any questions or would like to
-            <strong style="color:#ff8c1a;">create new reservation</strong>,
-            please click the <strong style="color:#3B82F6;">button</strong> below or contact us immediately.</p>
-
-        <a th:href="${contactLink}"
-           style="display:block; width:80%; margin:30px auto; padding:15px 25px; background-color:#3B82F6;
-       color:#ffffff !important; text-align:center; text-decoration:none; border-radius:5px; font-size:16px; font-weight:bold;">
-            Đặt Trước Thuê Xe Hoặc Liên Hệ Hỗ Trợ
-        </a>
-
-        <p>Thank you very much for using our service.</p>
-        <p>Best regards,</p>
+        <p>Nếu bạn có thắc mắc hoặc muốn <strong style="color:#ff8c1a;">tạo đặt trước mới</strong>, hãy bấm nút bên dưới hoặc liên hệ ngay với chúng tôi.</p>
+        <a class="action-button" th:href="${contactLink}">Tạo đặt trước mới / Liên hệ hỗ trợ</a>
+        <p>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi!</p>
+        <p>Trân trọng,</p>
         <p>E-Motion.</p>
     </div>
-
-    <!-- Footer -->
-    <div style="background-color:#f2f2f2; color:#555; padding:15px 25px; text-align:center; font-size:12px;
-       border-top:1px solid #3B82F6; line-height:1.6;">
+    <div class="footer">
         <div style="margin-bottom:10px;">
-            <img src="https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931502/logo_bp3y1d.png"
-                 alt="Company Logo" width="80" height="50">
+            <img src="https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931502/logo_bp3y1d.png" alt="Logo công ty" width="80" height="50">
         </div>
-
-        <div style='display:inline-block; text-align:left;'>
-            <table cellpadding='0' cellspacing='0' border='0' style='font-size:12px; color:#333; border-collapse:collapse;'>
+        <div style="display:inline-block; text-align:left;">
+            <table class="stations-table">
                 <tr>
-                    <td valign='top' style='padding-right:20px;'><strong>Hà Nội:</strong><br>E-Motion Station Hoàn Kiếm<br>E-Motion Station Cầu Giấy<br>E-Motion Station Thanh Xuân</td>
-                    <td style='border-left:1px solid #ccc; width:1px; padding:0 20px;'></td>
-                    <td valign='top' style='padding-left:20px;'><strong>TP. Hồ Chí Minh:</strong><br>E-Motion Station Tân Bình<br>E-Motion Station Thủ Đức<br>E-Motion Station Trần Hưng Đạo</td>
-                </tr></table>
+                    <td valign="top"><strong>Hà Nội:</strong><br>E-Motion Station Hoàn Kiếm<br>E-Motion Station Cầu Giấy<br>E-Motion Station Thanh Xuân</td>
+                    <td class="divider"></td>
+                    <td valign="top"><strong>TP. Hồ Chí Minh:</strong><br>E-Motion Station Tân Bình<br>E-Motion Station Thủ Đức<br>E-Motion Station Trần Hưng Đạo</td>
+                </tr>
+            </table>
         </div>
-
         <p style="margin-top:10px;"><strong>Hotline:</strong> 0339695701 | <strong>Email:</strong> e.motion.vehicle1@gmail.com</p>
-        <h6 style="margin:10px 0 0 0; font-size:11px; color:#999;">© 2025 E-Motion. All rights reserved.</h6>
+        <p class="copyright">© 2025 E-Motion. Bảo lưu mọi quyền.</p>
     </div>
 </div>
 </body>

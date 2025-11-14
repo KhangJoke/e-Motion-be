@@ -81,10 +81,25 @@ public class EmailService {
             throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
         }
     }
+    public void sendVerificationEmail(User user) {
+        String subject = "Xác minh tài khoản";
+        String code = user.getVerificationCode() != null
+                ? user.getVerificationCode()
+                : user.getForgotPasswordCode();
+        Context context = new Context();
+        context.setVariable("code", code);
+        String htmlMessage = templateEngine.process("verify-email", context);
+        try{
+            sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+        }
+        catch (MessagingException e){
+            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
+        }
+    }
 
     public void sendReservationCodeEmail(Reservation reservation) {
-        String subject = "Your Reservation Code";
-        String message = "Thanks for using our service.";
+        String subject = "Mã đặt chỗ của bạn";
+        String message = "Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.";
         String htmlMessage = buildReservationHtml(reservation, subject, message);
         sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
     }
@@ -162,15 +177,15 @@ public class EmailService {
 
         if (deposit != null && deposit.getAmount() > 0) {
             items.add(PaymentItem.builder()
-                    .label("Deposit Fee")
+                    .label("Phí đặt cọc")
                     .amount(deposit.getAmount())
                     .build());
             total += deposit.getAmount();
         }
 
         return PaymentEmailRequest.builder()
-                .subject("Reservation Confirmed - Payment Receipt")
-                .message("Your reservation has been confirmed! Below are your payment details.")
+                .subject("Xác nhận đặt chỗ - Biên lai thanh toán")
+                .message("Đặt chỗ của bạn đã được xác nhận! Dưới đây là thông tin thanh toán của bạn.")
                 .paymentType(PaymentType.RESERVATION)
                 .paymentStatus(payment.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
@@ -191,7 +206,7 @@ public class EmailService {
 
         if (deposit != null && deposit.getAmount() > 0) {
             items.add(PaymentItem.builder()
-                    .label("Deposit Fee")
+                    .label("Phí đặt cọc")
                     .amount(deposit.getAmount())
                     .build());
             total += deposit.getAmount();
@@ -199,7 +214,7 @@ public class EmailService {
 
         if (rental != null && rental.getRentFee() > 0) {
             items.add(PaymentItem.builder()
-                    .label("Rental Fee")
+                    .label("Phí thuê")
                     .amount(rental.getRentFee())
                     .build());
             total += rental.getRentFee();
@@ -207,14 +222,14 @@ public class EmailService {
 
         if(reservation != null && reservation.getDeposit().getAmount() > 0) {
             items.add(PaymentItem.builder()
-                    .label("Reservation Deposit Fee")
+                    .label("Phí đặt cọc giữ chỗ")
                     .amount(reservation.getDeposit().getAmount())
                     .build());
         }
 
         return PaymentEmailRequest.builder()
-                .subject("Rental Started - Payment Receipt")
-                .message("Your rental has started! Below are your payment details.")
+                .subject("Bắt đầu cho thuê - Biên lai thanh toán")
+                .message("Việc thuê xe của bạn đã bắt đầu! Dưới đây là thông tin thanh toán của bạn.")
                 .paymentType(PaymentType.RENTAL)
                 .paymentStatus(rental.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
@@ -248,7 +263,7 @@ public class EmailService {
         // Thêm phí trả xe trễ
         if (checkOut != null && checkOut.getFee() > 0) {
             items.add(PaymentItem.builder()
-                    .label("Late Return And Pin Penalty")
+                    .label("Trả trễ và phạt phí pin")
                     .amount(checkOut.getFee())
                     .build());
             penaltyTotal += checkOut.getFee();
@@ -269,7 +284,7 @@ public class EmailService {
         }
 
         total = Math.abs(totalDeposit - penaltyTotal);
-        Payment extraPayment = paymentRepository.findTopByDescriptionOrderByCreatedAtDesc("Extension Payment for Rental ID: "+rental.getId()).orElse(null);
+        Payment extraPayment = paymentRepository.findTopByDescriptionOrderByCreatedAtDesc("Thanh toán gia hạn cho ID thuê: "+rental.getId()).orElse(null);
         double extraHourFee = 0;
         if(extraPayment != null){
             extraHourFee = extraPayment.getAmount();
@@ -279,8 +294,8 @@ public class EmailService {
         }
 
         return PaymentEmailRequest.builder()
-                .subject("Rental Completed - Final Payment Receipt")
-                .message("Your rental has been completed. Below is your final payment summary.")
+                .subject("Hoàn tất việc thuê - Biên lai thanh toán cuối cùng")
+                .message("Đơn thuê xe của bạn đã hoàn tất. Dưới đây là bản tóm tắt thanh toán cuối cùng của bạn.")
                 .paymentType(PaymentType.PENALTY_FEE_RENTAL)
                 .paymentStatus(rental.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
@@ -299,8 +314,8 @@ public class EmailService {
     private PaymentEmailRequest createDefaultEmail(Payment payment) {
         List<VehicleLogItem> vehicleLogItems = new ArrayList<>();
         return PaymentEmailRequest.builder()
-                .subject("Payment Confirmation")
-                .message("Thank you for your payment. Below are your transaction details.")
+                .subject("Xác nhận thanh toán")
+                .message("Cảm ơn bạn đã thanh toán. Dưới đây là thông tin chi tiết giao dịch của bạn.")
                 .paymentType(payment.getType())
                 .paymentStatus(payment.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
@@ -316,8 +331,8 @@ public class EmailService {
         List<VehicleLogItem> vehicleLogItems = new ArrayList<>();
         if (rental == null) {
             return PaymentEmailRequest.builder()
-                    .subject("Refund Processed - Payment Receipt")
-                    .message("Your refund has been processed!")
+                    .subject("Đã xử lý hoàn tiền - Biên lai thanh toán")
+                    .message("Việc hoàn tiền của bạn đã được xử lý!")
                     .paymentType(PaymentType.REFUND)
                     .paymentStatus(payment.getStatus().toString())
                     .statusColor(getStatusColor(payment.getStatus()))
@@ -352,7 +367,7 @@ public class EmailService {
         // Add late return fee
         if (checkOut != null && checkOut.getFee() != null && checkOut.getFee() > 0) {
             items.add(PaymentItem.builder()
-                    .label("Late Return And Pin Penalty")
+                    .label("Trả trễ và phạt phí pin")
                     .amount(checkOut.getFee())
                     .build());
             penaltyTotal += checkOut.getFee();
@@ -380,8 +395,8 @@ public class EmailService {
         }
 
         return PaymentEmailRequest.builder()
-                .subject("Refund Processed - Payment Receipt")
-                .message("Your refund has been processed! Below are your refund details.")
+                .subject("Đã xử lý hoàn tiền - Biên lai thanh toán")
+                .message("Yêu cầu hoàn tiền của bạn đã được xử lý! Dưới đây là thông tin chi tiết về khoản hoàn tiền của bạn.")
                 .paymentType(PaymentType.REFUND)
                 .paymentStatus(rental.getStatus().toString())
                 .statusColor(getStatusColor(payment.getStatus()))
@@ -407,7 +422,7 @@ public class EmailService {
     }
 
     public void sendRentalOverdueEmail(Rental rental) {
-        String subject = "Your Rental is Overdue";
+        String subject = "Đơn thuê xe của bạn đã quá hạn.";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String endTimeFormatted = rental.getEndTime() != null
                 ? rental.getEndTime().format(formatter)
@@ -415,11 +430,13 @@ public class EmailService {
 
 
         Context context = new Context();
+        context.setVariable("subject", subject);
         context.setVariable("userFullName", rental.getUser().getFullName());
         context.setVariable("rentalId", rental.getId());
         context.setVariable("vehicleName", rental.getVehicle().getName());
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("stationAddress", rental.getStation().getAddress());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
         String htmlMessage = templateEngine.process("rental-overdue-email", context);
@@ -432,7 +449,7 @@ public class EmailService {
     }
 
     public void sendRentalExpiringEmail(Rental rental) {
-        String subject = "Your Rental is About to Expire";
+        String subject = "Đơn thuê xe của bạn sắp hết hạn";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String endTimeFormatted = rental.getEndTime() != null
                 ? rental.getEndTime().format(formatter)
@@ -443,8 +460,10 @@ public class EmailService {
         context.setVariable("userFullName", rental.getUser().getFullName());
         context.setVariable("rentalId", rental.getId());
         context.setVariable("vehicleName", rental.getVehicle().getName());
+        context.setVariable("startTime", rental.getStartTime());
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("stationAddress", rental.getStation().getAddress());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
         String htmlMessage = templateEngine.process("rental-expiring-email", context);
@@ -457,7 +476,7 @@ public class EmailService {
     }
 
     public void sendRentalReturnedNotification(Rental rental) {
-        String subject = "Your vehicle has been successfully returned to the station.";
+        String subject = "Xe của bạn đã được trả về trạm thành công.";
 
         RentalCheckList checkOut = rentalCheckListRepository.findByRental_Id(rental.getId()).stream()
                 .filter(c -> c.getType() == CheckType.CHECK_OUT)
@@ -484,6 +503,7 @@ public class EmailService {
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("actualVehicleReturned", actualReturnedTime);
         context.setVariable("location", rental.getStation().getName());
+        context.setVariable("stationAddress", rental.getStation().getAddress());
         context.setVariable("usageFee", CurrencyFee.toVND(checkOut.getFee()));
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
@@ -497,7 +517,7 @@ public class EmailService {
     }
 
     public void sendReservationOverdueEmail(Reservation reservation) {
-        String subject = "Your Reservation is Overdue";
+        String subject = "Đơn đặt trước của bạn đã quá hạn.";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String endTimeFormatted = reservation.getEndTime() != null
                 ? reservation.getEndTime().format(formatter)
@@ -508,8 +528,10 @@ public class EmailService {
         context.setVariable("userFullName", reservation.getUser().getFullName());
         context.setVariable("reservationCode", reservation.getCode());
         context.setVariable("vehicleName", reservation.getVehicle().getName());
+        context.setVariable("startTime", reservation.getStartTime());
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", reservation.getStation().getName());
+        context.setVariable("stationAddress", reservation.getStation().getAddress());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
         String htmlMessage = templateEngine.process("reservation-overdue-email", context);
@@ -522,7 +544,7 @@ public class EmailService {
     }
 
     public void sendReservationExpiringEmail(Reservation reservation) {
-        String subject = "Your Reservation is About to Coming to an End";
+        String subject = "Đơn đặt trước của bạn sắp hết hạn";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String endTimeFormatted = reservation.getEndTime() != null
                 ? reservation.getEndTime().format(formatter)
@@ -533,8 +555,10 @@ public class EmailService {
         context.setVariable("userFullName", reservation.getUser().getFullName());
         context.setVariable("reservationCode", reservation.getCode());
         context.setVariable("vehicleName", reservation.getVehicle().getName());
+        context.setVariable("startTime", reservation.getStartTime());
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", reservation.getStation().getName());
+        context.setVariable("stationAddress", reservation.getStation().getAddress());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
         String htmlMessage = templateEngine.process("reservation-expiring-email", context);
@@ -547,7 +571,7 @@ public class EmailService {
     }
 
     public void sendReservationCancelEmail(Reservation reservation) {
-        String subject = "Your Reservation is Cancelled";
+        String subject = "Đơn đặt trước của bạn đã huỷ thành công";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String endTimeFormatted = reservation.getEndTime() != null
                 ? reservation.getEndTime().format(formatter)
@@ -558,8 +582,10 @@ public class EmailService {
         context.setVariable("userFullName", reservation.getUser().getFullName());
         context.setVariable("reservationCode", reservation.getCode());
         context.setVariable("vehicleName", reservation.getVehicle().getName());
+        context.setVariable("startTime", reservation.getStartTime());
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", reservation.getStation().getName());
+        context.setVariable("stationAddress", reservation.getStation().getAddress());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
         String htmlMessage = templateEngine.process("reservation-cancel-email", context);
@@ -572,7 +598,7 @@ public class EmailService {
     }
 
     public void sendRentalCancelEmail(Rental rental) {
-        String subject = "Your Rental is Cancelled";
+        String subject = "Đơn thuê của bạn đã huỷ thành công";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
         String endTimeFormatted = rental.getEndTime() != null
                 ? rental.getEndTime().format(formatter)
@@ -583,8 +609,10 @@ public class EmailService {
         context.setVariable("userFullName", rental.getUser().getFullName());
         context.setVariable("rentalId", rental.getId());
         context.setVariable("vehicleName", rental.getVehicle().getName());
+        context.setVariable("startTime", rental.getStartTime());
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("stationAddress", rental.getStation().getAddress());
         context.setVariable("contactLink", "https://e-motion.vn/support");
 
         String htmlMessage = templateEngine.process("rental-cancel-email", context);
@@ -610,6 +638,7 @@ public class EmailService {
         context.setVariable("startTime", rental.getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         context.setVariable("endTime", rental.getEndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         context.setVariable("stationName", rental.getStation().getName());
+        context.setVariable("stationAddress", rental.getStation().getAddress());
         context.setVariable("payDate", rental.getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
 
         String htmlContent = templateEngine.process("contract-email", context);

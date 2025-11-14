@@ -69,6 +69,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/filter").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/filter/**").permitAll()
                         .requestMatchers("/api/chat/**", "/api/contracts/webhook").permitAll()
+                        .requestMatchers("/api/test/emails/**").permitAll() // Allow test email endpoints
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
