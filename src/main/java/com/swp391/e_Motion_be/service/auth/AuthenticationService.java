@@ -13,7 +13,6 @@ import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import com.swp391.e_Motion_be.service.EmailService;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -52,7 +51,7 @@ public class AuthenticationService {
             oldUser.setVerificationCode(generateVerificationCode());
             oldUser.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             oldUser.setPassword(passwordEncoder.encode(input.getUserPassword()));
-            sendVerificationEmail(oldUser);
+            emailService.sendVerificationEmail(oldUser);
             return userRepository.save(oldUser);
         }
         if(userRepository.existsByEmail(input.getEmail())) {
@@ -66,7 +65,7 @@ public class AuthenticationService {
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
-        sendVerificationEmail(user);
+        emailService.sendVerificationEmail(user);
         return userRepository.save(user);
     }
 
@@ -167,7 +166,7 @@ public class AuthenticationService {
             user.setVerificationCode(generateVerificationCode());
             user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
-            sendVerificationEmail(user);
+            emailService.sendVerificationEmail(user);
         } else {
             throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
@@ -183,7 +182,7 @@ public class AuthenticationService {
             user.setForgotPasswordCode(generateVerificationCode());
             user.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
-            sendVerificationEmail(user);
+            emailService.sendVerificationEmail(user);
         } else {
             throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
@@ -203,30 +202,6 @@ public class AuthenticationService {
         }
     }
 
-    public void sendVerificationEmail(User user) {
-        String subject = "Account Verification";
-        String verificationCode = user.getVerificationCode();
-        String forgotPasswordCode = user.getForgotPasswordCode();
-        String code = verificationCode != null ? verificationCode : forgotPasswordCode;
-        String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
-                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
-                + "<p style=\"font-size: 16px;\">Please enter the verification code below to continue:</p>"
-                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; "
-                + "box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">"
-                + code + "</p>"
-                + "</div>"
-                + "</div>"
-                + "</html>";
-        try{
-            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
-        }
-        catch (MessagingException e){
-            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
-        }
-    }
 
     private String generateVerificationCode() {
         Random random = new Random();
