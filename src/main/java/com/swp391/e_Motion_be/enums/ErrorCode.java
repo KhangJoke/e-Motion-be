@@ -176,6 +176,7 @@ public enum ErrorCode {
     //Contract errors
     DOCUSEAL_FETCH_FAILED(HttpStatus.BAD_REQUEST, "Lấy thông tin từ DocuSeal thất bại"),
     DOCUSEAL_DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tài liệu trong DocuSeal"),
+    CONTRACT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"),
 
     //Report errors
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy báo cáo");

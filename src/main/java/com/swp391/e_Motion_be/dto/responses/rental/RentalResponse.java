@@ -30,6 +30,7 @@ public class RentalResponse {
     String reservationCode;
     String userEmail;
     ContractStatus contractStatus;
+    String submissionUrl;
     DepositResponse rentalDeposit;
     DepositResponse reservationDeposit;
     List<RentalCheckListResponse> rentalCheckLists;

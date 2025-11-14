@@ -31,4 +31,5 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     Page<Reservation> findByCodeContainingAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId, Pageable pageable);
     List<Reservation> findByStatusInAndCreatedAtBefore(List<ReservationStatus> failed, LocalDateTime limitTime);
     List<Reservation> findByVehicle_IdAndStatusInAndStartTimeAfter(Long id, List<ReservationStatus> overdue, LocalDateTime now);
+    Page<Reservation> findByStatusInAndUser_IdAndVehicle_NameContains(List<ReservationStatus> statusList, Long id, String search, Pageable pageable);
 }

@@ -147,12 +147,17 @@ public class DocuSealService {
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                "https://api.docuseal.com/submissions/" + rental.getSubmissionId(),
-                HttpMethod.GET,
-                entity,
-                Map.class
-        );
+        ResponseEntity<Map> response;
+        try{
+            response = restTemplate.exchange(
+                    "https://api.docuseal.com/submissions/" + rental.getSubmissionId(),
+                    HttpMethod.GET,
+                    entity,
+                    Map.class
+            );
+        }catch (Exception e){
+            throw new AppException(ErrorCode.CONTRACT_NOT_FOUND);
+        }
 
         Map<String, Object> body = response.getBody();
         if (body == null) {

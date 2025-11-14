@@ -138,12 +138,12 @@ public class RentalController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/email/{email}")
+    @PostMapping("/email")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<RentalHistoryListResponse>>> getRentalsByUserEmail(@PathVariable String email){
-        ApiResponse<List<RentalHistoryListResponse>> apiResponse = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<PageAndFilterRentalHistoryResponse>> getRentalsByUserEmail(@RequestBody PageAndFilterRentalHistoryRequest request){
+        ApiResponse<PageAndFilterRentalHistoryResponse> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Get user rental history successfully");
-        apiResponse.setData(rentalService.getRentalsByUserEmail(email));
+        apiResponse.setData(rentalService.getRentalsByUserEmail(request));
         return ResponseEntity.ok(apiResponse);
     }
 

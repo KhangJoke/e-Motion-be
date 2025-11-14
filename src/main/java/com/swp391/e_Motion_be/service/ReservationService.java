@@ -4,14 +4,12 @@ import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationHistoryRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationHistoryListResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.*;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -284,7 +282,7 @@ public class ReservationService {
                 reservationRepository.save(reservation);
                 emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null),null);
 
-                log.info("Reservation cancelled: {}", code);
+                log.info("Reservation cancelled and refunded: {}", code);
                 return true;
             }
         }else {
@@ -298,7 +296,7 @@ public class ReservationService {
             reservationRepository.save(reservation);
             emailService.sendReservationCancelEmail(reservation);
 
-            log.info("Reservation cancelled: {}", code);
+            log.info("Reservation cancelled and not refunded: {}", code);
             return true;
         }
 
@@ -351,19 +349,30 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
-    public List<ReservationHistoryListResponse> getReservationsByUserEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+    public PageAndFilterReservationHistoryResponse getReservationsByUserEmail(PageAndFilterReservationHistoryRequest request) {
+        User user = userService.currentUser();
 
-        List<Reservation> reservations = reservationRepository.findByUserEmailIgnoreCase(user.getEmail());
+        if(user == null || !user.getEmail().equals(request.getEmail())){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<ReservationStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
+                ? Arrays.asList(ReservationStatus.values())
+                : request.getStatus();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
+        Page<Reservation> reservationPage;
+
+        reservationPage = reservationRepository.findByStatusInAndUser_IdAndVehicle_NameContains(statusList,user.getId(), request.getSearch(), pageable);
+
         List<ReservationHistoryListResponse> response = new ArrayList<>();
-        for(Reservation res : reservations){
+        for(Reservation res : reservationPage){
             ReservationHistoryListResponse reservationResponse = reservationMapper.toReservationHistoryListResponse(res);
             reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
             response.add(reservationResponse);
         }
-        response.sort(Comparator.comparing(ReservationHistoryListResponse::getCreatedAt).reversed());
-        return response;
+
+        return new PageAndFilterReservationHistoryResponse(response, reservationPage.getTotalPages());
     }
 
     public List<ReservationResponse> getReservationsByStationName(String name) {

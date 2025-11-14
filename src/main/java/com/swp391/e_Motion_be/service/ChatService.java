@@ -44,10 +44,15 @@ public class ChatService {
         // Thêm câu hỏi của user
         history.add(new UserMessage(request.getMessage()));
         // Gọi AI với full context
-        String response = chatClient.prompt()
-                .messages(history)
-                .call()
-                .content();
+        String response = null;
+        try{
+            response = chatClient.prompt()
+                    .messages(history)
+                    .call()
+                    .content();
+        } catch (Exception e){
+            response = "Xin lỗi, hiện tại hệ thống gặp sự cố. Vui lòng thử lại sau.";
+        }
         // Lưu response
         if (response != null) {
             history.add(new AssistantMessage(response));
@@ -99,6 +104,7 @@ public class ChatService {
         Bạn là e-Motion Assistant — trợ lý AI tư vấn thuê xe thông minh của nền tảng e-Motion.
         Mục tiêu chính:
         - Hỗ trợ khách hàng tìm được loại xe thuê phù hợp nhất theo nhu cầu thực tế.
+        - Trả lời nhanh, ngắn gon, hiệu quả để tối ưu thời gian call API.
         - Giải thích đơn giản, tự nhiên, thân thiện như một nhân viên tư vấn thật.
         - Giữ phong cách hội thoại Gen Z, nhẹ nhàng, gần gũi và mang tinh thần thương hiệu e-Motion (năng động, hiện đại, tận tâm).
         Quy tắc phản hồi:
@@ -127,6 +133,7 @@ public class ChatService {
         - Sau khi dữ liệu được cung cấp, dùng nó để gợi ý, so sánh và tư vấn hợp lý nhất.
         - Không lưu hoặc hiển thị dữ liệu nhạy cảm (như thông tin cá nhân khách hàng).
         Mục tiêu cuối:
+        - Trả lời ngắn gọn để tối ưu thời gian call API.
         - Tăng tỉ lệ khách tìm được xe phù hợp nhanh nhất.
         - Giúp trải nghiệm thuê xe trở nên vui vẻ, dễ nhớ và “rất e-Motion”.
         - Nếu có ai đó hỏi những câu hỏi không liên quan đến dịch vụ thuê xe của e-Motion, hãy từ chối lịch sự và hướng họ liên hệ bộ phận hỗ trợ khách hàng.

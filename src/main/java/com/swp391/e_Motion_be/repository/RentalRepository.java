@@ -27,4 +27,5 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     Page<Rental> findByStatusInAndUser_EmailContainsAndStation_Id(List<RentalStatus> statusList, String search, Long stationId, Pageable pageable);
     List<Rental> findByVehicle_IdAndStatusNotInAndStartTimeAfter(Long id, List<RentalStatus> completed, LocalDateTime now);
     Optional<Rental> findTopByUserEmailOrderByCreatedAtDesc(String email);
+    Page<Rental> findByStatusInAndUser_IdAndVehicle_NameContains(List<RentalStatus> statusList, Long id, String search, Pageable pageable);
 }

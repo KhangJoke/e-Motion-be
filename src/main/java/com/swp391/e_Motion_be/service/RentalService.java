@@ -512,19 +512,31 @@ public class RentalService {
                 .toList();
     }
 
-    public List<RentalHistoryListResponse> getRentalsByUserEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+    public PageAndFilterRentalHistoryResponse getRentalsByUserEmail(PageAndFilterRentalHistoryRequest request) {
+        User user = userService.currentUser();
 
-        List<Rental> rentals = rentalRepository.findByUser_Id(user.getId());
-        return rentals.stream()
-                .sorted(Comparator.comparing(Rental::getCreatedAt).reversed())
+        if(user == null || !user.getEmail().equals(request.getEmail())){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<RentalStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
+                ? Arrays.asList(RentalStatus.values())
+                : request.getStatus();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
+        Page<Rental> rentalPage;
+
+        rentalPage = rentalRepository.findByStatusInAndUser_IdAndVehicle_NameContains(statusList,user.getId(), request.getSearch(), pageable);
+
+        List<RentalHistoryListResponse> rentals = rentalPage.stream()
                 .map(rental -> {
                     RentalHistoryListResponse rentalHistoryListResponse = rentalMapper.toRentalHistoryListResponse(rental);
                     rentalHistoryListResponse.setVehicleImage(rental.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
                     return rentalHistoryListResponse;
                 })
                 .toList();
+
+        return new PageAndFilterRentalHistoryResponse(rentals, rentalPage.getTotalPages());
     }
 
     public RentalResponse getOwnRentalDetails(long id) {

@@ -1,13 +1,11 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationHistoryRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.PageAndFilterReservationResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationHistoryListResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationListResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.*;
 import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -100,15 +98,15 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/email/{email}")
+    @PostMapping("/email")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<ReservationHistoryListResponse>> getReservationsByUserEmail(@PathVariable String email) {
-        List<ReservationHistoryListResponse> data = reservationService.getReservationsByUserEmail(email);
-        ApiResponse<List<ReservationHistoryListResponse>> response = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<PageAndFilterReservationHistoryResponse>>getReservationsByUserEmail(@RequestBody PageAndFilterReservationHistoryRequest request) {
+        PageAndFilterReservationHistoryResponse data = reservationService.getReservationsByUserEmail(request);
+        ApiResponse<PageAndFilterReservationHistoryResponse> response = new ApiResponse<>();
         response.setData(data);
         response.setMessage("Fetched reservations by user email successfully");
         response.setStatus(200);
-        return response;
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/station/{stationName}")
