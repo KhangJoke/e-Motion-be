@@ -72,7 +72,9 @@ public class VehicleService {
 
         List<VehicleListResponse> similarVehicles = vehicleRepository.findByCategory(vehicle.getCategory())
                 .stream()
-                .filter(v -> !v.getId().equals(vehicle.getId()))
+                .filter( v ->!v.getId().equals(vehicle.getId()) &&
+                        !v.isDelete() &&
+                        v.getStation().getId().equals(vehicle.getStation().getId()))
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .toList();
         VehicleDetailResponse vehicleDetailResponse = vehicleMapper.toVehicleDetailResponse(vehicle);
