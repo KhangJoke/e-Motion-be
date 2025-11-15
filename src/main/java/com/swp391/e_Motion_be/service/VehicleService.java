@@ -50,6 +50,7 @@ public class VehicleService {
     private final CloudinaryService cloudinaryService;
 
     private final VehicleMapper vehicleMapper;
+    private final ReservationService reservationService;
 
     @Value("${hold.fee.value}")
     private double holdCarFee;
@@ -531,5 +532,20 @@ public class VehicleService {
         Reservation reservedVehicle = reservationRepository.findByVehicle_IdAndStartTimeAfter(vehicle.getId(), LocalDateTime.now())
                 .orElse(null);
         return reservedVehicle == null;
+    }
+
+    public VehicleCheckAvailableResponse vehicleCheckAvailable(VehicleCheckAvailableRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        boolean isAvailable = vehicleRepository.doesConflictExistForVehicle(
+                request.getVehicleId(),
+                request.getStartTime(),
+                request.getEndTime(),
+                List.of("PENDING", "CONFIRM"),
+                List.of("COMPLETED", "CANCELLED", "OVERDUE"),
+                null,
+                null
+        ) < 0;
+        return new VehicleCheckAvailableResponse(isAvailable);
     }
 }

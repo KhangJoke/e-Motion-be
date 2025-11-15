@@ -76,6 +76,15 @@ public class VehicleController {
         return response;
     }
 
+
+    @GetMapping("/check-available")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<VehicleCheckAvailableResponse> vehicleCheckAvailable(@RequestBody @Valid VehicleCheckAvailableRequest request) {
+        ApiResponse<VehicleCheckAvailableResponse> response = new ApiResponse<>();
+        response.setData(vehicleService.vehicleCheckAvailable(request));
+        return response;
+    }
+
     // Create a new vehicle
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
