@@ -41,6 +41,8 @@ public abstract class VehicleMapper {
     @Mapping(target = "hourRate", expression = "java(getHourRate(hours))")
     @Mapping(target = "priceRate", expression = "java(getPriceRate(vehicle, hours))")
     @Mapping(target = "id", source = "vehicle.id")
+    @Mapping(target = "batteryLevel", expression = "java(vehicle.getBatteryLevel())")
+    @Mapping(target = "point", expression = "java(vehicle.getPoint())")
     public abstract VehicleListResponse toVehicleListResponse(Vehicle vehicle, long hours);
 
     @Mapping(target = "images", ignore = true)
