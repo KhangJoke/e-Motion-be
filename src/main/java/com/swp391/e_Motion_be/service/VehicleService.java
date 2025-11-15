@@ -545,7 +545,7 @@ public class VehicleService {
                 List.of("COMPLETED", "CANCELLED", "OVERDUE"),
                 null,
                 null
-        ) < 0;
+        ) == 0;
         return new VehicleCheckAvailableResponse(isAvailable);
     }
 }
