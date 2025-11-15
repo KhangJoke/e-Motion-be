@@ -73,7 +73,7 @@ public class PaymentService {
         if (request.getRentalId() != null) {
             rental = rentalRepository.findById(request.getRentalId())
                     .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-            if(rental.getStatus() != RentalStatus.PENDING && rental.getStatus() != RentalStatus.PENDING_FEE
+            if(rental.getStatus() != RentalStatus.CONTRACTING && rental.getStatus() != RentalStatus.PENDING_FEE
                     && rental.getStatus() != RentalStatus.PENDING_EXTEND_FEE){
                 throw new AppException(ErrorCode.RENTAL_CANNOT_BE_PAID);
             }
