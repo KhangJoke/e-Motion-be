@@ -162,9 +162,28 @@ public class EmailService {
             case RENTAL -> createRentalEmail(payment);
             case PENALTY_FEE_RENTAL -> createPenaltyFeeEmail(payment);
             case REFUND -> createRefundEmail(payment);
+            case RENTAL_EXTENSION -> createRentalExtensionEmail(payment);
             default -> createDefaultEmail(payment);
         };
     }
+
+    // Email cho thanh toán gia hạn thuê xe (Rental Extension)
+    private PaymentEmailRequest createRentalExtensionEmail(Payment payment) {
+        double extraHourFee = payment.getAmount();
+
+        return PaymentEmailRequest.builder()
+                .subject("Gia hạn thuê xe - Biên lai thanh toán")
+                .message("Bạn đã gia hạn thời gian thuê xe. Chi tiết thanh toán nằm bên dưới.")
+                .paymentType(PaymentType.RENTAL_EXTENSION)
+                .paymentStatus(payment.getStatus().getDisplayName())
+                .statusColor(getStatusColor(payment.getStatus()))
+                .extraHourFee(extraHourFee)
+                .items(List.of(
+                ))
+                .total(extraHourFee)
+                .build();
+    }
+
 
     // Email cho thanh toán đặt cọc (Reservation)
     private PaymentEmailRequest createReservationEmail(Payment payment) {
