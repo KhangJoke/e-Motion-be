@@ -73,7 +73,8 @@ public class PaymentService {
         if (request.getRentalId() != null) {
             rental = rentalRepository.findById(request.getRentalId())
                     .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-            if(rental.getStatus() != RentalStatus.PENDING && rental.getStatus() != RentalStatus.PENDING_FEE){
+            if(rental.getStatus() != RentalStatus.PENDING && rental.getStatus() != RentalStatus.PENDING_FEE
+                    && rental.getStatus() != RentalStatus.PENDING_EXTEND_FEE){
                 throw new AppException(ErrorCode.RENTAL_CANNOT_BE_PAID);
             }
         }
@@ -170,6 +171,13 @@ public class PaymentService {
             String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
             redisTemplate.opsForValue().set(vehicleKey, reservation.getStartTime() + "|" + reservation.getEndTime(), 15, TimeUnit.MINUTES);
             log.info("Redis key created for vehicle reservation: {}", vehicleKey);
+        }
+
+        // tạo redis cho extend rental
+        if(payment.getType().equals(PaymentType.RENTAL_EXTENSION) && rental != null){
+            String key = "extendRental:" + rental.getId();
+            redisTemplate.opsForValue().set(key, paymentUrl, 15, TimeUnit.MINUTES);
+            log.info("Redis key created for extend rental payment: {}", key);
         }
 
         return new VnpayResponse(paymentUrl, QRCode.generateVnpayQR(paymentUrl));
@@ -327,9 +335,8 @@ public class PaymentService {
         if (deposit != null && rental != null) {
             deposit.setStatus(DepositStatus.HOLD);
             depositRepository.save(deposit);
-            rental.setStatus(RentalStatus.CONTRACT_PENDING);
+            rental.setStatus(RentalStatus.CONFIRM);
             rentalRepository.save(rental);
-            docuSealService.createContract(rental);
             log.info("Rental confirmed: {}", rental.getId());
             log.info("Rental payment processed: {}", payment.getId());
         }
@@ -366,6 +373,8 @@ public class PaymentService {
             }
             rentalRepository.save(rental);
             log.info("Rental extension payment processed: {}", payment.getId());
+            String extendRentalKey = "extendRental:" + rental.getId();
+            redisTemplate.delete(extendRentalKey);
         }
     }
 
@@ -378,6 +387,8 @@ public class PaymentService {
             rental.setStatus(rental.getPreStatus());
             rentalRepository.save(rental);
             log.info("Reverted failed extension for rental: {}", rental.getId());
+            String extendRentalKey = "extendRental:" + rental.getId();
+            redisTemplate.delete(extendRentalKey);
         }
         payment.setStatus(PaymentStatus.FAILED);
         paymentRepository.save(payment);
@@ -871,6 +882,11 @@ public class PaymentService {
         Deposit deposit = depositRepository.findByReservation_Id(id)
                 .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
         return paymentRepository.findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType.RESERVATION, deposit.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
+    }
+
+    public Payment findPaymentByRentalId(long id) {
+        return paymentRepository.findByRental_IdAndTypeOrderByCreatedAtDesc(id,PaymentType.RENTAL_EXTENSION)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
     }
 }

@@ -36,4 +36,5 @@ public class RentalResponse {
     List<RentalCheckListResponse> rentalCheckLists;
     VehicleLogResponse vehicleLog;
     StaffResponse staff;
+    String paymentUrl;
 }

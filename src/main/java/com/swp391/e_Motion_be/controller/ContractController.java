@@ -1,8 +1,6 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.service.DocuSealService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,19 +14,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ContractController {
     private final DocuSealService docuSealService;
-    private final RentalRepository rentalRepository;
-
-    @PostMapping("/create/{rentalId}")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    public ResponseEntity<ApiResponse<String>> createContract(@PathVariable long rentalId) {
-        Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new RuntimeException("Rental not found"));
-        String contractUrl = docuSealService.createContract(rental);
-        ApiResponse<String> response = new ApiResponse<>();
-        response.setMessage("Contract created successfully");
-        response.setData(contractUrl);
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/webhook")
     @PreAuthorize("permitAll()")

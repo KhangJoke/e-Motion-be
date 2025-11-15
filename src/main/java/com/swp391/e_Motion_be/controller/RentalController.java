@@ -5,6 +5,7 @@ import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.*;
 import com.swp391.e_Motion_be.enums.RentalStatus;
+import com.swp391.e_Motion_be.service.DocuSealService;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ import java.util.List;
 public class RentalController {
 
     private final RentalService rentalService;
+    private final DocuSealService docuSealService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
@@ -85,6 +87,16 @@ public class RentalController {
         ApiResponse<RentalOverviewResponse> response = new ApiResponse<>();
         response.setData(rentalService.getRentalOverviewById(id));
         return response;
+    }
+
+    @PostMapping("/{id}/contract")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<ApiResponse<String>> createContract(@PathVariable Long id) {
+        String contractUrl = docuSealService.createContract(id);
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setMessage("Contract created successfully");
+        response.setData(contractUrl);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/check-inpayment")

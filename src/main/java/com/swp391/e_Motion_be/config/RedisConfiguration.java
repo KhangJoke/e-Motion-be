@@ -1,8 +1,11 @@
 package com.swp391.e_Motion_be.config;
 
 import com.swp391.e_Motion_be.entity.Payment;
+import com.swp391.e_Motion_be.entity.Rental;
 import com.swp391.e_Motion_be.entity.Reservation;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.service.PaymentService;
+import com.swp391.e_Motion_be.service.RentalService;
 import com.swp391.e_Motion_be.service.ReservationService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -64,8 +67,10 @@ public class RedisConfiguration {
 
         private final ReservationService reservationService;
         private final PaymentService paymentService;
+        private final RentalService rentalService;
 
-        public RedisKeyExpirationListener(PaymentService paymentService, ReservationService reservationService) {
+        public RedisKeyExpirationListener(PaymentService paymentService, ReservationService reservationService, RentalService rentalService) {
+            this.rentalService = rentalService;
             this.reservationService = reservationService;
             this.paymentService = paymentService;
         }
@@ -88,6 +93,24 @@ public class RedisConfiguration {
                         log.info("Handled expired reservation: {}", id);
                     } else {
                         log.info("No action needed for reservation: {}", id);
+                    }
+                } catch (Exception e) {
+                    log.error("Error processing expired key: {}", expiredKey, e);
+                }
+            }
+
+            if (expiredKey.startsWith("extendRental:")) {
+                try {
+                    long id = Long.parseLong(expiredKey.split(":")[1]);
+                    log.info("Processing expired extend rental: {}", id);
+
+                    Rental rental = rentalService.getById(id);
+                    if (rental != null && rental.getStatus().equals(RentalStatus.PENDING_EXTEND_FEE)) {
+                        Payment payment = paymentService.findPaymentByRentalId(rental.getId());
+                        paymentService.processFailedPayment(payment);
+                        log.info("Handled expired extend rental: {}", id);
+                    } else {
+                        log.info("No action needed for extend rental: {}", id);
                     }
                 } catch (Exception e) {
                     log.error("Error processing expired key: {}", expiredKey, e);

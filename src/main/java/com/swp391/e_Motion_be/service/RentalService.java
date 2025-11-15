@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -55,6 +56,7 @@ public class RentalService {
     private final DepositService depositService;
     private final PaymentService paymentService;
     private final UserService userService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Value("${price.8h.rate}")
     private double price8hRate;
@@ -273,7 +275,7 @@ public class RentalService {
     public void notifyCancelRentals() {
         LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
         List<Rental> cancelRentals = rentalRepository.findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(
-                List.of(RentalStatus.PENDING, RentalStatus.CONFIRM, RentalStatus.CONTRACT_PENDING),
+                List.of(RentalStatus.PENDING, RentalStatus.CONFIRM, RentalStatus.CONTRACTING),
                 limitTime
         );
         cancelRentals.forEach(rental -> {
@@ -290,7 +292,7 @@ public class RentalService {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
-        if(!rental.getStatus().equals(RentalStatus.PENDING)){
+        if(!rental.getStatus().equals(RentalStatus.CONTRACTING) || !rental.getContractStatus().equals(ContractStatus.SIGNED)){
             throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
 
@@ -417,7 +419,7 @@ public class RentalService {
         rental.setPendingEndTime(newReturnTime);
         rental.setPendingRentFee(newFee);
         rental.setPreStatus(rental.getStatus());
-        rental.setStatus(RentalStatus.PENDING_FEE);
+        rental.setStatus(RentalStatus.PENDING_EXTEND_FEE);
         rentalRepository.save(rental);
 
         CreatePaymentUrlRequest request = CreatePaymentUrlRequest.builder()
@@ -548,6 +550,16 @@ public class RentalService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        return rentalMapper.toRentalResponse(rental);
+        RentalResponse response = rentalMapper.toRentalResponse(rental);
+        String redisValue = (String) redisTemplate.opsForValue().get("extendRental:" + rental.getId());
+        if(redisValue != null){
+            response.setPaymentUrl(redisValue);
+        }
+        return response;
+    }
+
+    public Rental getById(long id) {
+        return rentalRepository.findById(id)
+                .orElse(null);
     }
 }

@@ -39,7 +39,15 @@ public class DocuSealService {
     @Autowired
     private DocumentRepository documentRepository;
 
-    public String createContract(Rental rental) {
+    @Transactional
+    public String createContract(Long id) {
+
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        if(!rental.getStatus().equals(RentalStatus.PENDING)){
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
+        }
 
         Map<String, Object> renter = Map.of(
                 "email", rental.getUser().getEmail(),
@@ -83,12 +91,17 @@ public class DocuSealService {
 
         ParameterizedTypeReference<List<Map<String, Object>>> responseType = new ParameterizedTypeReference<>() {};
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
-        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                "https://api.docuseal.com/submissions",
-                HttpMethod.POST,
-                entity,
-                responseType
-        );
+        ResponseEntity<List<Map<String, Object>>> response;
+        try{
+            response = restTemplate.exchange(
+                    "https://api.docuseal.com/submissions",
+                    HttpMethod.POST,
+                    entity,
+                    responseType
+            );
+        }catch (Exception e){
+            throw new AppException(ErrorCode.DOCUSEAL_CREATE_FAILED);
+        }
         String contractUrl = (String) response.getBody().get(0).get("embed_src");
         emailService.sendContractEmail(rental, contractUrl);
         rental.setContractStatus(ContractStatus.PENDING);
