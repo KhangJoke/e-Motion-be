@@ -32,7 +32,7 @@ public class VehicleDetailResponse {
     private Double batteryLevel;
     private Double batteryCapacity;
     private String plateNumber;
-    private LocalDateTime lastMaintenance;
+    private int point;
     private StationResponse station;
     private List<ImgVehicleResponse> images;
     private List<VehicleListResponse> similarVehicleList;
