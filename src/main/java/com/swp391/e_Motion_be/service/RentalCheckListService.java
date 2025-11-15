@@ -6,10 +6,7 @@ import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListUpdateReques
 import com.swp391.e_Motion_be.dto.responses.checkList.PageAndFilterCheckListResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListListResponse;
 import com.swp391.e_Motion_be.dto.responses.checkList.RentalCheckListResponse;
-import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.RentalCheckList;
-import com.swp391.e_Motion_be.entity.Staff;
-import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.CheckType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
@@ -19,6 +16,7 @@ import com.swp391.e_Motion_be.mapper.RentalCheckListMapper;
 import com.swp391.e_Motion_be.repository.RentalCheckListRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.StaffRepository;
+import com.swp391.e_Motion_be.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +46,7 @@ public class RentalCheckListService {
     private final RentalRepository rentalRepository;
     private final StaffRepository staffRepository;
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
     public RentalCheckListResponse createCheckList(RentalCheckListCreateRequest request) {
         // --- Kiểm tra trùng check ---
@@ -95,8 +94,18 @@ public class RentalCheckListService {
             // lưu phí phát sinh và cập nhật status rental, vehicle
             double fee = calculateFee(rental.getId());
             checkList.setFee(fee);
+
             rental.setStatus(RentalStatus.PENDING_FEE);
             rental.getVehicle().setStatus(VehicleStatus.CHECKING);
+
+            long hours = Duration.between(rental.getStartTime(), rental.getEndTime()).toHours();
+            int pointPerHour = rental.getVehicle().getPoint();
+            int earnedPoints = (int) (hours * pointPerHour);
+
+            User user = rental.getUser();
+            user.setPoint(user.getPoint() + earnedPoints);
+            userRepository.save(user);
+
             rentalCheckListRepository.save(checkList);
 
             emailService.sendRentalReturnedNotification(rental);
