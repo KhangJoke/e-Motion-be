@@ -126,7 +126,7 @@ public class DocuSealService {
                 if (submission != null && submission.get("id") != null) {
                     submissionId = ((Number) submission.get("id")).longValue();
                 }
-                rental.setStatus(RentalStatus.CONFIRM);
+                rental.setStatus(RentalStatus.CONTRACTING);
                 rental.setContractStatus(ContractStatus.SIGNED);
                 rental.setSubmissionId(submissionId);
                 rental.setSubmissionUrl(submissionUrl);
