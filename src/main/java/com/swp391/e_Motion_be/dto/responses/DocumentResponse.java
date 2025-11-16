@@ -16,7 +16,7 @@ import lombok.experimental.FieldDefaults;
 public class DocumentResponse {
     long id;
     String imgUrl;
-    DocumentType documentType;
-    String docNumber;
+    DocumentType type;
+    String number;
     String email;
 }

@@ -1,16 +1,12 @@
 package com.swp391.e_Motion_be.mapper;
 
-import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.VehicleLog.VehicleLogUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.VehicleLogResponse;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.VehicleLogCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicleLog.VehicleLogUpdateRequest;
+import com.swp391.e_Motion_be.dto.responses.vehicleLog.VehicleLogResponse;
 import com.swp391.e_Motion_be.entity.VehicleLog;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface VehicleLogMapper {
@@ -22,6 +18,7 @@ public interface VehicleLogMapper {
     @Mapping(source = "vehicle.id", target = "vehicleId")
     @Mapping(source = "staff.id", target = "staffId")
     @Mapping(source = "rental.id", target = "rentalId")
+    @Mapping(source = "repairItems", target = "repairItems")
     VehicleLogResponse toResponse(VehicleLog vehicleLog);
 
     void updateVehicleLogFromRequest(@MappingTarget VehicleLog vehicleLog, VehicleLogUpdateRequest request);

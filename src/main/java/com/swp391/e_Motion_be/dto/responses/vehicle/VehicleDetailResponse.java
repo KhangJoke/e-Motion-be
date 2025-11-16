@@ -1,7 +1,8 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
-import com.swp391.e_Motion_be.dto.responses.StationResponse;
-import com.swp391.e_Motion_be.enums.station.StationCity;
+import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
+import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
+import com.swp391.e_Motion_be.entity.ImgVehicle;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import lombok.AllArgsConstructor;
@@ -15,11 +16,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleDetailResponse {
-
     private Long id;
     private String name;
     private String description;
-    private String type;
     private String category;
     private VehicleStatus status;
     private VehicleBrand brand;
@@ -33,7 +32,8 @@ public class VehicleDetailResponse {
     private Double batteryLevel;
     private Double batteryCapacity;
     private String plateNumber;
-    private LocalDateTime lastMaintenance;
+    private int point;
     private StationResponse station;
-    private List<String> images;
+    private List<ImgVehicleResponse> images;
+    private List<VehicleListResponse> similarVehicleList;
 }

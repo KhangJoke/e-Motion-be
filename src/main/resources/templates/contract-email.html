@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; color:#333;}
+        .container {max-width:600px; margin:0 auto; background:#fff; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); overflow:hidden;}
+        .header {background:#3B82F6; color:#fff; padding:20px; text-align:center;}
+        .header img {width:100px; height:70px;}
+        h1 {margin:0; font-size:22px; line-height:1.3;}
+        .content {padding:20px 30px; line-height:1.55; font-size:14px;}
+        table {width:100%; margin:18px 0; border-collapse:collapse; font-size:14px;}
+        th {width:42%; text-align:left; background:#f9f9f9; font-weight:600; color:#555; vertical-align:top;}
+        th, td {padding:10px; border-bottom:1px solid #eee;}
+        .action-button {display:block; width:80%; margin:28px auto; padding:14px 22px; background:#3B82F6; color:#fff !important; text-align:center; text-decoration:none; border-radius:6px; font-size:16px; font-weight:bold;}
+        .note {color:#d92d20; font-weight:600;}
+        .footer {background:#f2f2f2; color:#555; padding:15px 25px; text-align:center; font-size:12px; border-top:1px solid #3B82F6; line-height:1.5;}
+        .stations-table {font-size:12px; color:#333; border-collapse:collapse;}
+        .stations-table td {padding:0 20px;}
+        .divider {border-left:1px solid #ccc; width:1px;}
+        .copyright {margin:10px 0 0 0; font-size:11px; color:#999; font-weight:normal;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div style="margin-bottom:10px;">
+            <img src="https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931450/navxfjt05woc38qvpbtw.png" alt="Logo công ty" />
+        </div>
+        <h1>Thông báo: Hợp đồng thuê xe đã được tạo thành công</h1>
+    </div>
+    <div class="content">
+        <p>Xin chào: <strong th:text="${renterName}"></strong>,</p>
+        <p>Hợp đồng thuê xe của bạn đã được khởi tạo thành công. Vui lòng truy cập vào liên kết bên dưới để xem và ký hợp đồng điện tử.</p>
+        <table>
+            <tr>
+                <th>Xe:</th>
+                <td>
+                    <strong th:text="${carName}"></strong>
+                    (<span th:text="${carBrand}"></span> - <span th:text="${carCategory}"></span>)
+                </td>
+            </tr>
+            <tr>
+                <th>Biển số:</th>
+                <td><strong th:text="${plateNumber}"></strong></td>
+            </tr>
+            <tr>
+                <th>Giá thuê:</th>
+                <td><strong th:text="${rentFee}"></strong> VND</td>
+            </tr>
+            <tr>
+                <th>Thời gian bắt đầu:</th>
+                <td><strong th:text="${startTime}"></strong></td>
+            </tr>
+            <tr>
+                <th>Thời gian kết thúc:</th>
+                <td><strong th:text="${endTime}"></strong></td>
+            </tr>
+            <tr>
+                <th>Địa điểm nhận xe:</th>
+                <td><strong th:text="${stationName}"></strong></td>
+            </tr>
+            <tr>
+                <th>Địa chỉ:</th>
+                <td><strong th:text="${stationAddress}"></strong></td>
+            </tr>
+            <tr>
+                <th>Ngày thanh toán:</th>
+                <td><strong th:text="${payDate}"></strong></td>
+            </tr>
+        </table>
+        <p class="note">Vui lòng ký hợp đồng để hoàn tất thủ tục thuê xe.</p>
+        <a th:href="${contractUrl}" class="action-button">Ký hợp đồng ngay</a>
+        <p>Nếu bạn cần hỗ trợ thêm, vui lòng phản hồi email này hoặc liên hệ đội ngũ CSKH của chúng tôi.</p>
+        <p>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi!</p>
+        <p>Trân trọng,</p>
+        <p>E-Motion.</p>
+    </div>
+    <div class="footer">
+        <div style="margin-bottom:10px;">
+            <img src="https://res.cloudinary.com/dy45rrkhf/image/upload/f_auto,q_auto/v1759931502/logo_bp3y1d.png" alt="Logo công ty" width="80" height="50" />
+        </div>
+        <div style="display:inline-block; text-align:left;">
+            <table class="stations-table">
+                <tr>
+                    <td valign="top"><strong>Hà Nội:</strong><br />E-Motion Station Hoàn Kiếm<br />E-Motion Station Cầu Giấy<br />E-Motion Station Thanh Xuân</td>
+                    <td class="divider"></td>
+                    <td valign="top"><strong>TP. Hồ Chí Minh:</strong><br />E-Motion Station Tân Bình<br />E-Motion Station Thủ Đức<br />E-Motion Station Trần Hưng Đạo</td>
+                </tr>
+            </table>
+        </div>
+        <p style="margin-top:10px;"><strong>Hotline:</strong> 0339695701 | <strong>Email:</strong> e.motion.vehicle1@gmail.com</p>
+        <p class="copyright">© 2025 E-Motion. Bảo lưu mọi quyền.</p>
+    </div>
+</div>
+</body>
+</html>

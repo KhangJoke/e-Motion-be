@@ -6,7 +6,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -36,10 +38,15 @@ public class Station {
     @Enumerated(EnumType.STRING)
     private StationStatus status;
 
+    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
     @Column(name = "station_city")
     @Enumerated(EnumType.STRING)
     private StationCity city;
 
+    private boolean isDelete = false;
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Staff> staffs;
 

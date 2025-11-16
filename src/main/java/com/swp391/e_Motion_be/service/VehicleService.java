@@ -1,50 +1,93 @@
 package com.swp391.e_Motion_be.service;
 
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleCreationRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleFindRequest;
-import com.swp391.e_Motion_be.dto.requests.vehicle.VehicleUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleDetailResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleListResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleScheduleResponse;
-import com.swp391.e_Motion_be.dto.responses.vehicle.VehicleSearchResponse;
-import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.Reservation;
-import com.swp391.e_Motion_be.entity.Station;
-import com.swp391.e_Motion_be.entity.Vehicle;
+import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.vehicle.*;
+import com.swp391.e_Motion_be.dto.responses.vehicle.*;
+import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
+import com.swp391.e_Motion_be.enums.Role;
+import com.swp391.e_Motion_be.enums.vehicle.FeeType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.VehicleMapper;
-import com.swp391.e_Motion_be.repository.RentalRepository;
-import com.swp391.e_Motion_be.repository.ReservationRepository;
-import com.swp391.e_Motion_be.repository.StationRepository;
-import com.swp391.e_Motion_be.repository.VehicleRepository;
+import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
-    private final VehicleMapper vehicleMapper;
+    private final ImgVehicleService imgVehicleService;
     private final StationRepository stationRepository;
     private final RentalRepository rentalRepository;
     private final ReservationRepository reservationRepository;
+    private final ImgVehicleRepository imgVehicleRepository;
+
+    private final RentalService rentalService;
+    private final UserService userService;
+    private final CloudinaryService cloudinaryService;
+
+    private final VehicleMapper vehicleMapper;
+    private final ReservationService reservationService;
+
+    @Value("${hold.fee.value}")
+    private double holdCarFee;
+
+    @Value("${price.8h.rate}")
+    private double price8hRate;
+
+    @Value("${price.12h.rate}")
+    private double price12hRate;
+
+    @Value("${price.day.rate}")
+    private double priceDayRate;
+
+
 
     // Find by ID
     public VehicleDetailResponse findVehicleById(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        return vehicleMapper.toVehicleDetailResponse(vehicle);
+
+        List<VehicleListResponse> similarVehicles = vehicleRepository.findByCategory(vehicle.getCategory())
+                .stream()
+                .filter( v ->!v.getId().equals(vehicle.getId()) &&
+                        !v.isDelete() &&
+                        v.getStation().getId().equals(vehicle.getStation().getId()))
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .toList();
+        VehicleDetailResponse vehicleDetailResponse = vehicleMapper.toVehicleDetailResponse(vehicle);
+        vehicleDetailResponse.setSimilarVehicleList(similarVehicles);
+        return vehicleDetailResponse;
+    }
+
+    public VehicleUpdateResponse getUpdateCarById(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+        return vehicleMapper.toVehicleUpdateResponse(vehicle);
     }
 
     // Find by PlateNumber
@@ -74,6 +117,27 @@ public class VehicleService {
                 .collect(Collectors.toList());
     }
 
+
+
+    public List<VehicleBrandResponse> findAllVehicleBrands() {
+        return Arrays.stream(VehicleBrand.values())
+                .map(VehicleBrandResponse::new)
+                .toList();
+    }
+
+    //Find 16 for home page
+    public List<VehicleListResponse> findVehiclesForHomePage() {
+        List<Vehicle> vehicles = vehicleRepository.findTop16ByStatusOrderByIdDesc(VehicleStatus.AVAILABLE);
+        if (vehicles.isEmpty()) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
+        }
+
+        return vehicles.stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .collect(Collectors.toList());
+    }
+
+
     // Find all
     public List<VehicleListResponse> findAllVehicles() {
         List<Vehicle> vehicles = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
@@ -88,7 +152,8 @@ public class VehicleService {
     }
 
     // CREATE
-    public VehicleDetailResponse createVehicle(VehicleCreationRequest request) {
+    @Transactional
+    public VehicleListResponse createVehicle(VehicleCreationRequest request) {
         //Check Station is FOUNd or NOT
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
@@ -97,77 +162,72 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
+        vehicle.setLastMaintenance(LocalDateTime.now());
 
-        vehicle.setStation(station);
-
-        //SAVE
         vehicleRepository.save(vehicle);
-        return vehicleMapper.toVehicleDetailResponse(vehicle);
+        imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
+
+        //Reload vehicle to get images and staion for reponse
+        vehicle = vehicleRepository.findById(vehicle.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        vehicle.setStation(station);
+        vehicle.setImages(imgVehicleRepository.findByVehicle_Id(vehicle.getId()));
+
+        return vehicleMapper.toVehicleListResponse(vehicle, 4);
     }
 
-    private double roundToNearest10(double value) {
-        return Math.round(value / 10.0) * 10.0;
-    }
     // UPDATE
     @Transactional
-    public VehicleDetailResponse updateVehicle(Long id, VehicleUpdateRequest request) {
+    public void updateVehicle(VehicleUpdateRequest request) {
 
-        Vehicle existing = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        Station station = stationRepository.findById(request.getStationId())
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        vehicle.setStation(station);
 
-        if (!existing.getPlateNumber().equals(request.getPlateNumber())
+        if (!vehicle.getPlateNumber().equals(request.getPlateNumber())
                 && vehicleRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
 
-        vehicleMapper.updateVehicleFromRequest(existing, request);
+        // Xóa ảnh đã up trên cloud mà request gửi update ko còn url
+        List<ImgVehicle> oldImages = imgVehicleRepository.findByVehicle_Id(vehicle.getId());
+        Set<String> newUrls = request.getImages().stream()
+                .map(ImgVehicleCreationRequest::getUrl)
+                .collect(Collectors.toSet());
 
-        if (request.getStationId() != null) {
-            Station station = stationRepository.findById(request.getStationId())
-                    .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-            existing.setStation(station);
-        }
+        oldImages.stream()
+                .filter(img -> !newUrls.contains(img.getUrl()))
+                .forEach(img -> {
+                    // Lấy public_id từ URL
+                    String publicId = cloudinaryService.getPublicIdFromUrl(img.getUrl());
+                    cloudinaryService.delete(publicId);  // xóa trên Cloudinary
+                    imgVehicleRepository.delete(img);    // xóa record DB
+                });
 
-        // No need to call save() — transaction will automatically flush changes
-        return vehicleMapper.toVehicleDetailResponse(existing);
+        request.getImages().forEach(imgReq -> {
+            ImgVehicle imgVehicle = imgVehicleRepository.findByVehicle_IdAndUrl(vehicle.getId(), imgReq.getUrl())
+                    .orElseGet(() -> {
+                        ImgVehicle imgVehicleEntity = new ImgVehicle();
+                        imgVehicleEntity.setVehicle(vehicle);
+                        imgVehicleEntity.setUrl(imgReq.getUrl());
+                        return imgVehicleEntity;
+                    });
+            imgVehicle.setMain(imgReq.isMain());
+            imgVehicleRepository.save(imgVehicle);
+        });
+
+        vehicleMapper.updateVehicleFromRequest(vehicle, request);
+        vehicleRepository.save(vehicle);
     }
 
     //DELETE
     public void deleteVehicleById(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-
-        vehicleRepository.delete(vehicle);
-    }
-
-    // Search bằng thanh tìm kiếm
-    public VehicleSearchResponse searchVehicles(VehicleFindRequest request) {
-        // lấy ra tất cả các xe có thể sử dụng
-        List<Vehicle> vehicles = vehicleRepository.findByStation_CityAndStatusIn(request.getCity(), List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING));
-
-        List<Vehicle> availables = new ArrayList<>();
-        List<Vehicle> unavailables = new ArrayList<>();
-
-        // duyệt qua từng xe và chia vào list phù hợp
-        for(Vehicle v : vehicles) {
-            boolean hasConflic = v.getReservations().stream()
-                    .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime()))
-                    ||
-                    v.getRentals().stream()
-                            .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime()) && r.getEndTime().isAfter(request.getStartTime()));
-
-            if (hasConflic) {
-                unavailables.add(v);
-            } else {
-                availables.add(v);
-            }
-        }
-        long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
-
-        return new VehicleSearchResponse(
-                availables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList(),
-                unavailables.stream().map(v -> vehicleMapper.toVehicleListResponse(v, hours)).toList()
-        );
+        vehicle.setDelete(true);
+        vehicleRepository.save(vehicle);
     }
 
     public List<VehicleScheduleResponse> getVehicleSchedule(Long vid){
@@ -182,8 +242,310 @@ public class VehicleService {
         return schedules;
     }
 
-    public boolean isAvailable(long id) {
-        List<Vehicle> availableVehicle = vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
-        return availableVehicle.stream().anyMatch(v -> v.getId() == id);
+
+    public List<FeeResponse> getListFeeBooking(Long vid, String start, String end){
+        Vehicle vehicle = vehicleRepository.findById(vid)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        List<FeeResponse> fees = new ArrayList<>();
+
+        long hours = Duration.between( LocalDateTime.parse(start), LocalDateTime.parse(end)).toHours();
+        double feePoint = vehicle.getPoint() * ((double) hours /4);
+
+        double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
+
+        FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
+//        FeeResponse pointFee = new FeeResponse("Giảm giá", FeeType.BOOKING_FEE, feePoint * 1000);
+        FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
+        FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
+        FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
+                bookingFeeValue + vehicle.getDepositFee());
+
+        fees.add(bookingFee);
+//        fees.add(pointFee);
+        fees.add(deposit);
+        fees.add(holdCar);
+        fees.add(total);
+
+        return fees;
+    }
+
+    public List<VehicleQuantityEachStatusResponse> getVehicleQuantityEachStatusOfStation(Long stationId){
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+        return Stream.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING, VehicleStatus.MAINTAINED)
+                .map(status ->
+                        new VehicleQuantityEachStatusResponse(
+                                vehicleRepository.countByStation_IdAndStatus(station.getId(), status)
+                                , status))
+                .toList();
+    }
+
+    public PageAndFilterVehicleResponse findAvailableVehicles(PageAndFilterVehicleRequest request) {
+        Integer seats = request.getSeats();
+        List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
+                ? Arrays.asList(VehicleBrand.values())
+                : request.getBrands();
+
+        List<VehicleCategory> categoryList = (request.getCategories() == null || request.getCategories().isEmpty())
+                ? Arrays.asList(VehicleCategory.values())
+                : request.getCategories();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+
+        long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
+
+        // --- Lấy list xe theo city hoặc station ---
+        List<Vehicle> vehicles;
+        if(request.getStationId() != null){
+            Station station = stationRepository.findById(request.getStationId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+            if (!station.getCity().equals(request.getCity())) {
+                throw new AppException(ErrorCode.STATION_NOT_IN_CITY);
+            }
+            vehicles = vehicleRepository.findByStation_IdAndStatusIn(
+                    request.getStationId(),
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
+        }else{
+            vehicles = vehicleRepository.findByStation_CityAndStatusIn(
+                    request.getCity(),
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
+        }
+        // --- Lọc những xe còn trống trong khung giờ ---
+        List<Long> availableIdList = vehicles
+                .stream()
+                .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
+                                && r.getStatus() != ReservationStatus.CANCELLED
+                                && r.getStatus() != ReservationStatus.FAILED)
+                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                && r.getEndTime().isAfter(request.getStartTime()))
+                        &&
+                        v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
+                                        && r.getStatus() != RentalStatus.CANCELLED)
+                                .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                        && r.getEndTime().isAfter(request.getStartTime()))
+                )
+                // --- Lọc theo giá (theo giờ thực tế user chọn) ---
+                .filter(v -> {
+                    double priceValue;
+                    if(hours < 8){
+                        priceValue = v.getPricePer4Hours();
+                    }else if(hours < 12){
+                        priceValue = v.getPricePer4Hours() * price8hRate;
+                    }else if(hours < 24){
+                        priceValue = v.getPricePer4Hours() * price12hRate;
+                    }else{
+                        priceValue = v.getPricePer4Hours() * priceDayRate;
+                    }
+                    if(request.getMinPrice() != null && request.getMaxPrice() != null){
+                        return priceValue >= request.getMinPrice()
+                                && priceValue <= request.getMaxPrice();
+                    }else if(request.getMinPrice() != null){
+                        return priceValue >= request.getMinPrice();
+                    }else if(request.getMaxPrice() != null){
+                        return priceValue <= request.getMaxPrice();
+                    }
+                    return true;
+                })
+                .map(Vehicle::getId)
+                .toList();
+
+        Page<Vehicle> vehiclePage;
+        if(seats != null){
+            vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndSeatsAndNameContainingIgnoreCase(availableIdList, brandsList, categoryList, seats, request.getSearch(), pageable);
+        }else{
+            vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(availableIdList, brandsList, categoryList, request.getSearch(), pageable);
+        }
+
+        List<VehicleListResponse> vehicleResponse = vehiclePage.getContent().stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, hours))
+                .toList();
+        return new PageAndFilterVehicleResponse(vehicleResponse, vehiclePage.getTotalPages());
+    }
+
+    public PageAndFilterVehicleResponse findUnavailableVehicles(PageAndFilterVehicleRequest request) {
+        Integer seats = request.getSeats();
+        List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
+                ? Arrays.asList(VehicleBrand.values())
+                : request.getBrands();
+
+        List<VehicleCategory> categoryList = (request.getCategories() == null || request.getCategories().isEmpty())
+                ? Arrays.asList(VehicleCategory.values())
+                : request.getCategories();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").ascending());
+
+        long hours = Duration.between(request.getStartTime(), request.getEndTime()).toHours();
+
+        List<Vehicle> vehicles;
+        if(request.getStationId() != null){
+            Station station = stationRepository.findById(request.getStationId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+            if (!station.getCity().equals(request.getCity())) {
+                throw new AppException(ErrorCode.STATION_NOT_IN_CITY);
+            }
+            vehicles = vehicleRepository.findByStation_IdAndStatusIn(
+                    request.getStationId(),
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
+        }else{
+            vehicles = vehicleRepository.findByStation_CityAndStatusIn(
+                    request.getCity(),
+                    List.of(VehicleStatus.AVAILABLE, VehicleStatus.ONGOING))
+                    .stream()
+                    .filter(v -> !v.isDelete())
+                    .toList();
+        }
+
+        List<Long> unavailableIdList  = vehicles
+                .stream()
+                .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
+                                && r.getStatus() != ReservationStatus.CANCELLED
+                                && r.getStatus() != ReservationStatus.FAILED)
+                        .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                && r.getEndTime().isAfter(request.getStartTime()))
+                        ||
+                        v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
+                                        && r.getStatus() != RentalStatus.CANCELLED)
+                                .anyMatch(r -> r.getStartTime().isBefore(request.getEndTime())
+                                        && r.getEndTime().isAfter(request.getStartTime()))
+                )
+                // --- Lọc theo giá ---
+                .filter(v -> {
+                    double priceValue;
+                    if(hours < 8){
+                        priceValue = v.getPricePer4Hours();
+                    }else if(hours < 12){
+                        priceValue = v.getPricePer4Hours() * price8hRate;
+                    }else if(hours < 24){
+                        priceValue = v.getPricePer4Hours() * price12hRate;
+                    }else{
+                        priceValue = v.getPricePer4Hours() * priceDayRate;
+                    }
+                    if(request.getMinPrice() != null && request.getMaxPrice() != null){
+                        return priceValue >= request.getMinPrice()
+                                && priceValue <= request.getMaxPrice();
+                    }else if(request.getMinPrice() != null){
+                        return priceValue >= request.getMinPrice();
+                    }else if(request.getMaxPrice() != null){
+                        return priceValue <= request.getMaxPrice();
+                    }
+                    return true;
+                })
+                .map(Vehicle::getId)
+                .toList();
+
+        Page<Vehicle> vehiclePage;
+        if(seats != null){
+            vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndSeatsAndNameContainingIgnoreCase(unavailableIdList, brandsList, categoryList, seats, request.getSearch(), pageable);
+        }else{
+            vehiclePage = vehicleRepository.findByIdInAndBrandInAndCategoryInAndNameContains(unavailableIdList, brandsList, categoryList, request.getSearch(), pageable);
+        }
+
+        List<VehicleListResponse> vehicleResponse = vehiclePage.getContent().stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, hours))
+                .toList();
+
+        return new PageAndFilterVehicleResponse(vehicleResponse , vehiclePage.getTotalPages());
+    }
+
+    public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
+        User user = userService.currentUser();
+
+        List<VehicleStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
+                ? Arrays.asList(VehicleStatus.values())
+                : request.getStatus();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
+        Page<Vehicle> vehiclePage;
+
+        if(request.getStationId() != null) {
+            Station station = stationRepository.findById(request.getStationId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+            vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+        }else{
+            if(user.getRole() == Role.ROLE_STAFF){
+                Station station = stationRepository.findById(user.getStaff().getStation().getId())
+                        .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+                vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+            }else{
+                vehiclePage = vehicleRepository.findByStatusInAndNameContains(statusList, request.getSearch(), pageable);
+            }
+        }
+
+        List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
+                .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
+                .toList();
+
+        return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
+    }
+
+    public List<VehicleScheduleResponse> getVehicleFullSchedule(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+        List<VehicleScheduleResponse> schedules = new ArrayList<>();
+        List<Rental> rentals = rentalRepository.findByVehicle_IdAndStatusNotInAndStartTimeAfter(id, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED), LocalDateTime.now());
+        schedules.addAll(rentals.stream()
+                .map(rental -> new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
+                .toList());
+        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusInAndStartTimeAfter(id, List.of(ReservationStatus.OVERDUE, ReservationStatus.CONFIRM), LocalDateTime.now());
+        schedules.addAll(reservations.stream()
+                .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
+                .toList());
+
+        return schedules;
+    }
+
+    @Transactional
+    public void dispatchVehicle(VehicleDispatchRequest request) {
+        Station station = stationRepository.findById(request.getStationId())
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+        for(Long vehicleId : request.getVehicleIds()) {
+            Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                    .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+            if(vehicle.getStatus() != VehicleStatus.AVAILABLE || !isVehicleAvailableToDispatch(vehicle)) {
+                throw new AppException(ErrorCode.VEHICLE_NOT_READY);
+            }
+            vehicle.setStatus(VehicleStatus.TRANSFERRING);
+            vehicle.setStation(station);
+            vehicleRepository.save(vehicle);
+        }
+    }
+
+    private boolean isVehicleAvailableToDispatch(Vehicle vehicle) {
+        Reservation reservedVehicle = reservationRepository.findByVehicle_IdAndStartTimeAfter(vehicle.getId(), LocalDateTime.now())
+                .orElse(null);
+        return reservedVehicle == null;
+    }
+
+    public VehicleCheckAvailableResponse vehicleCheckAvailable(VehicleCheckAvailableRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        boolean isAvailable = vehicleRepository.doesConflictExistForVehicle(
+                request.getVehicleId(),
+                request.getStartTime(),
+                request.getEndTime(),
+                List.of("PENDING", "CONFIRM"),
+                List.of("COMPLETED", "CANCELLED", "OVERDUE"),
+                null,
+                null
+        ) == 0;
+        return new VehicleCheckAvailableResponse(isAvailable);
     }
 }

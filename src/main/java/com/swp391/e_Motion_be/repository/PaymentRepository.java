@@ -19,4 +19,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> getPaymentsByMethod(PaymentMethod method);
     boolean existsByDepositIdAndTypeAndStatus(Long depositId, PaymentType type, PaymentStatus status);
     Optional<Payment> findByRental_IdAndType(Long rental_id, PaymentType type);
+    Optional<Payment> findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType paymentType, Long rentalId);
+    Optional<Payment> findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType paymentType, Long id);
+    Optional<Payment> findTopByDescriptionOrderByCreatedAtDesc(String s);
+    Payment findByRental_idAndTypeAndStatus(Long id, PaymentType paymentType, PaymentStatus paymentStatus);
+    Optional<Payment> findByRental_IdAndTypeOrderByCreatedAtDesc(long id, PaymentType paymentType);
 }

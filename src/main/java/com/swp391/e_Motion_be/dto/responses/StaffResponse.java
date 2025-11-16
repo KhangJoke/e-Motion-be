@@ -4,9 +4,7 @@ import lombok.Data;
 
 @Data
 public class StaffResponse {
-
     private String email;
     private String stationName;
     private String fullName;
-
 }

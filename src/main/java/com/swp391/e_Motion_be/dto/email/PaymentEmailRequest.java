@@ -1,11 +1,11 @@
 package com.swp391.e_Motion_be.dto.email;
 
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -16,9 +16,12 @@ public class PaymentEmailRequest {
     private String paymentStatus;
     private String statusColor;
     private List<PaymentItem> items;
-    private Map<String, Double> vehicleDamages;
+    private List<VehicleLogItem> vehicleDamages;
     private double vehicleDamagesTotal;
+    private double penaltyTotal;
     private double total;
+    private double rentalFee;
+    private double extraHourFee;
     private double totalDeposit;
     private double refundAmount;
 }

@@ -1,115 +1,155 @@
 package com.swp391.e_Motion_be.service.document;
 
-import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.service.CloudinaryService;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swp391.e_Motion_be.enums.DocumentType;
 import lombok.extern.slf4j.Slf4j;
-import net.sourceforge.tess4j.ITesseract;
-import net.sourceforge.tess4j.Tesseract;
-import net.sourceforge.tess4j.TesseractException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
-import javax.imageio.ImageIO;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class OcrService {
 
-    private final CloudinaryService cloudinaryService;
-    private static final Pattern CCCD_PATTERN = Pattern.compile("\\d{12}");
+    @Value("${ocr.api.key}")
+    private String apiKey;
 
-    public static ITesseract getTesseract() {
-        // Thư mục tạm để copy tessdata
-        File tempTessDataDir = new File(System.getProperty("java.io.tmpdir"), "tessdata");
-        if (!tempTessDataDir.exists()) {
-            boolean created = tempTessDataDir.mkdirs();
-            if (!created) {
-                throw new AppException(ErrorCode.CREATE_FOLDER_FAILED);
-            }
-        }
-        // copy sang folder tạm
-        copyTessDataFolder(tempTessDataDir.toPath());
-        // Khởi tạo Tesseract
-        Tesseract tesseract = new Tesseract();
-        tesseract.setDatapath(tempTessDataDir.getAbsolutePath());
-        tesseract.setLanguage("eng");
-        return tesseract;
+    private static final String OCR_API_URL = "https://api.ocr.space/parse/image";
+
+    private static final Set<String> CAR_CLASSES = new HashSet<>();
+    static {
+        CAR_CLASSES.add("B1");
+        CAR_CLASSES.add("B2");
+        CAR_CLASSES.add("BE");
+        CAR_CLASSES.add("C");
+        CAR_CLASSES.add("D");
+        CAR_CLASSES.add("E");
     }
 
-    private static void copyTessDataFolder(Path targetDir) {
-        String[] files = {"eng.traineddata"}; // có thể thêm nhiều ngôn ngữ
-        for (String fileName : files) {
-            try (InputStream is = OcrService.class.getClassLoader().getResourceAsStream("tessdata/" + fileName)) {
-                if (is == null) throw new AppException(ErrorCode.NOT_FOUND_FOLDER_DATASET);
-                Files.copy(is, targetDir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                throw new AppException(ErrorCode.FAIL_COPY_DATASET);
-            }
-        }
-    }
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("\\b\\d{12}\\b");
+    private static final Pattern CLASS_PATTERN = Pattern.compile("Hạng\\s*(?:/Class)?\\s*[:\\-]?\\s*([A-Za-z0-9]{1,3})", Pattern.CASE_INSENSITIVE);
+    private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4})");
 
-    // Tiền xử lý: grayscale + resize
-    private BufferedImage preprocess(BufferedImage img) {
-        int w = img.getWidth();
-        int h = img.getHeight();
+    private static final DateTimeFormatter[] DATE_FORMATTERS = new DateTimeFormatter[]{
+            DateTimeFormatter.ofPattern("d/M/yyyy"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("d-M-yyyy"),
+            DateTimeFormatter.ofPattern("dd-MM-yyyy")
+    };
 
-        // Chuyển ảnh sang grayscale (đen trắng)
-        BufferedImage gray = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g = gray.createGraphics();
-        g.drawImage(img, 0, 0, null);
-        g.dispose();
-
-        // resize nếu width nhỏ hơn 1000px
-        int targetWidth = Math.max(1000, w);
-        BufferedImage resized = new BufferedImage(targetWidth, targetWidth * h / w, BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g2 = resized.createGraphics();
-        g2.drawImage(gray, 0, 0, resized.getWidth(), resized.getHeight(), null);
-        g2.dispose();
-
-        return resized;
-    }
-
-    // OCR và trích số CCCD
-    public String extractCccdFromUrl(String imageUrl) {
+    public String extractTextFromUrl(String imageUrl) {
         try {
-            BufferedImage img = ImageIO.read(new URL(imageUrl));
-            BufferedImage preprocessed = preprocess(img);
+            // Gửi request dạng multipart/form-data
+            RestTemplate restTemplate = new RestTemplate();
 
-            ITesseract tesseract = getTesseract();
-            // loại bỏ các ký tự ko phải số
-            String text = tesseract.doOCR(preprocessed).replaceAll("[^0-9]", " ");
-            log.warn(text);
-            return extractCccd(text , imageUrl);
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("url", imageUrl);
+            body.add("language", "vnm");
+            body.add("isOverlayRequired", "false");
+            body.add("OCREngine", "2");
+            body.add("filetype", "png");
 
-        } catch (IOException e) {
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(imageUrl));
-            throw new AppException(ErrorCode.UPLOAD_IMAGE_FAILED);
-        } catch (TesseractException e) {
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(imageUrl));
-            throw new AppException(ErrorCode.FAIL_OCR);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("apikey", apiKey);
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(OCR_API_URL, requestEntity, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(response.getBody());
+                JsonNode parsedResults = root.path("ParsedResults");
+
+                if (parsedResults.isArray() && !parsedResults.isEmpty()) {
+                    return parsedResults.get(0).path("ParsedText").asText();
+                } else {
+                    return "Không tìm thấy văn bản trong ảnh.";
+                }
+            } else {
+                return "Lỗi kết nối OCR API: " + response.getStatusCode();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Lỗi khi xử lý OCR: " + e.getMessage();
         }
     }
 
-    private String extractCccd(String text, String imageUrl) {
-        if (text == null || text.isBlank())
-            throw new AppException(ErrorCode.NOT_FOUND_CCCD_IN_IMAGE);
-        // Lấy 12 chữ số liên tiếp nếu có
-        Matcher matcher = CCCD_PATTERN.matcher(text);
-        if (matcher.find()) return matcher.group();
-        // Nếu không đủ 12 số → xóa ảnh trên cloud, ném lỗi
-        cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(imageUrl));
-        throw new AppException(ErrorCode.NOT_FOUND_CCCD_IN_IMAGE);
+    public boolean isCCCD(String text){
+        return text.toLowerCase().contains("căn cước công dân") || text.toLowerCase().contains("citizen identity card");
+    }
+
+    public boolean isGPLX(String text){
+        return text.toLowerCase().contains("giấy phép lái xe") || text.toLowerCase().contains("driver's license");
+    }
+
+    public boolean hasValidIdNumber(String text){
+        Matcher m = NUMBER_PATTERN.matcher(text);
+        return m.find();
+    }
+
+    public String extractIdNumber(String text){
+        Matcher m = NUMBER_PATTERN.matcher(text);
+        if(m.find()){
+            return m.group();
+        }
+        return null;
+    }
+
+    public boolean isExpired(String text){
+        Pattern expiryLabel = Pattern.compile("Có giá trị đến|Expires|Date of expiry", Pattern.CASE_INSENSITIVE);
+        Matcher mLabel = expiryLabel.matcher(text);
+        if (mLabel.find()){
+            // Get the position after the expiry label
+            int labelEndPos = mLabel.end();
+            // Extract text after the expiry label (next 100 characters to find the date)
+            String textAfterLabel = text.substring(labelEndPos, Math.min(labelEndPos + 100, text.length()));
+            // Check if there's "không thời hạn" after the expiry label
+            if(textAfterLabel.toLowerCase().contains("không thời hạn")){
+                return false;
+            }
+            Matcher m = DATE_PATTERN.matcher(textAfterLabel);
+            if(m.find()){
+                LocalDate d = parseDate(m.group(1));
+                if(d != null){
+                    return d.isBefore(LocalDate.now());
+                }
+            }
+        }
+        return true;
+    }
+
+    // ----- Check GPLX class cho thuê xe -----
+    public boolean isAllowedToRentCar(String text){
+        Matcher m = CLASS_PATTERN.matcher(text);
+        if(m.find()){
+            String cls = m.group(1).toUpperCase();
+            String[] tokens = cls.split("[,;\\s]+");
+            for(String t: tokens){
+                if(CAR_CLASSES.contains(t)) return true;
+            }
+        }
+        return false;
+    }
+
+    private LocalDate parseDate(String dateStr){
+        dateStr = dateStr.replaceAll("[^0-9/\\-]", "");
+        for(DateTimeFormatter fmt: DATE_FORMATTERS){
+            return LocalDate.parse(dateStr, fmt);
+        }
+        return null;
     }
 }
-

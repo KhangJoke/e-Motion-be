@@ -1,0 +1,30 @@
+package com.swp391.e_Motion_be.dto.requests.vehicleLog;
+
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class VehicleLogCreationRequest {
+
+    @NotNull(message = "Repair item list is require")
+    private List<VehicleLogItem> repairItems;
+
+    @NotNull(message = "VehicleId is required")
+    private Long vehicleId;
+
+    @NotNull(message = "Images are required")
+    private List<String> imgs;
+
+    @NotNull(message = "StaffId is required (Staff)")
+    private Long staffId;
+
+    @NotNull(message = "RentalId is required")
+    private Long rentalId;
+}

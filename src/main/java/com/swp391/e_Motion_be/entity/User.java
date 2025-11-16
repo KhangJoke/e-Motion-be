@@ -38,6 +38,8 @@ public class User implements UserDetails {
     private Role role;
     @Column(nullable = false, name = "enabled")
     private boolean enabled;
+    @Column(nullable = false, name = "blocked")
+    private boolean blocked = false;
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -49,6 +51,7 @@ public class User implements UserDetails {
     private String forgotPasswordCode;
     @Column(name = "forgot_password_code_expires_at")
     private LocalDateTime forgotPasswordCodeExpiresAt;
+    private int point = 0;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Staff staff;
@@ -70,6 +73,9 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Rating> ratings;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Report> reports;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

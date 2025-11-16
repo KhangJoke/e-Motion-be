@@ -23,13 +23,18 @@ public class Staff {
     @JoinColumn(name = "station_id")
     private Station station;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    private boolean isDelete = false;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<VehicleLog> vehicleLogs;
 
-    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<Rental> rentals;
+
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    private List<Report> reports;
 }

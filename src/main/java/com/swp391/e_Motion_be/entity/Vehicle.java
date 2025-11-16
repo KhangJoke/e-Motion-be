@@ -3,8 +3,8 @@ package com.swp391.e_Motion_be.entity;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,12 +34,8 @@ public class Vehicle {
     private VehicleBrand brand;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="vehicle_type",nullable = false)
-    private VehicleType type;
-
-    @Enumerated(EnumType.STRING) //save enum data thay vi number
     @Column(name="vehicle_status",nullable = false)
-    private VehicleStatus status;
+    private VehicleStatus status = VehicleStatus.AVAILABLE;
 
     @Column(name = "vehicle_category")
     @Enumerated(EnumType.STRING)
@@ -58,7 +54,7 @@ public class Vehicle {
     private double consumptionRate;
 
     @Column(name="current_battery_level",nullable = false)
-    private double batteryLevel;
+    private int batteryLevel;
 
     @Column(name="battery_capacity",nullable = false)
     private double batteryCapacity;
@@ -66,8 +62,13 @@ public class Vehicle {
     @Column(name="plate_number",nullable = false,unique = true)
     private String plateNumber;
 
-    @Column(name="last_maintenance",nullable = false)
+    @Column(name="last_maintenance")
     private LocalDateTime lastMaintenance;
+
+    private boolean isDelete = false;
+
+    @NotNull
+    private int point;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
@@ -82,7 +83,7 @@ public class Vehicle {
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Rental> rentals;
 
-    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ImgVehicle> images;
 
 

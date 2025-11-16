@@ -9,6 +9,4 @@ public class ChangePasswordUserRequest {
     private String oldPassword;
     @NotBlank(message = "New password must not be blank")
     private String newPassword;
-    @NotBlank(message = "Confirm password must not be blank")
-    private String confirmNewPassword;
 }

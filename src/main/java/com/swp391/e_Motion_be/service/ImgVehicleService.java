@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,27 +25,19 @@ public class ImgVehicleService {
     private final VehicleRepository vehicleRepository;
     private final CloudinaryService cloudinaryService;
 
-    public ImgVehicleResponse create(ImgVehicleCreationRequest request) {
-        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
-                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-
-        ImgVehicle entity = imgVehicleMapper.toEntity(request);
-        entity.setVehicle(vehicle);
-
-        ImgVehicleResponse response = imgVehicleMapper.toResponse(imgVehicleRepository.save(entity));
-        response.setPublicId(cloudinaryService.getPublicIdFromUrl(response.getUrl()));
-        return response;
+    public void createMultipleImagesForVehicle(Vehicle vehicle,List<ImgVehicleCreationRequest> request) {
+        for (ImgVehicleCreationRequest imgVehicleCreationRequest : request) {
+            ImgVehicle entity = imgVehicleMapper.toEntity(imgVehicleCreationRequest);
+            entity.setVehicle(vehicle);
+            imgVehicleRepository.save(entity);
+        }
     }
 
     // Find all images
     public List<ImgVehicleResponse> findAll() {
         return imgVehicleRepository.findAll()
                 .stream()
-                .map(entity -> {
-                    ImgVehicleResponse response = imgVehicleMapper.toResponse(entity);
-                    response.setPublicId(cloudinaryService.getPublicIdFromUrl(entity.getUrl()));
-                    return response;
-                })
+                .map(imgVehicleMapper::toResponse)
                 .toList();
     }
 
@@ -53,13 +46,9 @@ public class ImgVehicleService {
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
 
-        return imgVehicleRepository.findByVehicle(vehicle)
+        return imgVehicleRepository.findByVehicle_Id(vehicle.getId())
                 .stream()
-                .map(entity -> {
-                    ImgVehicleResponse response = imgVehicleMapper.toResponse(entity);
-                    response.setPublicId(cloudinaryService.getPublicIdFromUrl(entity.getUrl()));
-                    return response;
-                })
+                .map(imgVehicleMapper::toResponse)
                 .toList();
     }
 

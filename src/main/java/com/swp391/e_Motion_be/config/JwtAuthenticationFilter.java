@@ -2,8 +2,8 @@ package com.swp391.e_Motion_be.config;
 
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.repository.RedisTokenRepository;
 import com.swp391.e_Motion_be.service.auth.JwtService;
+import com.swp391.e_Motion_be.service.auth.RedisTokenService;
 import com.swp391.e_Motion_be.service.user.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final CustomUserDetailsService customUserDetailsService;
 
-    private final RedisTokenRepository redisTokenRepository;
+    private final RedisTokenService redisTokenService;
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
@@ -42,14 +42,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ") || request.getServletPath().startsWith("/api/auth/login")) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ") || request.getServletPath().startsWith("/api/auth/login") || request.getServletPath().startsWith("/api/auth/refresh")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try{
             final String jwt = authorizationHeader.substring(7);
-            if(redisTokenRepository.findByJwtId(jwtService.extractJwtId(jwt))!=null){
+            if(redisTokenService.findById(jwtService.extractJwtId(jwt))!=null){
                 throw new AppException(ErrorCode.USER_HAS_BEEN_LOGOUT);
             }
 

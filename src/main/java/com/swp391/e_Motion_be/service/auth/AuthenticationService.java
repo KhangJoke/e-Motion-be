@@ -11,10 +11,8 @@ import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
-import com.swp391.e_Motion_be.repository.RedisTokenRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
 import com.swp391.e_Motion_be.service.EmailService;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,7 +38,7 @@ public class AuthenticationService {
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
     private final UserMapper userMapper;
-    private final RedisTokenRepository redisTokenRepository;
+    private final RedisTokenService redisTokenService;
 
     public User signup(RegisterUserDto input) {
         User oldUser = userRepository.findByEmail(input.getEmail()).orElse(null);
@@ -53,7 +51,7 @@ public class AuthenticationService {
             oldUser.setVerificationCode(generateVerificationCode());
             oldUser.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             oldUser.setPassword(passwordEncoder.encode(input.getUserPassword()));
-            sendVerificationEmail(oldUser);
+            emailService.sendVerificationEmail(oldUser);
             return userRepository.save(oldUser);
         }
         if(userRepository.existsByEmail(input.getEmail())) {
@@ -67,7 +65,7 @@ public class AuthenticationService {
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
-        sendVerificationEmail(user);
+        emailService.sendVerificationEmail(user);
         return userRepository.save(user);
     }
 
@@ -91,7 +89,7 @@ public class AuthenticationService {
                 .expiredTime(jwtService.extractExpiration(accessToken).getTime() - new Date().getTime())
                 .build();
 
-        redisTokenRepository.save(redisToken);
+        redisTokenService.save(redisToken);
         log.info("Logout success");
     }
 
@@ -101,6 +99,8 @@ public class AuthenticationService {
 
         if(!user.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_NOT_VERIFIED);
+        }else if(user.isBlocked()) {
+            throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
         }
         try {
             authenticationManager.authenticate(
@@ -142,12 +142,11 @@ public class AuthenticationService {
 
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            if(user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
-            if(user.getVerificationCode().equals(input.getVerificationCode())) {
+            if(user.getForgotPasswordCode().equals(input.getVerificationCode())) {
                 user.setForgotPasswordCode(null);
-                user.setForgotPasswordCodeExpiresAt(null);
                 userRepository.save(user);
             } else {
                 throw new AppException(ErrorCode.VERIFY_CODE_NOT_MATCH);
@@ -167,7 +166,7 @@ public class AuthenticationService {
             user.setVerificationCode(generateVerificationCode());
             user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
-            sendVerificationEmail(user);
+            emailService.sendVerificationEmail(user);
         } else {
             throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
@@ -183,7 +182,7 @@ public class AuthenticationService {
             user.setForgotPasswordCode(generateVerificationCode());
             user.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
-            sendVerificationEmail(user);
+            emailService.sendVerificationEmail(user);
         } else {
             throw new AppException(ErrorCode.USER_NOT_EXISTS);
         }
@@ -193,14 +192,8 @@ public class AuthenticationService {
         Optional<User> optionalUser = userRepository.findByEmail(input.getEmail());
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(!input.getNewPassword().equals(input.getConfirmNewPassword())) {
-                throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
-            }
             if(user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.VERIFY_EXPIRED);
-            }
-            if(!user.getForgotPasswordCode().equals(input.getForgotPasswordCode())) {
-                throw new AppException(ErrorCode.VERIFY_CODE_NOT_MATCH);
             }
             user.setPassword(passwordEncoder.encode(input.getNewPassword()));
             userRepository.save(user);
@@ -209,28 +202,6 @@ public class AuthenticationService {
         }
     }
 
-    public void sendVerificationEmail(User user) {
-        String subject = "Account Verification";
-        String verificationCode = user.getVerificationCode();
-        String htmlMessage = "<html style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
-                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
-                + "<p style=\"font-size: 16px;\">Please enter the verification code below to continue:</p>"
-                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; "
-                + "box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">"
-                + verificationCode + "</p>"
-                + "</div>"
-                + "</div>"
-                + "</html>";
-        try{
-            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
-        }
-        catch (MessagingException e){
-            throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
-        }
-    }
 
     private String generateVerificationCode() {
         Random random = new Random();

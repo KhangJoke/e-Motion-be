@@ -7,6 +7,9 @@ import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.service.DepositService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/deposits")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class DepositController {
     private final DepositService depositService;
 
@@ -26,11 +30,11 @@ public class DepositController {
     }
 
     @PostMapping
-    ApiResponse<DepositResponse> createDeposit(@Valid @RequestBody DepositCreateRequest request){
+    ResponseEntity<ApiResponse<DepositResponse>> createDeposit(@Valid @RequestBody DepositCreateRequest request){
         ApiResponse<DepositResponse> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Create deposit successfully");
         apiResponse.setData(depositService.createDeposit(request));
-        return apiResponse;
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
 

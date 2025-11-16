@@ -6,6 +6,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.UpdatePaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
+import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
@@ -13,6 +14,7 @@ import com.swp391.e_Motion_be.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,48 +30,54 @@ public class PaymentController {
     }
 
     @PostMapping("/vnpay")
-    public ApiResponse<String> createPaymentUrl(HttpServletRequest request,
-                                        @RequestBody @Valid CreatePaymentUrlRequest input) throws Exception
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<VnpayResponse> createPaymentUrl(HttpServletRequest request,
+                                                       @RequestBody @Valid CreatePaymentUrlRequest input) throws Exception
     {
         String ipAddr = request.getRemoteAddr();
-        ApiResponse<String> response = new ApiResponse<>();
+        ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setMessage("Create VnPay Url Successfully");
         response.setStatus(201);
-        response.setData(paymentService.createPaymentUrl(input, ipAddr));
+        VnpayResponse data = paymentService.createPaymentUrl(input, ipAddr);
+        response.setData(data);
         return response;
     }
 
     @GetMapping("/vnpay-return")
+    @PreAuthorize("permitAll()")
     public void paymentVnPayReturn(@RequestParam Map<String, String> params, HttpServletResponse response) throws Exception {
         PaymentResponse paymentResponse = paymentService.handleReturn(params);
         String redirectUrl;
-        if (paymentResponse == null) {
-            redirectUrl = "http://localhost:5173/booking/payment-result?status=failed";
+        if (paymentResponse.getStatus().equalsIgnoreCase(PaymentStatus.FAILED.toString())) {
+            redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=failed&type="+ paymentResponse.getType();
         } else {
-            redirectUrl = "http://localhost:5173/booking/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef();
+            redirectUrl = "https://e-motion-fe.vercel.app/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
         }
         response.sendRedirect(redirectUrl);
     }
 
     @PostMapping()
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<PaymentResponse> createPayment(@RequestBody @Valid PaymentRequest request){
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
-        response.setMessage("Create VnPay Url Successfully");
+        response.setMessage("Create Payment Successfully");
         response.setStatus(201);
         response.setData(paymentService.createPayment(request));
         return response;
     }
 
     @GetMapping()
+    @PreAuthorize("hasAnyRole()('ADMIN', 'STAFF')")
     public ApiResponse<List<PaymentResponse>> getAllPayment(){
         ApiResponse<List<PaymentResponse>> response = new ApiResponse<>();
-        response.setMessage("Create VnPay Url Successfully");
+        response.setMessage("Get All Payments Successfully");
         response.setStatus(201);
         response.setData(paymentService.getAllPayment());
         return response;
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> deletePayment(@PathVariable @Valid Long id){
         paymentService.deletePayment(id);
         ApiResponse<String> response = new ApiResponse<>();
@@ -78,6 +86,7 @@ public class PaymentController {
     }
 
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<PaymentResponse> updatePayment(@PathVariable @Valid Long id, @RequestBody UpdatePaymentRequest request){
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
         response.setMessage("Update Payment Successfully");
@@ -86,6 +95,7 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<PaymentResponse> getPaymentById(@PathVariable @Valid Long id){
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
         response.setMessage("Get Payment By " + id + " Successfully");
@@ -95,6 +105,7 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay/{txnRef}")
+    @PreAuthorize("permitAll()")
     public ApiResponse<PaymentResponse> getPaymentById(@PathVariable @Valid String txnRef){
         ApiResponse<PaymentResponse> response = new ApiResponse<>();
         response.setMessage("Get Payment By " + txnRef + " Successfully");
@@ -104,6 +115,7 @@ public class PaymentController {
     }
 
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<PaymentResponse>> getPaymentsByStatus(@PathVariable PaymentStatus status){
         ApiResponse<List<PaymentResponse>> response = new ApiResponse<>();
         response.setMessage("Get Payment By " + status + " Successfully");
@@ -113,6 +125,7 @@ public class PaymentController {
     }
 
     @GetMapping("/method/{method}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<PaymentResponse>> getPaymentsByMethod(@PathVariable PaymentMethod method){
         ApiResponse<List<PaymentResponse>> response = new ApiResponse<>();
         response.setMessage("Get Payment By " + method + " Successfully");
@@ -122,6 +135,7 @@ public class PaymentController {
     }
 
     @GetMapping("/type/{type}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<List<PaymentResponse>> getPaymentsByType(@PathVariable PaymentType type){
         ApiResponse<List<PaymentResponse>> response = new ApiResponse<>();
         response.setMessage("Get Payment By " + type + " Successfully");
@@ -131,11 +145,22 @@ public class PaymentController {
     }
 
     @PostMapping("/query/{txnRef}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<TransactionResponse> queryTransaction(@PathVariable String txnRef,HttpServletRequest request) throws Exception {
         ApiResponse<TransactionResponse>response = new ApiResponse<>();
         response.setMessage("Query Transaction Successfully");
         response.setStatus(200);
         response.setData(paymentService.queryTransaction(txnRef, request));
+        return response;
+    }
+
+    @GetMapping("/rental/{rentalId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<PaymentResponse> getPaymentByRentalId(@PathVariable Long rentalId){
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setMessage("Get Payment By Rental Id " + rentalId + " Successfully");
+        response.setStatus(200);
+        response.setData(paymentService.getPaymentByRentalId(rentalId));
         return response;
     }
 }

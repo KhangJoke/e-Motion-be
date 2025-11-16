@@ -4,47 +4,60 @@ import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.CreateReservationRequest;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationHistoryRequest;
+import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
-import com.swp391.e_Motion_be.dto.responses.ReservationResponse;
+import com.swp391.e_Motion_be.dto.responses.reservation.*;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
+import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.service.document.DocumentService;
+import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ReservationService {
 
-    private final ReservationRepository reservationRepository;
     private final ReservationMapper reservationMapper;
+
+    private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
     private final PaymentRepository paymentRepository;
-    private final PaymentService paymentService;
     private final DepositRepository depositRepository;
     private final RentalRepository rentalRepository;
+    private final DocumentRepository documentRepository;
+
     private final DepositService depositService;
     private final EmailService emailService;
-    private final DocumentRepository documentRepository;
+    private final UserService userService;
+    private final PaymentService paymentService;
+    private final DocumentService documentService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -61,31 +74,47 @@ public class ReservationService {
 
         // Check có đang thuê hoặc đặt trước xe khác không
         boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
-        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.CONFIRM, ReservationStatus.PENDING));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(request.getUserEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED, ReservationStatus.CANCELLED));
         if(hasOngoingRental || hasOngoingReservation) {
             throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
         }
 
         // Kiểm tra CCCD và GPLX của renter
-//        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.CCCD)){
-//            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
-//        }
-//        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocType.LICENSE)){
-//            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
-//        }
-
+        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocumentType.CCCD)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
+        }
+        if(!documentRepository.existsByUser_EmailAndType(request.getUserEmail(), DocumentType.LICENSE)){
+            throw new AppException(ErrorCode.USER_NEED_HAS_LICENSE);
+        }
+        // Check expired document
+        if(documentService.checkExpiredDocumentByUserEmail(request.getUserEmail())){
+            throw new AppException(ErrorCode.DOCUMENT_EXPIRED);
+        }
         // Check if start and end times are exact hours
         if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
             throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
         }
-
         // Check reservation time validity
-        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
-            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID);
+        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
+        request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
+            throw new AppException(ErrorCode.RESERVATION_TIME_MUST_AFTER_NOW_3HOURS);
+        }
+
+        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
+            throw new AppException(ErrorCode.RESERVATION_END_TIME_INVALID);
         }
 
         // Check vehicle availability - combine both checks for efficiency
-        if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime())) {
+        String holdVehicle = (String) redisTemplate.opsForValue().get("vehicle:" + request.getVehicleId());
+        if(holdVehicle != null){
+            String[] parts = holdVehicle.split("\\|");
+            LocalDateTime holdStart  = LocalDateTime.parse(parts[0]);
+            LocalDateTime holdEnd  = LocalDateTime.parse(parts[1]);
+            if (isOverlappingOrClose(holdStart, holdEnd, request.getStartTime(), request.getEndTime())) {
+                throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
+            }
+        }
+        if (isVehicleUnavailable(request.getVehicleId(), request.getStartTime(), request.getEndTime(), null, null)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
@@ -99,6 +128,9 @@ public class ReservationService {
 
         if(!vehicle.getStation().getId().equals(station.getId())) {
             throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
+        }
+        if(vehicle.getStatus().equals(VehicleStatus.CHECKING) || vehicle.getStatus().equals(VehicleStatus.MAINTAINED)) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_READY);
         }
 
         // Create reservation
@@ -131,7 +163,7 @@ public class ReservationService {
                 depositResponse.getId(),
                 null
         );
-        String url = paymentService.createPaymentUrl(paymentUrlRequest, httpReq.getRemoteAddr());
+        String url = paymentService.createPaymentUrl(paymentUrlRequest, httpReq.getRemoteAddr()).getUrl();
 
         log.info("Payment URL created for reservation: {}", reservation.getId());
 
@@ -145,22 +177,31 @@ public class ReservationService {
     }
 
     // Check if vehicle is unavailable due to existing reservations or rentals
-    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+    private boolean isVehicleUnavailable(Long vehicleId, LocalDateTime startTime, LocalDateTime endTime, Long excludeReservationId, Long excludeRentalId) {
         // Time minimum 4hours validation
-        long hour = Duration.between(startTime,endTime).toHours();
+        long hour = Duration.between(startTime, endTime).toHours();
         if(hour < 4){
-           return false;
+            throw new AppException(ErrorCode.RENT_TIME_MUST_MINIMUM_4_HOURS);
         }
 
         int conflictCount = vehicleRepository.doesConflictExistForVehicle(
                 vehicleId,
                 startTime,
                 endTime,
-                List.of("PENDING", "CONFIRM"), // Trạng thái cần kiểm tra của Reservation
-                List.of("COMPLETED", "CANCELLED", "OVERDUE")   // Trạng thái cần loại trừ của Rental
+                List.of("PENDING", "CONFIRM"),
+                List.of("COMPLETED", "CANCELLED", "OVERDUE"),
+                excludeReservationId,
+                excludeRentalId
         );
 
         return conflictCount > 0;
+    }
+
+    private boolean isOverlappingOrClose(LocalDateTime holdStart, LocalDateTime holdEnd,
+                                         LocalDateTime newStart, LocalDateTime newEnd) {
+        long bufferMinutes = 180; // 3 tiếng
+        return !(newEnd.isBefore(holdStart.minusMinutes(bufferMinutes))
+                || newStart.isAfter(holdEnd.plusMinutes(bufferMinutes)));
     }
 
     // Check if the time is on the exact hour (e.g., 1:00, 2:00)
@@ -169,19 +210,16 @@ public class ReservationService {
     }
 
     @Transactional
-    public boolean cancelReservation(String code, HttpServletRequest request) {
+    public boolean cancelReservation(String code, boolean isForceRefunded, HttpServletRequest request) {
         log.info("Processing cancellation for reservation: {}", code);
 
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-
+        boolean isRefunded = true;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = authentication.getName();
-        boolean isUser = authentication.getAuthorities()
-                .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
+        User loginUser = (User) authentication.getPrincipal();
 
-        if (isUser && !currentUserEmail.equals(reservation.getUser().getEmail())) {
+        if (!loginUser.getEmail().equals(reservation.getUser().getEmail()) && loginUser.getRole().equals(Role.ROLE_USER)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -189,10 +227,16 @@ public class ReservationService {
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new AppException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
         }
+        if(reservation.getStatus() == ReservationStatus.COMPLETED) {
+            throw new AppException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
+        }
 
         // Check if cancellation is within allowed timeframe (5 days before start)
         if (reservation.getStartTime().isBefore(LocalDateTime.now().plusDays(5))) {
-            throw new AppException(ErrorCode.RESERVATION_TIME_INVALID_TO_CANCEL);
+            isRefunded = false;
+            if(loginUser.getRole() == Role.ROLE_USER) {
+                throw new AppException(ErrorCode.RESERVATION_TIME_INVALID_TO_CANCEL);
+            }
         }
 
         // Process refund if deposit exists
@@ -218,26 +262,41 @@ public class ReservationService {
         ).orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_PAYMENT_NOT_FOUND));
 
         // Process refund
-        RefundRequest refundRequest = new RefundRequest();
-        refundRequest.setIpAddr(request.getRemoteAddr());
-        refundRequest.setTxnRef(depositPayment.getTxnRef());
-        refundRequest.setAmount(depositPayment.getAmount());
-        refundRequest.setFullRefund(true);
+        if(isRefunded || isForceRefunded) {
+            RefundRequest refundRequest = new RefundRequest();
+            refundRequest.setIpAddr(request.getRemoteAddr());
+            refundRequest.setTxnRef(depositPayment.getTxnRef());
+            refundRequest.setAmount(depositPayment.getAmount());
+            refundRequest.setFullRefund(true);
 
-        PaymentResponse refundResponse = paymentService.refundPayment(refundRequest);
+            PaymentResponse refundResponse = paymentService.refundPayment(refundRequest);
 
-        if (refundResponse != null && "00".equals(refundResponse.getResponseCode())) {
-            // Update deposit status only if refund was successful
-            deposit.setStatus(DepositStatus.RELEASED);
+            if (refundResponse != null && ("00".equals(refundResponse.getResponseCode()) || "99".equals(refundResponse.getResponseCode()))) {
+                // Update deposit status only if refund was successful
+                deposit.setStatus(DepositStatus.RELEASED);
+                depositRepository.save(deposit);
+                log.info("Refund processed successfully for reservation: {}", code);
+
+                // Update reservation status
+                reservation.setStatus(ReservationStatus.CANCELLED);
+                reservationRepository.save(reservation);
+                emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null),null);
+
+                log.info("Reservation cancelled and refunded: {}", code);
+                return true;
+            }
+        }else {
+            // Update deposit status
+            deposit.setStatus(DepositStatus.FORFEITED);
             depositRepository.save(deposit);
-            log.info("Refund processed successfully for reservation: {}", code);
+            log.info("FORFEITED Deposit processed successfully for reservation: {}", code);
 
             // Update reservation status
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
-            emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null),null);
+            emailService.sendReservationCancelEmail(reservation);
 
-            log.info("Reservation cancelled: {}", code);
+            log.info("Reservation cancelled and not refunded: {}", code);
             return true;
         }
 
@@ -245,19 +304,31 @@ public class ReservationService {
         return false;
     }
 
-    public List<ReservationResponse> getAllReservations() {
+    public List<ReservationListResponse> getAllReservations() {
         List<Reservation> reservations = reservationRepository.findAll();
         if (reservations.isEmpty()) {
             throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
         }
         return reservations.stream()
-                .map(reservationMapper::toReservationResponse)
+                .map(reservationMapper::toReservationListResponse)
                 .toList();
     }
 
     public ReservationResponse getReservationByCode(String code) {
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+        return reservationMapper.toReservationResponse(reservation);
+    }
+
+    public ReservationResponse getOwnReservationByCode(String code) {
+        User currentUser = userService.currentUser();
+
+        Reservation reservation = reservationRepository.findByCode(code)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if(!reservation.getUser().getEmail().equals(currentUser.getEmail())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
         return reservationMapper.toReservationResponse(reservation);
     }
 
@@ -274,27 +345,34 @@ public class ReservationService {
     public void deleteReservationByCode(String code) {
         Reservation reservation = reservationRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-        reservationRepository.delete(reservation);
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
     }
 
-    public List<ReservationResponse> getReservationsByStatus(ReservationStatus status) {
-        List<Reservation> reservations = reservationRepository.findByStatus(status);
-        if (reservations == null || reservations.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
-        return reservations.stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
-    }
+    public PageAndFilterReservationHistoryResponse getReservationsByUserEmail(PageAndFilterReservationHistoryRequest request) {
+        User user = userService.currentUser();
 
-    public List<ReservationResponse> getReservationsByUserEmail(String email) {
-        List<Reservation> reservations = reservationRepository.findByUserEmail(email);
-        if (reservations == null || reservations.isEmpty()) {
-            throw new AppException(ErrorCode.RESERVATION_NOT_FOUND);
+        if(user == null || !user.getEmail().equals(request.getEmail())){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
-        return reservations.stream()
-                .map(reservationMapper::toReservationResponse)
-                .toList();
+
+        List<ReservationStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
+                ? Arrays.asList(ReservationStatus.values())
+                : request.getStatus();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
+        Page<Reservation> reservationPage;
+
+        reservationPage = reservationRepository.findByStatusInAndUser_IdAndVehicle_NameContains(statusList,user.getId(), request.getSearch(), pageable);
+
+        List<ReservationHistoryListResponse> response = new ArrayList<>();
+        for(Reservation res : reservationPage){
+            ReservationHistoryListResponse reservationResponse = reservationMapper.toReservationHistoryListResponse(res);
+            reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
+            response.add(reservationResponse);
+        }
+
+        return new PageAndFilterReservationHistoryResponse(response, reservationPage.getTotalPages());
     }
 
     public List<ReservationResponse> getReservationsByStationName(String name) {
@@ -328,46 +406,69 @@ public class ReservationService {
     }
 
     @Transactional
-    public void notificationReservation(){
-
+    public void notifyExpiringReservations() {
         LocalDateTime now = LocalDateTime.now();
-
-        List<Reservation> reservations = reservationRepository.findByStatusWithUser(
-                List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM)
+        LocalDateTime threshold = now.plusHours(1); // trong vòng 1h tới
+        List<Reservation> expiringReservation = reservationRepository.findByStatusInAndStartTimeBetweenAndExpiringNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM),
+                now,
+                threshold
         );
-        // or optimized query
+        expiringReservation.forEach(reservation -> {
+            emailService.sendReservationExpiringEmail(reservation);
+            reservation.setExpiringNotified(true);
+            reservationRepository.save(reservation);
+        });
+    }
 
-        String subject;
-        String htmlMessage;
+    @Transactional
+    public void notifyOverdueReservations() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Reservation> overdueReservations = reservationRepository.findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM),
+                now
+        );
+        overdueReservations.forEach(reservation -> {
+            emailService.sendReservationOverdueEmail(reservation);
+            reservation.setStatus(ReservationStatus.OVERDUE);
+            reservation.setOverdueNotified(true);
+            reservationRepository.save(reservation);
+        });
+    }
 
-        for (Reservation reservation : reservations) {
-            try {
-                LocalDateTime startTime = reservation.getStartTime();
-                ReservationStatus status = reservation.getStatus();
-                // Confirmed reservations flow
-                if (status == ReservationStatus.CONFIRM && reservation.getOverdueNotified().equals(Boolean.FALSE)) {
-                    if (startTime.isBefore(now.plusDays(3)) && startTime.isAfter(now)) {
-                        subject = "⏰ Your Reservation is Coming Up Soon!";
-                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
-                                "Your confirmed reservation is approaching. Get ready!");
-                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-                        reservation.setOverdueNotified(Boolean.TRUE);
-                    } else if (startTime.isBefore(now)  && reservation.getExpiringNotified().equals(Boolean.FALSE)) {
-                        subject = "⚠️ Your Reservation is Late/Expired!";
-                        htmlMessage = emailService.buildReservationHtml(reservation, subject,
-                                "Your reservation time has passed. Please contact support if needed.");
-                        emailService.sendEmail(reservation.getUser().getEmail(), subject, htmlMessage);
-
-                        reservation.setStatus(ReservationStatus.OVERDUE);
-                        reservation.setExpiringNotified(Boolean.TRUE);
-                        reservationRepository.save(reservation);
-                    }
-                }
-
-            } catch (Exception e) {
-                throw new  AppException(ErrorCode.RESERVATION_EMAIL);
+    @Transactional
+    public void notifyCancelReservations() {
+        LocalDateTime limitTime = LocalDateTime.now().minusHours(1);
+        List<Reservation> cancelReservations = reservationRepository.findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(
+                List.of(ReservationStatus.CONFIRM,
+                        ReservationStatus.PENDING,
+                        ReservationStatus.OVERDUE),
+                limitTime
+        );
+        cancelReservations.forEach(reservation -> {
+            emailService.sendReservationCancelEmail(reservation);
+            Deposit deposit = reservation.getDeposit();
+            if(deposit != null && deposit.getStatus() == DepositStatus.HOLD) {
+                deposit.setStatus(DepositStatus.FORFEITED);
+                depositRepository.save(deposit);
             }
-        }
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservation.setCancelNotified(true);
+            reservationRepository.save(reservation);
+        });
+    }
+
+    @Transactional
+    public void cancelFailedReservations() {
+        LocalDateTime limitTime = LocalDateTime.now().minusMinutes(15);
+        List<Reservation> cancelReservations = reservationRepository.findByStatusInAndCreatedAtBefore(
+                List.of(ReservationStatus.FAILED),
+                limitTime
+        );
+        cancelReservations.forEach(reservation -> {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationRepository.save(reservation);
+        });
     }
 
     public ReservationResponse extendReservationReturnTime(String code, LocalDateTime newReturnTime) {
@@ -382,8 +483,8 @@ public class ReservationService {
         if (newReturnTime.isBefore(reservation.getEndTime().plusHours(1))) {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
-        // Extension requests must be made at least 2 hours before current start time
-        if(reservation.getStartTime().isAfter(LocalDateTime.now().plusHours(2))) {
+        // Extension requests must be made at least 3 hours before current start time
+        if(reservation.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Only CONFIRM reservations can be extended
@@ -391,7 +492,7 @@ public class ReservationService {
             throw new AppException(ErrorCode.RESERVATION_EXTEND_TIME_INVALID);
         }
         // Check if vehicle is available for the extended period
-        if (isVehicleUnavailable(reservation.getVehicle().getId(), reservation.getEndTime(), newReturnTime)) {
+        if (isVehicleUnavailable(reservation.getVehicle().getId(), reservation.getStartTime(), newReturnTime, reservation.getId(), null)) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
@@ -399,5 +500,73 @@ public class ReservationService {
         Reservation updatedReservation = reservationRepository.save(reservation);
 
         return reservationMapper.toReservationResponse(updatedReservation);
+    }
+
+    public PageAndFilterReservationResponse findByPageAndFilterAndSearch(PageAndFilterReservationRequest request) {
+        User user = userService.currentUser();
+
+        String keyword = request.getSearch();
+        List<ReservationStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
+                ? Arrays.asList(ReservationStatus.values())
+                : request.getStatus();
+
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
+        Page<Reservation> reservationPage;
+
+        if(user.getRole() == Role.ROLE_STAFF){
+            Station station = stationRepository.findById(user.getStaff().getStation().getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+            if (!keyword.matches(".*[A-Za-z].*")) {
+                reservationPage = reservationRepository.findByCodeContainingAndStatusInAndStation_Id(keyword, statusList, station.getId(), pageable);
+            } else {
+                reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCaseAndStatusInAndStation_Id(keyword, statusList, station.getId(), pageable);
+            }
+        }else{
+            if (!keyword.matches(".*[A-Za-z].*")) {
+                reservationPage = reservationRepository.findByCodeContainingAndStatusIn(keyword, statusList, pageable);
+            } else {
+                reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCaseAndStatusIn(keyword, statusList, pageable);
+            }
+        }
+
+        List<ReservationListResponse> reservations = reservationPage.getContent().stream()
+                .map(reservationMapper::toReservationListResponse)
+                .toList();
+
+        return new PageAndFilterReservationResponse(reservations, reservationPage.getTotalPages());
+    }
+
+    public ReservationResponse getReservationById(long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+        ReservationResponse response = reservationMapper.toReservationResponse(reservation);
+        String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+        if(redisValue != null){
+            response.setPaymentUrl(redisValue);
+        }
+        return response;
+    }
+
+    public Reservation getById(long id) {
+        return reservationRepository.findById(id)
+                .orElse(null);
+    }
+
+    public ReservationResponse getOwnReservationById(long id) {
+        User currentUser = userService.currentUser();
+
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if(!reservation.getUser().getEmail().equals(currentUser.getEmail())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+
+        ReservationResponse response = reservationMapper.toReservationResponse(reservation);
+        String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
+        if(redisValue != null){
+            response.setPaymentUrl(redisValue);
+        }
+        return response;
     }
 }

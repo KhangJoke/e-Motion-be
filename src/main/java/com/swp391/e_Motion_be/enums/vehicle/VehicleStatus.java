@@ -14,7 +14,9 @@ public enum VehicleStatus {
     UNAVAILABLE("Không sẵn sàng"),
     CHECKING("Đang kiểm tra"),
     MAINTAINED("Đang bảo trì"),
-    ONGOING("Đang thuê");
+    ONGOING("Đang thuê"),
+    TRANSFERRING("Đang chuyển trạm"),
+    RECHARGE("Đang xạc pin");
 
     private final String description;
 

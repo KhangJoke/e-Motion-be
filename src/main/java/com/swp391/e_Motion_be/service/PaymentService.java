@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.UpdatePaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
+import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.DepositStatus;
 import com.swp391.e_Motion_be.enums.ErrorCode;
@@ -19,9 +20,11 @@ import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.PaymentMapper;
 import com.swp391.e_Motion_be.repository.*;
+import com.swp391.e_Motion_be.util.QRCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -36,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -50,9 +54,11 @@ public class PaymentService {
     private final VNPayConfig vnPayConfig;
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final DocuSealService docuSealService;
 
     @Transactional
-    public String createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
+    public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
         log.info("Creating payment URL for user: {}", request.getUserEmail());
 
         String vnp_Version = "2.1.0";
@@ -67,7 +73,8 @@ public class PaymentService {
         if (request.getRentalId() != null) {
             rental = rentalRepository.findById(request.getRentalId())
                     .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-            if(rental.getStatus() != RentalStatus.PENDING && rental.getStatus() != RentalStatus.PENDING_FEE){
+            if(rental.getStatus() != RentalStatus.CONTRACTING && rental.getStatus() != RentalStatus.PENDING_FEE
+                    && rental.getStatus() != RentalStatus.PENDING_EXTEND_FEE){
                 throw new AppException(ErrorCode.RENTAL_CANNOT_BE_PAID);
             }
         }
@@ -76,7 +83,7 @@ public class PaymentService {
         if (request.getDepositId() != null) {
             deposit = depositRepository.findById(request.getDepositId())
                     .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
-            if(deposit.getStatus() != DepositStatus.PENDING){
+            if(deposit.getStatus() != DepositStatus.PENDING && deposit.getStatus() != DepositStatus.FAILED){
                 throw new AppException(ErrorCode.DEPOSIT_CANNOT_BE_PAID);
             }
         }
@@ -109,12 +116,12 @@ public class PaymentService {
         vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getVnp_ReturnUrl());
         vnp_Params.put("vnp_IpAddr", ipAddr);
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        vnp_Params.put("vnp_CreateDate", payment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String createDate = payment.getCreatedAt().format(formatter);
+        String expireDate = LocalDateTime.now().plusMinutes(15).format(formatter);
 
-        cld.add(Calendar.MINUTE, 15);
-        vnp_Params.put("vnp_ExpireDate", formatter.format(cld.getTime()));
+        vnp_Params.put("vnp_CreateDate", createDate);
+        vnp_Params.put("vnp_ExpireDate", expireDate);
 
         // Build query string with sorted parameters
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
@@ -123,8 +130,10 @@ public class PaymentService {
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
 
-        for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext();) {
-            String fieldName = itr.next();
+        int count = 0; // dùng để kiểm tra phần tử cuối cùng
+        int size = fieldNames.size();
+
+        for (String fieldName : fieldNames) {
             String fieldValue = vnp_Params.get(fieldName);
 
             if (fieldValue != null && !fieldValue.isEmpty()) {
@@ -135,12 +144,14 @@ public class PaymentService {
                         .append('=')
                         .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
 
-                if (itr.hasNext()) {
+                count++;
+                if (count < size) { // thêm & nếu chưa phải phần tử cuối
                     hashData.append('&');
                     query.append('&');
                 }
             }
         }
+
 
         String vnp_SecureHash = vnPayConfig.hmacSHA512(vnPayConfig.getVnp_HashSecret(), hashData.toString());
         query.append("&vnp_SecureHash=").append(vnp_SecureHash);
@@ -148,7 +159,28 @@ public class PaymentService {
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + query;
         log.info("Payment URL created successfully for txnRef: {}", vnp_TxnRef);
 
-        return paymentUrl;
+        // tạo redis cho reservation
+        Reservation reservation = null;
+        if(deposit != null){
+            reservation = deposit.getReservation();
+        }
+        if(payment.getType().equals(PaymentType.RESERVATION) && reservation != null){
+            String key = "reservation:" + reservation.getId();
+            redisTemplate.opsForValue().set(key, paymentUrl, 15, TimeUnit.MINUTES);
+            log.info("Redis key created for reservation payment: {}", key);
+            String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+            redisTemplate.opsForValue().set(vehicleKey, reservation.getStartTime() + "|" + reservation.getEndTime(), 15, TimeUnit.MINUTES);
+            log.info("Redis key created for vehicle reservation: {}", vehicleKey);
+        }
+
+        // tạo redis cho extend rental
+        if(payment.getType().equals(PaymentType.RENTAL_EXTENSION) && rental != null){
+            String key = "extendRental:" + rental.getId();
+            redisTemplate.opsForValue().set(key, paymentUrl, 15, TimeUnit.MINUTES);
+            log.info("Redis key created for extend rental payment: {}", key);
+        }
+
+        return new VnpayResponse(paymentUrl, QRCode.generateVnpayQR(paymentUrl));
     }
 
     @Transactional
@@ -204,6 +236,7 @@ public class PaymentService {
         // Process payment result
         if ("00".equals(responseCode)) {
             payment.setStatus(PaymentStatus.SUCCESS);
+            paymentRepository.save(payment);
             processSuccessfulPayment(payment);
             log.info("Payment successful for txnRef: {}", vnp_TxnRef);
             paymentRepository.save(payment);
@@ -212,7 +245,6 @@ public class PaymentService {
             processFailedPayment(payment);
             log.warn("Payment failed for txnRef: {} with code: {}", vnp_TxnRef, responseCode);
             emailService.sendPaymentStatusToEmail(payment, null);
-            return null;
         }
 
         return paymentMapper.toPaymentResponse(payment);
@@ -245,7 +277,7 @@ public class PaymentService {
     }
 
     @Transactional
-    protected void processFailedPayment(Payment payment) {
+    public void processFailedPayment(Payment payment) {
         PaymentType type = payment.getType();
 
         switch (type) {
@@ -288,6 +320,10 @@ public class PaymentService {
                 reservationRepository.save(reservation);
                 emailService.sendReservationCodeEmail(reservation);
                 log.info("Reservation confirmed: {}", reservation.getCode());
+                String reservationKey = "reservation:" + reservation.getId();
+                redisTemplate.delete(reservationKey);
+                String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+                redisTemplate.delete(vehicleKey);
             }
             log.info("Reservation payment processed: {}", payment.getId());
         }
@@ -322,9 +358,23 @@ public class PaymentService {
             rental.setRentFee(rental.getPendingRentFee());
             rental.setPendingEndTime(null);
             rental.setPendingRentFee(null);
-            rental.setStatus(RentalStatus.CONFIRM);
+            if(rental.getPreStatus() == RentalStatus.OVERDUE) {
+                if(rental.getEndTime().isBefore(LocalDateTime.now())) {
+                    rental.setStatus(RentalStatus.OVERDUE);
+                }else{
+                    rental.setStatus(RentalStatus.ONGOING);
+                    rental.setExpiringNotified(false);
+                    rental.setOverdueNotified(false);
+                }
+                rental.setPreStatus(null);
+            }else {
+                rental.setStatus(rental.getPreStatus());
+                rental.setPreStatus(null);
+            }
             rentalRepository.save(rental);
             log.info("Rental extension payment processed: {}", payment.getId());
+            String extendRentalKey = "extendRental:" + rental.getId();
+            redisTemplate.delete(extendRentalKey);
         }
     }
 
@@ -334,9 +384,11 @@ public class PaymentService {
         if (rental != null) {
             rental.setPendingEndTime(null);
             rental.setPendingRentFee(null);
-            rental.setStatus(RentalStatus.CONFIRM);
+            rental.setStatus(rental.getPreStatus());
             rentalRepository.save(rental);
             log.info("Reverted failed extension for rental: {}", rental.getId());
+            String extendRentalKey = "extendRental:" + rental.getId();
+            redisTemplate.delete(extendRentalKey);
         }
         payment.setStatus(PaymentStatus.FAILED);
         paymentRepository.save(payment);
@@ -355,30 +407,38 @@ public class PaymentService {
 
     private void handleFailedReservation(Payment payment) {
         Deposit deposit = payment.getDeposit();
-
-        paymentRepository.delete(payment);
         if (deposit != null) {
+            deposit.setStatus(DepositStatus.FAILED);
+            paymentRepository.save(payment);
             Reservation reservation = deposit.getReservation();
-            depositRepository.delete(deposit);
             if (reservation != null) {
-                reservationRepository.delete(reservation);
+                reservation.setStatus(ReservationStatus.FAILED);
+                reservationRepository.save(reservation);
                 log.info("Deleted failed reservation: {}", reservation.getId());
+                String reservationKey = "reservation:" + reservation.getId();
+                redisTemplate.delete(reservationKey);
+                String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+                redisTemplate.delete(vehicleKey);
             }
         }
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
     }
 
     private void handleFailedRental(Payment payment) {
         Deposit deposit = payment.getDeposit();
-
-        paymentRepository.delete(payment);
         if (deposit != null) {
+            deposit.setStatus(DepositStatus.FAILED);
             Rental rental = deposit.getRental();
-            depositRepository.delete(deposit);
+            depositRepository.save(deposit);
             if (rental != null) {
-                rentalRepository.delete(rental);
+                rental.setStatus(RentalStatus.PENDING);
+                rentalRepository.save(rental);
                 log.info("Deleted failed rental: {}", rental.getId());
             }
         }
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
     }
 
     @Transactional
@@ -389,6 +449,45 @@ public class PaymentService {
             // Find original payment
             Payment originalPayment = paymentRepository.findByTxnRef(request.getTxnRef())
                     .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
+
+            if(originalPayment.getTransactionNo().equals("999999")) {
+                String refundTxnRef = "REFUND" + System.currentTimeMillis() +
+                        (100000 + new Random().nextInt(900000));
+
+                Payment refundPayment = Payment.builder()
+                        .amount(Double.parseDouble(String.valueOf(request.getAmount())))
+                        .method(PaymentMethod.VNPAY)
+                        .status(PaymentStatus.SUCCESS)
+                        .type(PaymentType.REFUND)
+                        .txnRef(refundTxnRef)
+                        .description("Hoan tien giao dich " + request.getTxnRef())
+                        .responseCode("PostMan Test")
+                        .transactionNo("999999")
+                        .bankCode(originalPayment.getBankCode())
+                        .payDate(LocalDateTime.now())
+                        .user(originalPayment.getUser())
+                        .rental(originalPayment.getRental())
+                        .deposit(originalPayment.getDeposit())
+                        .build();
+
+                paymentRepository.save(refundPayment);
+                log.info("Refund payment created successfully: {}", refundTxnRef);
+
+                List<Deposit> releaseDeposit = new ArrayList<>();
+                if(originalPayment.getDeposit() != null){
+                    releaseDeposit.add(originalPayment.getDeposit());
+                }
+                if(originalPayment.getRental().getReservation() != null){
+                    releaseDeposit.add(originalPayment.getRental().getReservation().getDeposit());
+                }
+
+                for(Deposit deposit : releaseDeposit){
+                    deposit.setStatus(DepositStatus.RELEASED);
+                    depositRepository.save(deposit);
+                }
+
+                return paymentMapper.toPaymentResponse(refundPayment);
+            }
 
             // Validate payment can be refunded
             if (originalPayment.getStatus() != PaymentStatus.SUCCESS) {
@@ -488,8 +587,11 @@ public class PaymentService {
                 log.warn("Refund failed for txnRef: {} with code: {}", responseParams.get("vnp_TxnRef"), responseCode);
                 originalPayment.setTxnRef(vnPayConfig.generateTxnRef());
                 paymentRepository.save(originalPayment);
-                throw new AppException(ErrorCode.REFUND_FAILED);
-            } else if(!"00".equals(responseCode)){
+                throw new AppException(ErrorCode.REFUND_IS_PROCESSING);
+            }else if ("91".equals(responseCode)) {
+                log.warn("Refund failed for txnRef: {} with code: {}", responseParams.get("vnp_TxnRef"), responseCode);
+                throw new AppException(ErrorCode.REFUND_IS_NOT_FOUND);
+            } else if(!"00".equals(responseCode) && !"99".equals(responseCode)){
                 log.error("Refund failed with response code: {}", responseCode);
                 throw new AppException(ErrorCode.REFUND_FAILED);
             }
@@ -712,7 +814,8 @@ public class PaymentService {
     public void deletePayment(Long id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
-        paymentRepository.delete(payment);
+        payment.setDelete(true);
+        paymentRepository.save(payment);
     }
 
     public List<PaymentResponse> getAllPayment() {
@@ -762,7 +865,28 @@ public class PaymentService {
 
     private String generateCode() {
         Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
+        int code = 0;
+        do{
+            code = random.nextInt(900000) + 100000;
+        }while(reservationRepository.findByCode(String.valueOf(code)).isPresent());
         return String.valueOf(code);
+    }
+
+    public PaymentResponse getPaymentByRentalId(Long rentalId) {
+        Payment payment = paymentRepository.findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType.RENTAL, rentalId)
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
+        return paymentMapper.toPaymentResponse(payment);
+    }
+
+    public Payment getPaymentByReservationId(long id) {
+        Deposit deposit = depositRepository.findByReservation_Id(id)
+                .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
+        return paymentRepository.findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType.RESERVATION, deposit.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
+    }
+
+    public Payment findPaymentByRentalId(long id) {
+        return paymentRepository.findByRental_IdAndTypeOrderByCreatedAtDesc(id,PaymentType.RENTAL_EXTENSION)
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
     }
 }

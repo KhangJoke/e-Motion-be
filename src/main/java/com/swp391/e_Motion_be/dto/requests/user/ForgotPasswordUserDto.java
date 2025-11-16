@@ -15,11 +15,4 @@ public class ForgotPasswordUserDto {
     @NotBlank(message = "New password must not be blank")
     private String newPassword;
 
-    @NotBlank(message = "Confirm new password must not be blank")
-    private String confirmNewPassword;
-
-    @NotBlank(message = "Verification code must not be blank")
-    @Size(min = 6, max = 6, message = "Verification code must be exactly 6 characters")
-    @Pattern(regexp = "^[0-9]{6}$", message = "Verification code must be 6 digits")
-    private String forgotPasswordCode;
 }

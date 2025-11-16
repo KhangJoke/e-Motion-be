@@ -1,10 +1,9 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.swp391.e_Motion_be.enums.ContractStatus;
 import com.swp391.e_Motion_be.enums.RentalStatus;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -13,9 +12,12 @@ import java.util.List;
 
 @Entity
 @Table(name = "rentals")
-@Data
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Rental {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +30,8 @@ public class Rental {
     LocalDateTime startTime;
     @Column(name="end_time")
     LocalDateTime endTime;
+    @Column(name = "cancel_notified")
+    private Boolean cancelNotified = false;
     @Column(name = "overdue_notified")
     private Boolean overdueNotified = false;
     @Column(name = "expiring_notified")
@@ -41,6 +45,12 @@ public class Rental {
     private LocalDateTime pendingEndTime;
     @Column(name = "pending_rent_fee")
     private Double pendingRentFee;
+    @Enumerated(EnumType.STRING)
+    private RentalStatus preStatus;
+    private long submissionId;
+    private String submissionUrl;
+    @Enumerated(EnumType.STRING)
+    private ContractStatus contractStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

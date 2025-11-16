@@ -1,35 +1,38 @@
 package com.swp391.e_Motion_be.entity;
 
+import com.swp391.e_Motion_be.dto.convert.StringListConverter;
+import com.swp391.e_Motion_be.dto.convert.VehicleLogItemListConverter;
+import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import com.swp391.e_Motion_be.dto.convert.MapToJsonConverter;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name ="vehicle_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class VehicleLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name ="log_id")
     private Long id;
 
-    @Column(name = "repair_cost", columnDefinition = "TEXT")
-    @Convert(converter = MapToJsonConverter.class)
-    private Map<String, Double> repairCost;
+    @Column(name = "repair_items",  columnDefinition = "TEXT")
+    @Convert(converter = VehicleLogItemListConverter.class)
+    private List<VehicleLogItem> repairItems;
 
     @Column(name ="total_cost")
     private Double cost;
 
-    @Column(name = "images")
+    @Column(name = "images",  columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter.class)
     private List<String> imgs;
 
     @Column(name="created_at", nullable=false)
