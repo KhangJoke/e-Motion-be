@@ -105,6 +105,7 @@ public class DocuSealService {
         String contractUrl = (String) response.getBody().get(0).get("embed_src");
         emailService.sendContractEmail(rental, contractUrl);
         rental.setContractStatus(ContractStatus.PENDING);
+        rental.setStatus(RentalStatus.CONTRACTING);
         rentalRepository.save(rental);
         return contractUrl;
     }
