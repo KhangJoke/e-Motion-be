@@ -84,6 +84,13 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
+    public UserResponse getRenterByEmail(String email) {
+        User user = userRepository.findByEmailAndRole(email, Role.ROLE_USER)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        return userMapper.toUserResponse(user);
+    }
+
     public void deleteUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));

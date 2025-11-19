@@ -76,6 +76,16 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @GetMapping("/renter/{email}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<UserResponse>> getRenterByEmail(@PathVariable String email){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        UserResponse userResponse = userService.getRenterByEmail(email);
+        apiResponse.setMessage("Get user by email successfully");
+        apiResponse.setData(userResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @DeleteMapping("/admin/delete/{email}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteUserByEmail(@PathVariable String email){
