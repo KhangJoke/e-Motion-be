@@ -51,7 +51,7 @@ public class PaymentController {
         if (paymentResponse.getStatus().equalsIgnoreCase(PaymentStatus.FAILED.toString())) {
             redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=failed&type="+ paymentResponse.getType();
         } else {
-            redirectUrl = "https://e-motion-fe.vercel.app/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
+            redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
         }
         response.sendRedirect(redirectUrl);
     }
