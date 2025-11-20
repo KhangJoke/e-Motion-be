@@ -49,11 +49,11 @@ public class PaymentController {
         PaymentResponse paymentResponse = paymentService.handleReturn(params);
         String redirectUrl;
         if (paymentResponse.getStatus().equalsIgnoreCase(PaymentStatus.FAILED.toString())) {
-//            redirectUrl = "http://localhost:5173/payments/payment-result?status=failed&type="+ paymentResponse.getType();
-            redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=failed&type="+ paymentResponse.getType();
+            redirectUrl = "http://localhost:5173/payments/payment-result?status=failed&type="+ paymentResponse.getType();
+//            redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=failed&type="+ paymentResponse.getType();
         } else {
-//            redirectUrl = "http://localhost:5173/payments/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
-            redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
+            redirectUrl = "http://localhost:5173/payments/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
+//            redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
         }
         response.sendRedirect(redirectUrl);
     }
