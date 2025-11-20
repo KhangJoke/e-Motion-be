@@ -39,6 +39,7 @@ public enum ErrorCode {
     VEHICLE_NOT_READY(HttpStatus.CONFLICT, "Phương tiện chưa sẵn sàng sử dụng"),
     VEHICLE_STATUS_INVALID(HttpStatus.CONFLICT, "Trạng thái phương tiện không hợp lệ"),
     INVALID_VEHICLE_BRAND(HttpStatus.CONFLICT, "Thương hiệu phương tiện không hợp lệ"),
+    VEHICLE_IS_ONGOING(HttpStatus.CONFLICT, "Phương tiện đang được thuê"),
 
     // Vehicle Log errors
     VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Nhật ký phương tiện không tồn tại"),
