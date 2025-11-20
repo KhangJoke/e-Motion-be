@@ -120,9 +120,15 @@ public class VehicleService {
 
 
 
-    public List<VehicleBrandResponse> findAllVehicleBrands() {
+    public List<String> findAllVehicleBrands() {
         return Arrays.stream(VehicleBrand.values())
-                .map(VehicleBrandResponse::new)
+                .map(Enum::name)
+                .toList();
+    }
+
+    public List<String> findAllVehicleCategory(){
+        return Arrays.stream(VehicleCategory.values())
+                .map(Enum::name)
                 .toList();
     }
 
@@ -466,7 +472,8 @@ public class VehicleService {
 
     public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
         User user = userService.currentUser();
-        if(request.getEndTime().isBefore(request.getStartTime())){
+
+        if(request.getStartTime() != null && request.getEndTime() != null && request.getEndTime().isBefore(request.getStartTime())){
             throw new AppException(ErrorCode.INVALID_FILTER_TIME);
         }
 

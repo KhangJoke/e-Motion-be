@@ -70,9 +70,17 @@ public class VehicleController {
 
     @GetMapping("/brand")
     @PreAuthorize("permitAll()")
-    public ApiResponse<List<VehicleBrandResponse>> findAllVehicleBrands() {
-        ApiResponse<List<VehicleBrandResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<String>> findAllVehicleBrands() {
+        ApiResponse<List<String>> response = new ApiResponse<>();
         response.setData(vehicleService.findAllVehicleBrands());
+        return response;
+    }
+
+    @GetMapping("/category")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<String>> findAllVehicleCategories() {
+        ApiResponse<List<String>> response = new ApiResponse<>();
+        response.setData(vehicleService.findAllVehicleCategory());
         return response;
     }
 

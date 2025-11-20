@@ -77,7 +77,7 @@ public class StationController {
         return response;
     }
 
-    @GetMapping("/city/{city}")
+    @GetMapping("/city")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<StationResponse>> getStationsByCity(@PathVariable("city") StationCity stationCity) {
         ApiResponse<List<StationResponse>> response = new ApiResponse<>();
