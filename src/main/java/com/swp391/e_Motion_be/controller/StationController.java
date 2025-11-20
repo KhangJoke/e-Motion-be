@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.station.StationCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.station.ManageStationResponse;
+import com.swp391.e_Motion_be.dto.responses.station.StationCityResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.RevenueResponse;
@@ -78,8 +79,8 @@ public class StationController {
     }
 
     @GetMapping("/city")
-    public ApiResponse<List<StationResponse>> getStationsByCity(@RequestParam("city") String city) {
-        ApiResponse<List<StationResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<StationCityResponse>> getStationsByCity(@RequestParam("city") String city) {
+        ApiResponse<List<StationCityResponse>> response = new ApiResponse<>();
         response.setData(stationService.getStationsByCity(StationCity.fromDisplayName(city)));
         response.setMessage("Get stations by city successfully");
         return response;
