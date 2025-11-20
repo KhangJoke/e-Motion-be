@@ -32,6 +32,14 @@ public class ReportController {
         return response;
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ApiResponse<ReportResponse> getReportsById(@PathVariable Long id) {
+        ApiResponse<ReportResponse> response = new ApiResponse<>();
+        response.setData(reportService.findReportById(id));
+        return response;
+    }
+
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<ReportResponse>> getReportsByUser(@PathVariable Long userId) {
@@ -65,7 +73,9 @@ public class ReportController {
         return response;
     }
 
-    @GetMapping("/search")
+
+
+    @PostMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<ReportResponse>> searchReports(@RequestBody ReportSearchRequest request) {
         ApiResponse<List<ReportResponse>> response = new ApiResponse<>();
