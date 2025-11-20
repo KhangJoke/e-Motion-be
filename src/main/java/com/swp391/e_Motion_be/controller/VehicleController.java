@@ -186,11 +186,10 @@ public class VehicleController {
         return response;
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping("/status")
     public ApiResponse<Void> updateVehicleStatus(
-            @PathVariable Long id,
-            @RequestBody @Valid VehicleStatusUpdateRequest request) {
-        vehicleService.updateVehicleStatus(id, request);
+            @RequestBody VehicleStatusUpdateRequest request) {
+        vehicleService.updateVehicleStatus(request);
         return new ApiResponse<>(200, "Vehicle status updated successfully", null);
     }
 

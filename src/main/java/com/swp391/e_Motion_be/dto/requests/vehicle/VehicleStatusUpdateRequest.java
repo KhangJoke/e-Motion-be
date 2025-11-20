@@ -5,5 +5,6 @@ import lombok.Data;
 
 @Data
 public class VehicleStatusUpdateRequest {
+    private Long vehicleId;
     private VehicleStatus status;
 }

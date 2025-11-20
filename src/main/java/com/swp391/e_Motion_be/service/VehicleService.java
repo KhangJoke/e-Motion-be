@@ -571,8 +571,8 @@ public class VehicleService {
     }
 
     @Transactional
-    public void updateVehicleStatus(Long vehicleId, VehicleStatusUpdateRequest request) {
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+    public void updateVehicleStatus(VehicleStatusUpdateRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
 
         // Validation: không cho đổi status nếu xe đang ONGOING
