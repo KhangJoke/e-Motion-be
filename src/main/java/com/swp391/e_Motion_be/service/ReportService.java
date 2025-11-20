@@ -68,6 +68,10 @@ public class ReportService {
         return reports.stream().map(reportMapper::toResponse).toList();
     }
 
+    public ReportResponse findReportById(Long id){
+        return reportMapper.toResponse(reportRepository.findById(id).orElse(null));
+    }
+
     public List<ReportResponse> findAllReports(){
         List<Report> reports = reportRepository.findAll()
                 .stream()
