@@ -41,6 +41,8 @@ public enum ErrorCode {
     VEHICLE_STATUS_INVALID(HttpStatus.CONFLICT, "Trạng thái phương tiện không hợp lệ"),
     INVALID_VEHICLE_BRAND(HttpStatus.CONFLICT, "Thương hiệu phương tiện không hợp lệ"),
     VEHICLE_IS_ONGOING(HttpStatus.CONFLICT, "Phương tiện đang được thuê"),
+    VEHICLE_END_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian kết thúc phương tiện phải sau thời gian hiện tại"),
+    VEHICLE_TIME_MUST_AFTER_NOW_3HOURS(HttpStatus.BAD_REQUEST, "Thời gian bắt đầu thuê phương tiện phải sau thời điểm hiện tại ít nhất 3 giờ"),
     BELOW_CURRENT_BATTERY_LEVEL(HttpStatus.BAD_REQUEST, "Mức pin mới phải cao hơn mức pin hiện tại"),
 
     // Vehicle Log errors
