@@ -50,7 +50,6 @@ public class VehicleService {
     private final CloudinaryService cloudinaryService;
 
     private final VehicleMapper vehicleMapper;
-    private final ReservationService reservationService;
 
     @Value("${hold.fee.value}")
     private double holdCarFee;
@@ -281,6 +280,26 @@ public class VehicleService {
                 .toList();
     }
 
+    // --- Lọc những xe còn trống trong khung giờ ---
+    private List<Vehicle> vehiclesAvailableInRange(List<Vehicle> vehicles, LocalDateTime start, LocalDateTime end) {
+        return vehicles
+                .stream()
+                .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
+                                && r.getStatus() != ReservationStatus.CANCELLED
+                                && r.getStatus() != ReservationStatus.FAILED)
+                        .noneMatch(r -> r.getStartTime().isBefore(end)
+                                && r.getEndTime().isAfter(start))
+                        &&
+                        v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
+                                        && r.getStatus() != RentalStatus.CANCELLED)
+                                .noneMatch(r -> r.getStartTime().isBefore(end)
+                                        && r.getEndTime().isAfter(start))
+                ).toList();
+    }
+
+
     public PageAndFilterVehicleResponse findAvailableVehicles(PageAndFilterVehicleRequest request) {
         Integer seats = request.getSeats();
         List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
@@ -319,21 +338,8 @@ public class VehicleService {
                     .toList();
         }
         // --- Lọc những xe còn trống trong khung giờ ---
-        List<Long> availableIdList = vehicles
+        List<Long> availableIdList  = vehiclesAvailableInRange(vehicles, request.getStartTime(), request.getEndTime())
                 .stream()
-                .filter(v -> v.getReservations().stream()
-                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
-                                && r.getStatus() != ReservationStatus.CANCELLED
-                                && r.getStatus() != ReservationStatus.FAILED)
-                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
-                                && r.getEndTime().isAfter(request.getStartTime()))
-                        &&
-                        v.getRentals().stream()
-                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
-                                        && r.getStatus() != RentalStatus.CANCELLED)
-                                .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
-                                        && r.getEndTime().isAfter(request.getStartTime()))
-                )
                 // --- Lọc theo giá (theo giờ thực tế user chọn) ---
                 .filter(v -> {
                     double priceValue;
@@ -470,28 +476,42 @@ public class VehicleService {
                 ? Arrays.asList(VehicleStatus.values())
                 : request.getStatus();
 
+        List<Vehicle> vehicles = vehicleRepository.findByIsDeleteFalse();
+
+        List<Long> vehicleId = vehicles
+                .stream()
+                .map(Vehicle::getId)
+                .toList();
+
+        if(request.getStartTime() != null && request.getEndTime() != null){
+            vehicleId = vehiclesAvailableInRange(vehicles, request.getStartTime(), request.getEndTime())
+                    .stream()
+                    .map(Vehicle::getId)
+                    .toList();
+        }
+
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
         Page<Vehicle> vehiclePage;
 
         if(request.getStationId() != null) {
             Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-            vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+            vehiclePage = vehicleRepository.findByIdInAndStatusInAndNameContainsAndStation_Id(vehicleId, statusList, request.getSearch(), station.getId(), pageable);
         }else{
             if(user.getRole() == Role.ROLE_STAFF){
                 Station station = stationRepository.findById(user.getStaff().getStation().getId())
                         .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-                vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+                vehiclePage = vehicleRepository.findByIdInAndStatusInAndNameContainsAndStation_Id(vehicleId,statusList, request.getSearch(), station.getId(), pageable);
             }else{
-                vehiclePage = vehicleRepository.findByStatusInAndNameContains(statusList, request.getSearch(), pageable);
+                vehiclePage = vehicleRepository.findByIdInAndStatusInAndNameContains(vehicleId, statusList, request.getSearch(), pageable);
             }
         }
 
-        List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
+        List<VehicleListResponse> vehiclesResponse = vehiclePage.getContent().stream()
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .toList();
 
-        return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
+        return new PageAndFilterVehicleResponse(vehiclesResponse, vehiclePage.getTotalPages());
     }
 
     public List<VehicleScheduleResponse> getVehicleFullSchedule(Long id) {
