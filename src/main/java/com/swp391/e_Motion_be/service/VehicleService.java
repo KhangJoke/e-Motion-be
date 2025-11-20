@@ -134,6 +134,7 @@ public class VehicleService {
         }
 
         return vehicles.stream()
+                .filter(v -> !v.isDelete())
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .collect(Collectors.toList());
     }
