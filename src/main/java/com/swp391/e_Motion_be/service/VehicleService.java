@@ -570,7 +570,6 @@ public class VehicleService {
         return new VehicleCheckAvailableResponse(isAvailable);
     }
 
-    @Transactional
     public void updateVehicleStatus(VehicleStatusUpdateRequest request) {
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
@@ -580,6 +579,13 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_IS_ONGOING);
         }
         vehicle.setStatus(request.getStatus());
+        vehicleRepository.save(vehicle);
+    }
+
+    public void updateVehicleBatteryLevel(VehicleBatteryLevelUpdateRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        vehicle.setBatteryLevel(request.getBatteryLevel());
         vehicleRepository.save(vehicle);
     }
 }

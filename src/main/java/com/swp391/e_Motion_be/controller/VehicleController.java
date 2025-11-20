@@ -193,4 +193,11 @@ public class VehicleController {
         return new ApiResponse<>(200, "Vehicle status updated successfully", null);
     }
 
+    @PutMapping
+    public ApiResponse<Void> updateVehicleBatteryLevel(
+            @RequestBody @Valid VehicleBatteryLevelUpdateRequest request) {
+        vehicleService.updateVehicleBatteryLevel(request);
+        return new ApiResponse<>(200, "Vehicle battery level updated successfully", null);
+    }
+
 }
