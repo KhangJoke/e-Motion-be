@@ -27,8 +27,8 @@ public class VehicleDetailResponse {
     private Double pricePerDay;
     private Double depositFee;
     private Double consumptionRate;
-    private Double batteryLevel;
-    private Double batteryCapacity;
+    private int batteryLevel;
+    private int batteryCapacity;
     private String plateNumber;
     private int point;
     private StationResponse station;

@@ -29,6 +29,7 @@ public class RentalResponse {
     VehicleDetailResponse vehicle;
     String reservationCode;
     String userEmail;
+    int userPoint;
     ContractStatus contractStatus;
     String submissionUrl;
     String contractUrl;
