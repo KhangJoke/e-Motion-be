@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.report.ReportCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.report.ReportUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.report.ReportResponse;
+import com.swp391.e_Motion_be.enums.report.ReportType;
 import com.swp391.e_Motion_be.service.ReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,16 @@ public class ReportController {
         response.setData(reportService.updateReportStatus(request));
         return response;
     }
+
+
+    @GetMapping("/types")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ApiResponse<List<ReportType>> findAllReportTypes() {
+        ApiResponse<List<ReportType>> response = new ApiResponse<>();
+        response.setData(reportService.findAllReportTypes());
+        return response;
+    }
+
 
     @DeleteMapping("/id")
     @PreAuthorize("hasAnyRole('ADMIN')")
