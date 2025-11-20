@@ -286,11 +286,15 @@ public class VehicleService {
                                         && r.getStatus() != RentalStatus.CANCELLED)
                                 .noneMatch(r -> r.getStartTime().isBefore(end)
                                         && r.getEndTime().isAfter(start))
-                ).toList();
+                )
+                .toList();
     }
 
 
     public PageAndFilterVehicleResponse findAvailableVehicles(PageAndFilterVehicleRequest request) {
+        if(request.getEndTime().isBefore(request.getStartTime())){
+            throw new AppException(ErrorCode.INVALID_FILTER_TIME);
+        }
         Integer seats = request.getSeats();
         List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
                 ? Arrays.asList(VehicleBrand.values())

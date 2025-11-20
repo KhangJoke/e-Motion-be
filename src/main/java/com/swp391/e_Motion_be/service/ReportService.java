@@ -84,6 +84,10 @@ public class ReportService {
         return reports.stream().map(reportMapper::toResponse).toList();
     }
 
+    public List<ReportType> findAllReportTypes(){
+        return List.of(ReportType.values());
+    }
+
     public void deleteReport(Long reportId){
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
