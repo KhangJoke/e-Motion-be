@@ -30,7 +30,6 @@ public abstract class VehicleMapper {
     @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")
     @Mapping(target = "pricePer12Hours", expression = "java(getPriceEachRate(vehicle, price12hRate))")
     @Mapping(target = "pricePerDay", expression = "java(getPriceEachRate(vehicle, priceDayRate))")
-    @Mapping(target = "point", expression = "java(vehicle.getPoint())")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
     @Mapping(source = "station.id", target = "stationId")
@@ -38,7 +37,7 @@ public abstract class VehicleMapper {
 
     @Mapping(target = "seats", expression = "java(vehicle.getSeats())")
     @Mapping(target = "main", expression = "java(getMainImage(vehicle))")
-    @Mapping(target = "hourRate", expression = "java(getHourRate(hours))")
+    @Mapping(target = "hourRate", expression = "java(calculateHourRate(hours))")
     @Mapping(target = "priceRate", expression = "java(getPriceRate(vehicle, hours))")
     @Mapping(target = "id", source = "vehicle.id")
     @Mapping(target = "batteryLevel", expression = "java(vehicle.getBatteryLevel())")
@@ -68,7 +67,7 @@ public abstract class VehicleMapper {
         else return vehicle.getPricePer4Hours()*priceDayRate;
     }
 
-    int getHourRate(long hours) {
+    double calculateHourRate(long hours) {
         if(hours < 8) return 4;
         else if(hours < 12) return 8;
         else if (hours < 24) return 12;

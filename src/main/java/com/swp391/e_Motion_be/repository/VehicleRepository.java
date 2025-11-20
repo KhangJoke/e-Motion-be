@@ -28,6 +28,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     long countByStation_Id(Long stationId);
     List<Vehicle> findByStation_Id(Long stationId);
     long countByStation_IdAndStatus(Long stationId, VehicleStatus vehicleStatus);
+    boolean existsByPlateNumberAndIdNot(String plateNumber, Long vid);
 
 
     @Query(value = """
