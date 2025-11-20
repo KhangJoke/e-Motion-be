@@ -146,6 +146,7 @@ public class RentalService {
         // set status của xe sang đang thuê
         vehicle.setStatus(VehicleStatus.UNAVAILABLE);//hold vehicle for rental
         rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime())); // Tiền thuê
+        rental.setDiscountPoint(0); // Mặc định chưa dùng điểm
         rentalRepository.save(rental);
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
@@ -282,7 +283,7 @@ public class RentalService {
     }
 
     @Transactional
-    public VnpayResponse processCheckInPayment(Long id, String ipAddr) throws Exception {
+    public VnpayResponse processCheckInPayment(Long id, int point, String ipAddr) throws Exception {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
@@ -292,11 +293,15 @@ public class RentalService {
 
         double rentalDepositAmount = rental.getDeposit().getAmount();
 
+        int discountFee = point * 1000;
+        rental.setDiscountPoint(point);
+        rentalRepository.save(rental);
+
         CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
         request.setRentalId(rental.getId());
         request.setDepositId(rental.getDeposit().getId());
         request.setType(PaymentType.RENTAL);
-        request.setAmount(rental.getRentFee()+rentalDepositAmount);
+        request.setAmount(rental.getRentFee()+rentalDepositAmount - discountFee);
         request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
         request.setUserEmail(rental.getUser().getEmail());
 
