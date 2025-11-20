@@ -115,13 +115,11 @@ public class VehicleController {
         return response;
     }
 
-    @GetMapping("/booking")
+    @PostMapping("/booking")
     @PreAuthorize("permitAll()")
-    public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestParam("id") Long vid,
-                                                            @RequestParam("startTime") String start,
-                                                            @RequestParam("endTime") String end){
+    public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestBody @Valid FeeRequest request){
         ApiResponse<List<FeeResponse>> response = new ApiResponse<>();
-        response.setData(vehicleService.getListFeeBooking(vid, start, end));
+        response.setData(vehicleService.getListFeeBooking(request));
         return response;
     }
 
