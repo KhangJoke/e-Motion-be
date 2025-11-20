@@ -562,4 +562,18 @@ public class RentalService {
         return rentalRepository.findById(id)
                 .orElse(null);
     }
+
+    public boolean cancelRental(long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        if(rental.getStatus() != RentalStatus.PENDING && (rental.getStatus() != RentalStatus.CONTRACTING && rental.getContractStatus() != ContractStatus.PENDING)){
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
+        }
+
+        rental.setStatus(RentalStatus.CANCELLED);
+        rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
+        rentalRepository.save(rental);
+        return true;
+    }
 }

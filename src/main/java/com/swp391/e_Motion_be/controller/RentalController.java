@@ -171,4 +171,14 @@ public class RentalController {
         }
         return ResponseEntity.ok(apiResponse);
     }
+
+    @PostMapping("/manage/{rentalId}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<Boolean> cancelRentalByManager(@PathVariable long rentalId) {
+        ApiResponse<Boolean> response = new ApiResponse<>();
+        response.setData(rentalService.cancelRental(rentalId));
+        response.setMessage("Cancelled rental successfully");
+        response.setStatus(200);
+        return response;
+    }
 }
