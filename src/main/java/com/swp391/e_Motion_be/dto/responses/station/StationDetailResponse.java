@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses.station;
 
 import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import com.swp391.e_Motion_be.enums.station.StationStatus;
 import lombok.Data;

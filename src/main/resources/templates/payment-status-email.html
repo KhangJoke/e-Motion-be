@@ -215,12 +215,16 @@
             </table>
         </div>
 
-        <!-- Payment URL -->
-        <a th:if="${total > 0}"
+        <a th:if="${refundAmount < 0}"
            th:href="${url}"
            class="action-button">
-            Nhấn vào liên kết VNPay để tiếp tục thanh toán
+            Thanh toán phần còn thiếu
         </a>
+
+        <p th:if="${refundAmount > 0}" style="margin-top: 8px; color:#0f766e;">
+            Số tiền hoàn lại sẽ được chuyển về tài khoản của bạn trong vòng 24 giờ sau khi đối soát.
+            Thời gian hiển thị thực tế có thể phụ thuộc vào tiến trình xử lý của ngân hàng.
+        </p>
 
         <p style="margin-top: 20px;">Nếu bạn có bất kỳ thắc mắc nào về giao dịch này, vui lòng trả lời email này hoặc liên hệ đội ngũ CSKH của chúng tôi.</p>
         <p>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi!</p>

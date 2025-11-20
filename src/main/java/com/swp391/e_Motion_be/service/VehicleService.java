@@ -18,6 +18,7 @@ import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
@@ -50,7 +52,6 @@ public class VehicleService {
     private final CloudinaryService cloudinaryService;
 
     private final VehicleMapper vehicleMapper;
-    private final ReservationService reservationService;
 
     @Value("${hold.fee.value}")
     private double holdCarFee;
@@ -119,9 +120,15 @@ public class VehicleService {
 
 
 
-    public List<VehicleBrandResponse> findAllVehicleBrands() {
+    public List<String> findAllVehicleBrands() {
         return Arrays.stream(VehicleBrand.values())
-                .map(VehicleBrandResponse::new)
+                .map(Enum::name)
+                .toList();
+    }
+
+    public List<String> findAllVehicleCategory(){
+        return Arrays.stream(VehicleCategory.values())
+                .map(Enum::name)
                 .toList();
     }
 
@@ -133,6 +140,7 @@ public class VehicleService {
         }
 
         return vehicles.stream()
+                .filter(v -> !v.isDelete())
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .collect(Collectors.toList());
     }
@@ -184,12 +192,12 @@ public class VehicleService {
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-        vehicle.setStation(station);
 
-        if (!vehicle.getPlateNumber().equals(request.getPlateNumber())
-                && vehicleRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
-            throw new AppException(ErrorCode.VEHICLE_EXIST);
+        if (vehicleRepository.existsByPlateNumberAndIdNot(request.getPlateNumber(), vehicle.getId())){
+            throw new AppException(ErrorCode.VEHICLE_PLATE_EXISTS);
         }
+
+        vehicle.setStation(station);
 
         // Xóa ảnh đã up trên cloud mà request gửi update ko còn url
         List<ImgVehicle> oldImages = imgVehicleRepository.findByVehicle_Id(vehicle.getId());
@@ -230,38 +238,26 @@ public class VehicleService {
         vehicleRepository.save(vehicle);
     }
 
-    public List<VehicleScheduleResponse> getVehicleSchedule(Long vid){
-        List<VehicleScheduleResponse> schedules = new ArrayList<>();
-        rentalRepository.findByVehicle_Id(vid).ifPresent(rental ->
-                schedules.add(new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
-        );
-        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusIn(vid, List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM));
-        schedules.addAll(reservations.stream()
-                .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
-                .toList());
-        return schedules;
-    }
 
-
-    public List<FeeResponse> getListFeeBooking(Long vid, String start, String end){
-        Vehicle vehicle = vehicleRepository.findById(vid)
+    public List<FeeResponse> getListFeeBooking(FeeRequest request){
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         List<FeeResponse> fees = new ArrayList<>();
 
-        long hours = Duration.between( LocalDateTime.parse(start), LocalDateTime.parse(end)).toHours();
-        double feePoint = vehicle.getPoint() * ((double) hours /4);
-
-        double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
+        double bookingFeeValue = rentalService.calculateRentalFee(vehicle, request.getStartTime(), request.getEndTime());
 
         FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
-//        FeeResponse pointFee = new FeeResponse("Giảm giá", FeeType.BOOKING_FEE, feePoint * 1000);
         FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
-        FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
+        FeeResponse holdCar;
+        if(request.isRental()){
+            holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, 0.0);
+        }else{
+            holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
+        }
         FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
                 bookingFeeValue + vehicle.getDepositFee());
 
         fees.add(bookingFee);
-//        fees.add(pointFee);
         fees.add(deposit);
         fees.add(holdCar);
         fees.add(total);
@@ -281,7 +277,47 @@ public class VehicleService {
                 .toList();
     }
 
+    // --- Lọc những xe còn trống trong khung giờ ---
+    private List<Vehicle> vehiclesAvailableInRange(List<Vehicle> vehicles, LocalDateTime start, LocalDateTime end) {
+        return vehicles
+                .stream()
+                .filter(v -> v.getReservations().stream()
+                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
+                                && r.getStatus() != ReservationStatus.CANCELLED
+                                && r.getStatus() != ReservationStatus.FAILED)
+                        .noneMatch(r -> r.getStartTime().isBefore(end)
+                                && r.getEndTime().isAfter(start))
+                        &&
+                        v.getRentals().stream()
+                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
+                                        && r.getStatus() != RentalStatus.CANCELLED)
+                                .noneMatch(r -> r.getStartTime().isBefore(end)
+                                        && r.getEndTime().isAfter(start))
+                )
+                .toList();
+    }
+
+    // Check if the time is on the exact hour (e.g., 1:00, 2:00)
+    private boolean isExactHour(LocalDateTime dateTime) {
+        return dateTime.getMinute() == 0 && dateTime.getSecond() == 0;
+    }
+
     public PageAndFilterVehicleResponse findAvailableVehicles(PageAndFilterVehicleRequest request) {
+        if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
+            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        }
+        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
+                request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
+            throw new AppException(ErrorCode.VEHICLE_TIME_MUST_AFTER_NOW_3HOURS);
+        }
+
+        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
+            throw new AppException(ErrorCode.VEHICLE_END_TIME_INVALID);
+        }
+        if(request.getEndTime().isBefore(request.getStartTime().plusHours(4))) {
+            throw new AppException(ErrorCode.INVALID_FILTER_TIME);
+        }
+
         Integer seats = request.getSeats();
         List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
                 ? Arrays.asList(VehicleBrand.values())
@@ -319,21 +355,8 @@ public class VehicleService {
                     .toList();
         }
         // --- Lọc những xe còn trống trong khung giờ ---
-        List<Long> availableIdList = vehicles
+        List<Long> availableIdList  = vehiclesAvailableInRange(vehicles, request.getStartTime(), request.getEndTime())
                 .stream()
-                .filter(v -> v.getReservations().stream()
-                        .filter(r -> r.getStatus() != ReservationStatus.COMPLETED
-                                && r.getStatus() != ReservationStatus.CANCELLED
-                                && r.getStatus() != ReservationStatus.FAILED)
-                        .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
-                                && r.getEndTime().isAfter(request.getStartTime()))
-                        &&
-                        v.getRentals().stream()
-                                .filter(r -> r.getStatus() != RentalStatus.COMPLETED
-                                        && r.getStatus() != RentalStatus.CANCELLED)
-                                .noneMatch(r -> r.getStartTime().isBefore(request.getEndTime())
-                                        && r.getEndTime().isAfter(request.getStartTime()))
-                )
                 // --- Lọc theo giá (theo giờ thực tế user chọn) ---
                 .filter(v -> {
                     double priceValue;
@@ -373,6 +396,20 @@ public class VehicleService {
     }
 
     public PageAndFilterVehicleResponse findUnavailableVehicles(PageAndFilterVehicleRequest request) {
+        if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
+            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        }
+        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
+                request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
+            throw new AppException(ErrorCode.VEHICLE_TIME_MUST_AFTER_NOW_3HOURS);
+        }
+
+        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
+            throw new AppException(ErrorCode.VEHICLE_END_TIME_INVALID);
+        }
+        if(request.getEndTime().isBefore(request.getStartTime().plusHours(4))) {
+            throw new AppException(ErrorCode.INVALID_FILTER_TIME);
+        }
         Integer seats = request.getSeats();
         List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
                 ? Arrays.asList(VehicleBrand.values())
@@ -466,9 +503,27 @@ public class VehicleService {
     public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
         User user = userService.currentUser();
 
+        if(request.getStartTime() != null && request.getEndTime() != null && request.getEndTime().isBefore(request.getStartTime())){
+            throw new AppException(ErrorCode.INVALID_FILTER_TIME);
+        }
+
         List<VehicleStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
                 ? Arrays.asList(VehicleStatus.values())
                 : request.getStatus();
+
+        List<Vehicle> vehicles = vehicleRepository.findByIsDeleteFalse();
+
+        List<Long> vehicleId = vehicles
+                .stream()
+                .map(Vehicle::getId)
+                .toList();
+
+        if(request.getStartTime() != null && request.getEndTime() != null){
+            vehicleId = vehiclesAvailableInRange(vehicles, request.getStartTime(), request.getEndTime())
+                    .stream()
+                    .map(Vehicle::getId)
+                    .toList();
+        }
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by("id").descending());
         Page<Vehicle> vehiclePage;
@@ -476,27 +531,25 @@ public class VehicleService {
         if(request.getStationId() != null) {
             Station station = stationRepository.findById(request.getStationId())
                     .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-            vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+            vehiclePage = vehicleRepository.findByIdInAndStatusInAndNameContainsAndStation_Id(vehicleId, statusList, request.getSearch(), station.getId(), pageable);
         }else{
             if(user.getRole() == Role.ROLE_STAFF){
                 Station station = stationRepository.findById(user.getStaff().getStation().getId())
                         .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
-                vehiclePage = vehicleRepository.findByStatusInAndNameContainsAndStation_Id(statusList, request.getSearch(), station.getId(), pageable);
+                vehiclePage = vehicleRepository.findByIdInAndStatusInAndNameContainsAndStation_Id(vehicleId,statusList, request.getSearch(), station.getId(), pageable);
             }else{
-                vehiclePage = vehicleRepository.findByStatusInAndNameContains(statusList, request.getSearch(), pageable);
+                vehiclePage = vehicleRepository.findByIdInAndStatusInAndNameContains(vehicleId, statusList, request.getSearch(), pageable);
             }
         }
 
-        List<VehicleListResponse> vehicles = vehiclePage.getContent().stream()
+        List<VehicleListResponse> vehiclesResponse = vehiclePage.getContent().stream()
                 .map(v -> vehicleMapper.toVehicleListResponse(v, 4))
                 .toList();
 
-        return new PageAndFilterVehicleResponse(vehicles, vehiclePage.getTotalPages());
+        return new PageAndFilterVehicleResponse(vehiclesResponse, vehiclePage.getTotalPages());
     }
 
     public List<VehicleScheduleResponse> getVehicleFullSchedule(Long id) {
-        Vehicle vehicle = vehicleRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
 
         List<VehicleScheduleResponse> schedules = new ArrayList<>();
         List<Rental> rentals = rentalRepository.findByVehicle_IdAndStatusNotInAndStartTimeAfter(id, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED), LocalDateTime.now());
@@ -535,8 +588,6 @@ public class VehicleService {
     }
 
     public VehicleCheckAvailableResponse vehicleCheckAvailable(VehicleCheckAvailableRequest request) {
-        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
-                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         boolean isAvailable = vehicleRepository.doesConflictExistForVehicle(
                 request.getVehicleId(),
                 request.getStartTime(),
@@ -547,5 +598,28 @@ public class VehicleService {
                 null
         ) == 0;
         return new VehicleCheckAvailableResponse(isAvailable);
+    }
+
+    public void updateVehicleStatus(VehicleStatusUpdateRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+        // Validation: không cho đổi status nếu xe đang ONGOING
+        if (vehicle.getStatus() == VehicleStatus.ONGOING && request.getStatus() != VehicleStatus.ONGOING) {
+            throw new AppException(ErrorCode.VEHICLE_IS_ONGOING);
+        }
+        vehicle.setStatus(request.getStatus());
+        vehicleRepository.save(vehicle);
+    }
+
+    public void updateVehicleBatteryLevel(VehicleBatteryLevelUpdateRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        if(request.getBatteryLevel() < vehicle.getBatteryLevel()){
+            throw new AppException(ErrorCode.BELOW_CURRENT_BATTERY_LEVEL);
+        }
+        vehicle.setStatus(VehicleStatus.AVAILABLE);
+        vehicle.setBatteryLevel(request.getBatteryLevel());
+        vehicleRepository.save(vehicle);
     }
 }

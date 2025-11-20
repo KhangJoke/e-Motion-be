@@ -70,9 +70,17 @@ public class VehicleController {
 
     @GetMapping("/brand")
     @PreAuthorize("permitAll()")
-    public ApiResponse<List<VehicleBrandResponse>> findAllVehicleBrands() {
-        ApiResponse<List<VehicleBrandResponse>> response = new ApiResponse<>();
+    public ApiResponse<List<String>> findAllVehicleBrands() {
+        ApiResponse<List<String>> response = new ApiResponse<>();
         response.setData(vehicleService.findAllVehicleBrands());
+        return response;
+    }
+
+    @GetMapping("/category")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<List<String>> findAllVehicleCategories() {
+        ApiResponse<List<String>> response = new ApiResponse<>();
+        response.setData(vehicleService.findAllVehicleCategory());
         return response;
     }
 
@@ -115,13 +123,11 @@ public class VehicleController {
         return response;
     }
 
-    @GetMapping("/booking")
+    @PostMapping("/booking")
     @PreAuthorize("permitAll()")
-    public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestParam("id") Long vid,
-                                                            @RequestParam("startTime") String start,
-                                                            @RequestParam("endTime") String end){
+    public ApiResponse<List<FeeResponse>> getListFeeBooking(@RequestBody @Valid FeeRequest request){
         ApiResponse<List<FeeResponse>> response = new ApiResponse<>();
-        response.setData(vehicleService.getListFeeBooking(vid, start, end));
+        response.setData(vehicleService.getListFeeBooking(request));
         return response;
     }
 
@@ -179,4 +185,19 @@ public class VehicleController {
         response.setMessage("Dispatch vehicle successfully");
         return response;
     }
+
+    @PutMapping("/status")
+    public ApiResponse<Void> updateVehicleStatus(
+            @RequestBody VehicleStatusUpdateRequest request) {
+        vehicleService.updateVehicleStatus(request);
+        return new ApiResponse<>(200, "Vehicle status updated successfully", null);
+    }
+
+    @PutMapping("/battery-level")
+    public ApiResponse<Void> updateVehicleBatteryLevel(
+            @RequestBody @Valid VehicleBatteryLevelUpdateRequest request) {
+        vehicleService.updateVehicleBatteryLevel(request);
+        return new ApiResponse<>(200, "Vehicle battery level updated successfully", null);
+    }
+
 }

@@ -34,11 +34,10 @@ public class ReportService {
     private UserService userService;
 
     public ReportResponse createReport(ReportCreationRequest report){
-        Report newReport = new Report();
+        Report newReport = reportMapper.toReportEntity(report);
         if(report.getType().equals(ReportType.REPORT_USER)){
-            User user = userRepository.findById(report.getUserId())
+            User user = userRepository.findByEmail(report.getUserEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-            newReport = reportMapper.toReportEntity(report);
             newReport.setUser(user);
         }
 
@@ -63,6 +62,19 @@ public class ReportService {
     }
 
 
+    public List<ReportResponse> searchReports(ReportType type, ReportStatus status, String title){
+        List<Report> reports = reportRepository.searchReports(type, status, title);
+        return reports.stream()
+                .filter(report -> !report.isDelete())
+                .sorted(Comparator.comparing(Report::getCreatedAt).reversed())
+                .map(reportMapper::toResponse)
+                .toList();
+    }
+
+    public ReportResponse findReportById(Long id){
+        return reportMapper.toResponse(reportRepository.findById(id).orElse(null));
+    }
+
     public List<ReportResponse> findAllReports(){
         List<Report> reports = reportRepository.findAll()
                 .stream()
@@ -82,6 +94,10 @@ public class ReportService {
                 .sorted(Comparator.comparing(Report::getCreatedAt).reversed())
                 .toList();;
         return reports.stream().map(reportMapper::toResponse).toList();
+    }
+
+    public List<ReportType> findAllReportTypes(){
+        return List.of(ReportType.values());
     }
 
     public void deleteReport(Long reportId){

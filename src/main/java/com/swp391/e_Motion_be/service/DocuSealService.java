@@ -1,8 +1,10 @@
 package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.enums.*;
+import com.swp391.e_Motion_be.enums.ContractStatus;
+import com.swp391.e_Motion_be.enums.DocumentType;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
@@ -12,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,8 +31,6 @@ public class DocuSealService {
     private String apiKey;
     @Value("${docuseal.template-id}")
     private String templateId;
-    @Value("${docuseal.url}")
-    private String url;
     @Autowired
     private RentalRepository rentalRepository;
     @Autowired
@@ -70,7 +69,7 @@ public class DocuSealService {
                         Map.of("name", "rentLength", "default_value", rental.getStartTime().getHour()-rental.getEndTime().getHour(), "readonly", true),
                         Map.of("name", "rentFee", "default_value", String.valueOf(rental.getRentFee()), "readonly", true),
                         Map.of("name", "paymentMethod", "default_value", "VNPay", "readonly", true),
-                        Map.of("name", "payDate", "default_value", LocalDateTime.now(), "readonly", true),
+                        Map.of("name", "payDate", "default_value", LocalDateTime.now().toString(), "readonly", true),
                         Map.of("name", "CCCD", "default_value", documentRepository.findByUser_EmailAndType(rental.getUser().getEmail(), DocumentType.CCCD).getNumber(), "readonly", false),
                         Map.of("name", "GPLX", "default_value", documentRepository.findByUser_EmailAndType(rental.getUser().getEmail(), DocumentType.LICENSE).getNumber(), "readonly", false)
                 )
@@ -103,10 +102,13 @@ public class DocuSealService {
             throw new AppException(ErrorCode.DOCUSEAL_CREATE_FAILED);
         }
         String contractUrl = (String) response.getBody().get(0).get("embed_src");
-        emailService.sendContractEmail(rental, contractUrl);
+        Number subId = (Number) response.getBody().get(0).get("submission_id");
+        rental.setSubmissionId(subId.longValue());
+        rental.setContractUrl(contractUrl);
         rental.setContractStatus(ContractStatus.PENDING);
         rental.setStatus(RentalStatus.CONTRACTING);
         rentalRepository.save(rental);
+        emailService.sendContractEmail(rental, contractUrl);
         return contractUrl;
     }
 
@@ -117,20 +119,13 @@ public class DocuSealService {
             Map<String, Object> data = (Map<String, Object>) payload.get("data");
             String status = (String) data.get("status");
             String email = (String) data.get("email");
-            String submissionUrl = (String) data.get("submission_url");
 
             if ("completed".equals(status)) {
                 Rental rental = rentalRepository.findTopByUserEmailOrderByCreatedAtDesc(email)
                         .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-                Map<String, Object> submission = (Map<String, Object>) data.get("submission");
-                long submissionId = 0;
-                if (submission != null && submission.get("id") != null) {
-                    submissionId = ((Number) submission.get("id")).longValue();
-                }
                 rental.setStatus(RentalStatus.CONTRACTING);
                 rental.setContractStatus(ContractStatus.SIGNED);
-                rental.setSubmissionId(submissionId);
-                rental.setSubmissionUrl(submissionUrl);
+                rental.setSubmissionUrl(getDocumentUrl(rental.getId()));
                 rentalRepository.save(rental);
             }
         }else if("form.declined".equalsIgnoreCase(eventType)) {
@@ -145,15 +140,9 @@ public class DocuSealService {
     }
 
     @Transactional
-    public String getContractUrl(long rentalId) {
+    public String getDocumentUrl(long rentalId) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-
-        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (!rental.getUser().getId().equals(loginUser.getId()) && loginUser.getRole().equals(Role.ROLE_USER)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Auth-Token", apiKey);
@@ -164,7 +153,7 @@ public class DocuSealService {
         ResponseEntity<Map> response;
         try{
             response = restTemplate.exchange(
-                    "https://api.docuseal.com/submissions/" + rental.getSubmissionId(),
+                    "https://api.docuseal.com/submissions/" + rental.getSubmissionId()+"/documents",
                     HttpMethod.GET,
                     entity,
                     Map.class

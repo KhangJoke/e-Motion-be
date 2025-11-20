@@ -93,7 +93,7 @@ public class RentalService {
         rental.setStaff(staff);
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservationRepository.save(reservation);
-        return createRentalCommon(rental, reservation.getUser(),reservation.getVehicle(), reservation.getStation().getId(), reservation.getDeposit().getAmount());
+        return createRentalCommon(rental, reservation.getUser(),reservation.getVehicle(), reservation.getDeposit().getAmount());
     }
 
     // Hàm tạo rental khi renter thuê trực tiếp tại trạm
@@ -110,19 +110,17 @@ public class RentalService {
         // kiểm tra có tồn tại object ko
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        Station station = stationRepository.findById(request.getStationId())
-                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTS));
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
-        Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
-        return createRentalCommon(rental, user, vehicle, station.getId(),0);
+        Rental rental = rentalMapper.toRentalEntity(request, vehicle, vehicle.getStation(), user, staff);
+        return createRentalCommon(rental, user, vehicle,0);
     }
 
     // Hàm này chứa các action chung của 2 hàm cách tạo rental
-    private RentalResponse createRentalCommon(Rental rental, User user, Vehicle vehicle, Long stationId, double reservationDepositAmount){
+    private RentalResponse createRentalCommon(Rental rental, User user, Vehicle vehicle, double reservationDepositAmount){
         // Kiểm tra CCCD và GPLX của renter
         if(!documentRepository.existsByUser_IdAndType(user.getId(), DocumentType.CCCD)){
             throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
@@ -143,15 +141,12 @@ public class RentalService {
         if(!vehicle.getStatus().equals(VehicleStatus.AVAILABLE)){
             throw new AppException(ErrorCode.VEHICLE_NOT_READY);
         }
-        // Kiểm tra station của xe và của đơn có giống nhau ko
-        if(!vehicle.getStation().getId().equals(stationId)) {
-            throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
-        }
 
         // save rental
         // set status của xe sang đang thuê
         vehicle.setStatus(VehicleStatus.UNAVAILABLE);//hold vehicle for rental
         rental.setRentFee(calculateRentalFee(rental.getVehicle(), rental.getStartTime(), rental.getEndTime())); // Tiền thuê
+        rental.setDiscountPoint(0); // Mặc định chưa dùng điểm
         rentalRepository.save(rental);
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
@@ -288,25 +283,31 @@ public class RentalService {
     }
 
     @Transactional
-    public VnpayResponse processCheckInPayment(Long id, String ipAddr) throws Exception {
+    public VnpayResponse processCheckInPayment(Long id, int point, String ipAddr) throws Exception {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
         if(!rental.getStatus().equals(RentalStatus.CONTRACTING) || !rental.getContractStatus().equals(ContractStatus.SIGNED)){
             throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
-
+        int discountFee = point * 1000;
         double rentalDepositAmount = rental.getDeposit().getAmount();
-
         CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
         request.setRentalId(rental.getId());
         request.setDepositId(rental.getDeposit().getId());
         request.setType(PaymentType.RENTAL);
-        request.setAmount(rental.getRentFee()+rentalDepositAmount);
+        request.setAmount(rental.getRentFee()+rentalDepositAmount - discountFee);
         request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
         request.setUserEmail(rental.getUser().getEmail());
-
-        return paymentService.createPaymentUrl(request, ipAddr);
+        VnpayResponse response = paymentService.createPaymentUrl(request, ipAddr);
+        rental.setDiscountPoint(point);
+        User user = rental.getUser();
+        if(user.getPoint() < point){
+            throw new AppException(ErrorCode.USER_POINT_NOT_ENOUGH);
+        }
+        user.setPoint(user.getPoint() - point);
+        rentalRepository.save(rental);
+        return response;
     }
 
     @Transactional
@@ -363,12 +364,19 @@ public class RentalService {
 
                 paymentService.refundPayment(refundRequest);
             }
+            // Cộng điểm cho user
+            long hours = Duration.between(rental.getStartTime(), rental.getEndTime()).toHours();
+            int pointPerHour = rental.getVehicle().getPoint();
+            int earnedPoints = (int) (hours * pointPerHour);
+
+            User user = rental.getUser();
+            user.setPoint(user.getPoint() + earnedPoints);
+            userRepository.save(user);
 
             rental.setStatus(RentalStatus.COMPLETED);
             if(rental.getVehicleLog()==null){
                 rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
             }
-            Rental updatedRental = rentalRepository.save(rental);
             Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElseThrow(
                     () -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS)
             );
@@ -561,5 +569,19 @@ public class RentalService {
     public Rental getById(long id) {
         return rentalRepository.findById(id)
                 .orElse(null);
+    }
+
+    public boolean cancelRental(long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        if(rental.getStatus() != RentalStatus.PENDING && (rental.getStatus() != RentalStatus.CONTRACTING && rental.getContractStatus() != ContractStatus.PENDING)){
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
+        }
+
+        rental.setStatus(RentalStatus.CANCELLED);
+        rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
+        rentalRepository.save(rental);
+        return true;
     }
 }

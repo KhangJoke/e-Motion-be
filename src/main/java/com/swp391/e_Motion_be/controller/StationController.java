@@ -3,8 +3,8 @@ package com.swp391.e_Motion_be.controller;
 import com.swp391.e_Motion_be.dto.requests.station.StationCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.station.ManageStationResponse;
+import com.swp391.e_Motion_be.dto.responses.station.StationCityResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.RevenueResponse;
@@ -78,11 +78,10 @@ public class StationController {
         return response;
     }
 
-    @GetMapping("/city/{city}")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<StationResponse>> getStationsByCity(@PathVariable("city") StationCity stationCity) {
-        ApiResponse<List<StationResponse>> response = new ApiResponse<>();
-        response.setData(stationService.getStationsByCity(stationCity));
+    @GetMapping("/city")
+    public ApiResponse<List<StationCityResponse>> getStationsByCity(@RequestParam("city") String city) {
+        ApiResponse<List<StationCityResponse>> response = new ApiResponse<>();
+        response.setData(stationService.getStationsByCity(StationCity.fromDisplayName(city)));
         response.setMessage("Get stations by city successfully");
         return response;
     }

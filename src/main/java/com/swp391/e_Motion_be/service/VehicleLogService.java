@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 public class VehicleLogService {
     private final VehicleLogRepository vehicleLogRepository;
     private final VehicleRepository vehicleRepository;
-    private final UserRepository userRepository;
     private final VehicleLogMapper vehicleLogMapper;
     private final StaffRepository staffRepository;
     private final RentalRepository rentalRepository;

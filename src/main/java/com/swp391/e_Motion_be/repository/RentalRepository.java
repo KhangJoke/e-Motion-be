@@ -11,10 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RentalRepository extends JpaRepository<Rental,Long> {
-    List<Rental> findByUser_Id(Long id);
-    Optional<Rental> findByVehicle_Id(Long vid);
     List<Rental> findByStatusAndEndTimeBetweenAndExpiringNotifiedFalse(RentalStatus status, LocalDateTime from, LocalDateTime to);
-    List<Rental> findByVehicle_IdAndStatusNotIn(Long vehicleId, List<RentalStatus> status);
     List<Rental> findByStatus(RentalStatus status);
     List<Rental> findByStatusAndEndTimeBeforeAndOverdueNotifiedFalse(RentalStatus status, LocalDateTime time);
     List<Rental> findByStatusInAndStartTimeBeforeAndCancelNotifiedFalse(List<RentalStatus> status, LocalDateTime time);

@@ -4,11 +4,11 @@ import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.*;
-import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.service.DocuSealService;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -99,11 +99,11 @@ public class RentalController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{id}/check-inpayment")
+    @GetMapping("/check-inpayment")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
-    public ApiResponse<VnpayResponse> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
+    public ApiResponse<VnpayResponse> processCheckInPayment(@RequestParam("rentalId") Long id, @RequestParam("point") int point, HttpServletRequest request) throws Exception {
         ApiResponse<VnpayResponse> response = new ApiResponse<>();
-        response.setData(rentalService.processCheckInPayment(id , request.getRemoteAddr()));
+        response.setData(rentalService.processCheckInPayment(id, point , request.getRemoteAddr()));
         return response;
     }
 
@@ -124,23 +124,6 @@ public class RentalController {
         return response;
     }
 
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
-    public ApiResponse<List<RentalResponse>> searchRentals (@RequestParam String email,
-                                                            @RequestParam (required = false) List<RentalStatus> status) {
-        List<RentalResponse> rentalResponses = null;
-        if(status != null ) {
-            rentalResponses = rentalService.getRentalByEmailUserContainAndStatusIn(email, status);
-        }else{
-            rentalResponses =  rentalService.getRentalByEmailUserContain(email);
-        }
-        ApiResponse<List<RentalResponse>> response = new ApiResponse<>();
-        response.setData(rentalResponses);
-        response.setMessage("Fetched reservation successfully");
-        response.setStatus(200);
-
-        return response;
-    }
 
     @GetMapping("/station/{stationId}")
     public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalOfStation(@PathVariable Long stationId){
@@ -170,5 +153,15 @@ public class RentalController {
             apiResponse.setMessage("Get rentals successfully");
         }
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/manage/{rentalId}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ApiResponse<Boolean> cancelRentalByManager(@PathVariable long rentalId) {
+        ApiResponse<Boolean> response = new ApiResponse<>();
+        response.setData(rentalService.cancelRental(rentalId));
+        response.setMessage("Cancelled rental successfully");
+        response.setStatus(200);
+        return response;
     }
 }

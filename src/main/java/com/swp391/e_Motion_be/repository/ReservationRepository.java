@@ -14,13 +14,10 @@ import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation,Long> {
-    List<Reservation> findByUser_Id(Long id);
     Optional<Reservation> findByCode(String code);
-    List<Reservation> findByUserEmailIgnoreCase(String email);
     List<Reservation> findByStationName(String stationName);
     List<Reservation> findByVehicleId(Long vehicleId);
     List<Reservation> findByEndTimeBefore(LocalDateTime time);
-    List<Reservation> findByVehicle_IdAndStatusIn(Long vehicleId, List<ReservationStatus> status);
     boolean existsByUser_EmailAndStatusNotIn(String email, List<ReservationStatus> statuses);
     List<Reservation> findByStatusInAndStartTimeBetweenAndExpiringNotifiedFalse(Collection<ReservationStatus> status, LocalDateTime endTime, LocalDateTime endTime2);
     List<Reservation> findByStatusInAndStartTimeBeforeAndOverdueNotifiedFalse(List<ReservationStatus> status, LocalDateTime time);

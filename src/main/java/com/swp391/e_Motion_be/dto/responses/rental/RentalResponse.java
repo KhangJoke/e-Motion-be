@@ -25,12 +25,15 @@ public class RentalResponse {
     LocalDateTime startTime;
     LocalDateTime endTime;
     double rentFee;
+    int discountPoint;
     LocalDateTime createdAt;
     VehicleDetailResponse vehicle;
     String reservationCode;
     String userEmail;
+    int userPoint;
     ContractStatus contractStatus;
     String submissionUrl;
+    String contractUrl;
     DepositResponse rentalDeposit;
     DepositResponse reservationDeposit;
     List<RentalCheckListResponse> rentalCheckLists;

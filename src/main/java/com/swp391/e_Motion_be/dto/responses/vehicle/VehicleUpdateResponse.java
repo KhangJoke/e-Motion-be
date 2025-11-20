@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
-import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
 import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;

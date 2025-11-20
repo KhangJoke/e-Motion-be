@@ -28,6 +28,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     long countByStation_Id(Long stationId);
     List<Vehicle> findByStation_Id(Long stationId);
     long countByStation_IdAndStatus(Long stationId, VehicleStatus vehicleStatus);
+    boolean existsByPlateNumberAndIdNot(String plateNumber, Long vid);
 
 
     @Query(value = """
@@ -66,7 +67,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     );
 
     Page<Vehicle> findByIdInAndBrandInAndCategoryInAndNameContains(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, String search, Pageable pageable);
-    Page<Vehicle> findByStatusInAndNameContainsAndStation_Id(List<VehicleStatus> statuses, String search, Long stationId, Pageable pageable);
-    Page<Vehicle> findByStatusInAndNameContains(List<VehicleStatus> statuses, String search, Pageable pageable);
+    Page<Vehicle> findByIdInAndStatusInAndNameContainsAndStation_Id(List<Long> vehicleIds,List<VehicleStatus> statuses, String search, Long stationId, Pageable pageable);
+    Page<Vehicle> findByIdInAndStatusInAndNameContains(List<Long> vehicleIds, List<VehicleStatus> statuses, String search, Pageable pageable);
     Page<Vehicle> findByIdInAndBrandInAndCategoryInAndSeatsAndNameContainingIgnoreCase(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, Integer seats, String search, Pageable pageable);
+    List<Vehicle> findByIsDeleteFalse();
 }

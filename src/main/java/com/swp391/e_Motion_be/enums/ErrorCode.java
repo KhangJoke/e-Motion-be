@@ -11,6 +11,7 @@ public enum ErrorCode {
     UNEXPECTED_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi không mong muốn"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Không có quyền truy cập"),
     INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "Khoảng thời gian phải lớn hơn hoặc bằng 4"),
+    INVALID_FILTER_TIME(HttpStatus.BAD_REQUEST, "Thời gian kết thúc phải sau thời gian bắt đầu"),
 
     // User errors
     ROLE_INVALID(HttpStatus.BAD_REQUEST, "Vai trò người dùng không hợp lệ"),
@@ -18,6 +19,7 @@ public enum ErrorCode {
     NEW_PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "Mật khẩu mới phải khác mật khẩu cũ"),
     CANNOT_DELETE_OWN_ACCOUNT(HttpStatus.BAD_REQUEST, "Không thể xóa tài khoản của chính bạn"),
     ACCOUNT_BLOCKED(HttpStatus.FORBIDDEN, "Tài khoản đã bị khóa"),
+    USER_POINT_NOT_ENOUGH(HttpStatus.BAD_REQUEST, "Điểm của người dùng không đủ"),
 
     // Update password errors
     OLD_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu cũ không đúng"),
@@ -32,11 +34,16 @@ public enum ErrorCode {
 
     // Vehicle errors
     VEHICLE_EXIST(HttpStatus.CONFLICT, "Phương tiện đã tồn tại"),
+    VEHICLE_PLATE_EXISTS(HttpStatus.CONFLICT, "Biển số phương tiện đã tồn tại"),
     VEHICLE_NOT_EXIST(HttpStatus.NOT_FOUND, "Phương tiện không tồn tại"),
     VEHICLE_NOT_AVAILABLE(HttpStatus.NOT_FOUND, "Phương tiện không khả dụng"),
     VEHICLE_NOT_READY(HttpStatus.CONFLICT, "Phương tiện chưa sẵn sàng sử dụng"),
     VEHICLE_STATUS_INVALID(HttpStatus.CONFLICT, "Trạng thái phương tiện không hợp lệ"),
     INVALID_VEHICLE_BRAND(HttpStatus.CONFLICT, "Thương hiệu phương tiện không hợp lệ"),
+    VEHICLE_IS_ONGOING(HttpStatus.CONFLICT, "Phương tiện đang được thuê"),
+    VEHICLE_END_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian kết thúc phương tiện phải sau thời gian hiện tại"),
+    VEHICLE_TIME_MUST_AFTER_NOW_3HOURS(HttpStatus.BAD_REQUEST, "Thời gian bắt đầu thuê phương tiện phải sau thời điểm hiện tại ít nhất 3 giờ"),
+    BELOW_CURRENT_BATTERY_LEVEL(HttpStatus.BAD_REQUEST, "Mức pin mới phải cao hơn mức pin hiện tại"),
 
     // Vehicle Log errors
     VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Nhật ký phương tiện không tồn tại"),

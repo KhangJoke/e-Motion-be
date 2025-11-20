@@ -23,6 +23,7 @@ public interface RentalMapper {
     @Mapping(source = "vehicle", target = "vehicle")
     @Mapping(source = "reservation.code", target = "reservationCode")
     @Mapping(source = "user.email", target = "userEmail")
+    @Mapping(source = "user.point", target = "userPoint")
     @Mapping(source = "staff", target = "staff")
     @Mapping(source = "deposit", target = "rentalDeposit")
     @Mapping(source = "reservation.deposit", target = "reservationDeposit")

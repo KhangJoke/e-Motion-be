@@ -2,8 +2,6 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.user.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
-import com.swp391.e_Motion_be.dto.responses.reservation.ReservationResponse;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.DataAdminDashboard;
 import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
 import com.swp391.e_Motion_be.dto.responses.user.StaffStatsResponse;
@@ -71,6 +69,16 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable String email){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.getUserByEmail(email);
+        apiResponse.setMessage("Get user by email successfully");
+        apiResponse.setData(userResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/renter/{email}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<UserResponse>> getRenterByEmail(@PathVariable String email){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        UserResponse userResponse = userService.getRenterByEmail(email);
         apiResponse.setMessage("Get user by email successfully");
         apiResponse.setData(userResponse);
         return ResponseEntity.ok(apiResponse);

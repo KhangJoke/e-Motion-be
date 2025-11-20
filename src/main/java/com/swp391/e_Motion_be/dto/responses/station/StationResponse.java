@@ -1,5 +1,4 @@
 package com.swp391.e_Motion_be.dto.responses.station;
-
 import com.swp391.e_Motion_be.enums.station.StationCity;
 import lombok.Data;
 

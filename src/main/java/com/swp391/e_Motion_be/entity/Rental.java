@@ -31,26 +31,29 @@ public class Rental {
     @Column(name="end_time")
     LocalDateTime endTime;
     @Column(name = "cancel_notified")
-    private Boolean cancelNotified = false;
+    Boolean cancelNotified = false;
     @Column(name = "overdue_notified")
-    private Boolean overdueNotified = false;
+     Boolean overdueNotified = false;
     @Column(name = "expiring_notified")
-    private Boolean expiringNotified = false;
+     Boolean expiringNotified = false;
     @Column(name="rent_fee")
-    Double rentFee;
+     Double rentFee;
+    @Column(name="discount_point")
+    int discountPoint = 0;
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
-    LocalDateTime createdAt;
+     LocalDateTime createdAt;
     @Column(name = "pending_end_time")
-    private LocalDateTime pendingEndTime;
+     LocalDateTime pendingEndTime;
     @Column(name = "pending_rent_fee")
-    private Double pendingRentFee;
+     Double pendingRentFee;
     @Enumerated(EnumType.STRING)
-    private RentalStatus preStatus;
-    private long submissionId;
-    private String submissionUrl;
+     RentalStatus preStatus;
+     long submissionId;
+     String contractUrl;
+     String submissionUrl;
     @Enumerated(EnumType.STRING)
-    private ContractStatus contractStatus;
+    ContractStatus contractStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")

@@ -23,9 +23,4 @@ public class RedisTokenService {
         String key = PREFIX + jwtId;
         return (RedisToken) redisTemplate.opsForValue().get(key);
     }
-
-    public void deleteById(String jwtId) {
-        String key = PREFIX + jwtId;
-        redisTemplate.delete(key);
-    }
 }

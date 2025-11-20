@@ -12,8 +12,6 @@ import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
-import com.swp391.e_Motion_be.mapper.RentalMapper;
-import com.swp391.e_Motion_be.mapper.ReservationMapper;
 import com.swp391.e_Motion_be.mapper.UserMapper;
 import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.StaffService;
@@ -48,8 +46,6 @@ public class UserService {
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StationRepository stationRepository;
-    private final ReservationMapper reservationMapper;
-    private final RentalMapper rentalMapper;
     private final StaffRepository staffRepository;
     private final StaffService staffService;
 
@@ -79,6 +75,13 @@ public class UserService {
 
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        return userMapper.toUserResponse(user);
+    }
+
+    public UserResponse getRenterByEmail(String email) {
+        User user = userRepository.findByEmailAndRole(email, Role.ROLE_USER)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         return userMapper.toUserResponse(user);

@@ -36,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -55,7 +56,6 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final DocuSealService docuSealService;
 
     @Transactional
     public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
@@ -345,6 +345,15 @@ public class PaymentService {
     private void handleSuccessfulPenaltyFee(Payment payment) {
         Rental rental = payment.getRental();
         if (rental != null) {
+            // Cộng điểm cho user
+            long hours = Duration.between(rental.getStartTime(), rental.getEndTime()).toHours();
+            int pointPerHour = rental.getVehicle().getPoint();
+            int earnedPoints = (int) (hours * pointPerHour);
+
+            User user = rental.getUser();
+            user.setPoint(user.getPoint() + earnedPoints);
+            userRepository.save(user);
+
             rental.setStatus(RentalStatus.COMPLETED);
             rentalRepository.save(rental);
             log.info("Penalty fee rental payment processed: {}", payment.getId());

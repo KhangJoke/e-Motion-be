@@ -1,9 +1,11 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.report.ReportCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.report.ReportSearchRequest;
 import com.swp391.e_Motion_be.dto.requests.report.ReportUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.report.ReportResponse;
+import com.swp391.e_Motion_be.enums.report.ReportType;
 import com.swp391.e_Motion_be.service.ReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,14 @@ public class ReportController {
         return response;
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ApiResponse<ReportResponse> getReportsById(@PathVariable Long id) {
+        ApiResponse<ReportResponse> response = new ApiResponse<>();
+        response.setData(reportService.findReportById(id));
+        return response;
+    }
+
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<ReportResponse>> getReportsByUser(@PathVariable Long userId) {
@@ -46,13 +56,33 @@ public class ReportController {
         return response;
     }
 
-    @PatchMapping("/update-status")
+    @PostMapping("/update-status")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiResponse<ReportResponse> updateReportStatus(@RequestBody @Valid ReportUpdateStatusRequest request) {
         ApiResponse<ReportResponse> response = new ApiResponse<>();
         response.setData(reportService.updateReportStatus(request));
         return response;
     }
+
+
+    @GetMapping("/types")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ApiResponse<List<ReportType>> findAllReportTypes() {
+        ApiResponse<List<ReportType>> response = new ApiResponse<>();
+        response.setData(reportService.findAllReportTypes());
+        return response;
+    }
+
+
+
+    @PostMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ApiResponse<List<ReportResponse>> searchReports(@RequestBody ReportSearchRequest request) {
+        ApiResponse<List<ReportResponse>> response = new ApiResponse<>();
+        response.setData(reportService.searchReports(request.getType(), request.getStatus(), request.getTitle()));
+        return response;
+    }
+
 
     @DeleteMapping("/id")
     @PreAuthorize("hasAnyRole('ADMIN')")

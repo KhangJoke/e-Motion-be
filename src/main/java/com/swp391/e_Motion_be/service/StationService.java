@@ -2,8 +2,8 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.station.StationCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.station.ManageStationResponse;
+import com.swp391.e_Motion_be.dto.responses.station.StationCityResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
 import com.swp391.e_Motion_be.dto.responses.stats.RevenueResponse;
@@ -119,9 +119,9 @@ public class StationService {
                 .toList();
     }
 
-    public List<StationResponse> getStationsByCity(StationCity city) {
+    public List<StationCityResponse> getStationsByCity(StationCity city) {
         return stationRepository.findByCity(city).stream()
-                .map(stationMapper::toStationResponse)
+                .map(stationMapper::toStationCityResponse)
                 .toList();
     }
 
