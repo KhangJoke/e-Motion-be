@@ -5,7 +5,6 @@ import com.swp391.e_Motion_be.dto.requests.document.DocumentUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.DocumentResponse;
 import com.swp391.e_Motion_be.service.document.DocumentService;
-import com.swp391.e_Motion_be.service.document.OcrService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DocumentController {
 
-    OcrService ocrService;
     DocumentService documentService;
 
     @PostMapping

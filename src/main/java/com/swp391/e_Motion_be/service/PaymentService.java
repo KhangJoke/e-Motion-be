@@ -55,7 +55,6 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final DocuSealService docuSealService;
 
     @Transactional
     public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {

@@ -12,8 +12,6 @@ import com.swp391.e_Motion_be.mapper.RatingMapper;
 import com.swp391.e_Motion_be.repository.RatingRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
 import com.swp391.e_Motion_be.repository.UserRepository;
-import com.swp391.e_Motion_be.service.user.UserService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

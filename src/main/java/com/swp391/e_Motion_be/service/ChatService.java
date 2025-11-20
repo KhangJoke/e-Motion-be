@@ -44,7 +44,7 @@ public class ChatService {
         // Thêm câu hỏi của user
         history.add(new UserMessage(request.getMessage()));
         // Gọi AI với full context
-        String response = null;
+        String response;
         try{
             response = chatClient.prompt()
                     .messages(history)

@@ -434,7 +434,6 @@ public class EmailService {
             case FAILED -> "#e53e3e";  // Red
             case PENDING -> "#ecc94b"; // Yellow
             case REFUND -> "#3182ce"; // Blue
-            default -> "#718096";      // Gray
         };
     }
 

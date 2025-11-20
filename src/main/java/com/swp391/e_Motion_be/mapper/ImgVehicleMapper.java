@@ -5,7 +5,6 @@ import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleUpdateRequest;
 import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
 import com.swp391.e_Motion_be.entity.ImgVehicle;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")

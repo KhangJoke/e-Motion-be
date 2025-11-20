@@ -229,18 +229,6 @@ public class VehicleService {
         vehicleRepository.save(vehicle);
     }
 
-    public List<VehicleScheduleResponse> getVehicleSchedule(Long vid){
-        List<VehicleScheduleResponse> schedules = new ArrayList<>();
-        rentalRepository.findByVehicle_Id(vid).ifPresent(rental ->
-                schedules.add(new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
-        );
-        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusIn(vid, List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRM));
-        schedules.addAll(reservations.stream()
-                .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
-                .toList());
-        return schedules;
-    }
-
 
     public List<FeeResponse> getListFeeBooking(Long vid, String start, String end){
         Vehicle vehicle = vehicleRepository.findById(vid)
@@ -515,8 +503,6 @@ public class VehicleService {
     }
 
     public List<VehicleScheduleResponse> getVehicleFullSchedule(Long id) {
-        Vehicle vehicle = vehicleRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
 
         List<VehicleScheduleResponse> schedules = new ArrayList<>();
         List<Rental> rentals = rentalRepository.findByVehicle_IdAndStatusNotInAndStartTimeAfter(id, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED), LocalDateTime.now());
@@ -555,8 +541,6 @@ public class VehicleService {
     }
 
     public VehicleCheckAvailableResponse vehicleCheckAvailable(VehicleCheckAvailableRequest request) {
-        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
-                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         boolean isAvailable = vehicleRepository.doesConflictExistForVehicle(
                 request.getVehicleId(),
                 request.getStartTime(),

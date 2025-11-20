@@ -12,7 +12,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -45,14 +45,6 @@ public class RefreshTokenService {
     public void revokeToken(RefreshToken token) {
         token.setRevoked(true);
         refreshTokenRepository.save(token);
-    }
-
-    public void revokeAllTokensForUser(User user) {
-        List<RefreshToken> tokens = refreshTokenRepository.findByUserAndRevokedFalse(user);
-        for (RefreshToken token : tokens) {
-            token.setRevoked(true);
-        }
-        refreshTokenRepository.saveAll(tokens);
     }
 
     public String rotateRefreshToken(RefreshToken old) {

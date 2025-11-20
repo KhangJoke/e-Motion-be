@@ -2,7 +2,6 @@ package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.dto.requests.station.StationCreationRequest;
 import com.swp391.e_Motion_be.dto.requests.station.StationUpdateRequest;
-import com.swp391.e_Motion_be.dto.responses.rental.RentalResponse;
 import com.swp391.e_Motion_be.dto.responses.station.ManageStationResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationDetailResponse;
 import com.swp391.e_Motion_be.dto.responses.station.StationResponse;

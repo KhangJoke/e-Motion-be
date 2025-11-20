@@ -12,7 +12,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {StationMapper.class, ImgVehicleMapper.class})
 public abstract class VehicleMapper {

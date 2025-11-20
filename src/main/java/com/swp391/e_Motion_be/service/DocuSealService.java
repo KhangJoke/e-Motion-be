@@ -30,8 +30,6 @@ public class DocuSealService {
     private String apiKey;
     @Value("${docuseal.template-id}")
     private String templateId;
-    @Value("${docuseal.url}")
-    private String url;
     @Autowired
     private RentalRepository rentalRepository;
     @Autowired

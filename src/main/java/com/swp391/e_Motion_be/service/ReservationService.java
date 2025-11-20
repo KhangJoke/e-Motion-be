@@ -536,17 +536,6 @@ public class ReservationService {
         return new PageAndFilterReservationResponse(reservations, reservationPage.getTotalPages());
     }
 
-    public ReservationResponse getReservationById(long id) {
-        Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
-        ReservationResponse response = reservationMapper.toReservationResponse(reservation);
-        String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
-        if(redisValue != null){
-            response.setPaymentUrl(redisValue);
-        }
-        return response;
-    }
-
     public Reservation getById(long id) {
         return reservationRepository.findById(id)
                 .orElse(null);

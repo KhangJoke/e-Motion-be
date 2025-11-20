@@ -368,7 +368,6 @@ public class RentalService {
             if(rental.getVehicleLog()==null){
                 rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
             }
-            Rental updatedRental = rentalRepository.save(rental);
             Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElseThrow(
                     () -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS)
             );

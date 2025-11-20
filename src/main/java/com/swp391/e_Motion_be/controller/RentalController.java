@@ -4,7 +4,6 @@ import com.swp391.e_Motion_be.dto.requests.rental.*;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.*;
-import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.service.DocuSealService;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -124,23 +123,6 @@ public class RentalController {
         return response;
     }
 
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
-    public ApiResponse<List<RentalResponse>> searchRentals (@RequestParam String email,
-                                                            @RequestParam (required = false) List<RentalStatus> status) {
-        List<RentalResponse> rentalResponses = null;
-        if(status != null ) {
-            rentalResponses = rentalService.getRentalByEmailUserContainAndStatusIn(email, status);
-        }else{
-            rentalResponses =  rentalService.getRentalByEmailUserContain(email);
-        }
-        ApiResponse<List<RentalResponse>> response = new ApiResponse<>();
-        response.setData(rentalResponses);
-        response.setMessage("Fetched reservation successfully");
-        response.setStatus(200);
-
-        return response;
-    }
 
     @GetMapping("/station/{stationId}")
     public ResponseEntity<ApiResponse<List<RentalResponse>>> getRentalOfStation(@PathVariable Long stationId){
