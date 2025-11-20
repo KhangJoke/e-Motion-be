@@ -41,6 +41,7 @@ public enum ErrorCode {
     VEHICLE_STATUS_INVALID(HttpStatus.CONFLICT, "Trạng thái phương tiện không hợp lệ"),
     INVALID_VEHICLE_BRAND(HttpStatus.CONFLICT, "Thương hiệu phương tiện không hợp lệ"),
     VEHICLE_IS_ONGOING(HttpStatus.CONFLICT, "Phương tiện đang được thuê"),
+    BELOW_CURRENT_BATTERY_LEVEL(HttpStatus.BAD_REQUEST, "Mức pin mới phải cao hơn mức pin hiện tại"),
 
     // Vehicle Log errors
     VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Nhật ký phương tiện không tồn tại"),

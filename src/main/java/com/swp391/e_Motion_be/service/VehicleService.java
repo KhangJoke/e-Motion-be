@@ -585,6 +585,10 @@ public class VehicleService {
     public void updateVehicleBatteryLevel(VehicleBatteryLevelUpdateRequest request) {
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+        if(request.getBatteryLevel() < vehicle.getBatteryLevel()){
+            throw new AppException(ErrorCode.BELOW_CURRENT_BATTERY_LEVEL);
+        }
+        vehicle.setStatus(VehicleStatus.AVAILABLE);
         vehicle.setBatteryLevel(request.getBatteryLevel());
         vehicleRepository.save(vehicle);
     }
