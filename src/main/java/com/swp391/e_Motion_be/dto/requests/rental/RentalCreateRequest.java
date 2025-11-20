@@ -22,8 +22,6 @@ public class RentalCreateRequest {
     LocalDateTime endTime;
     @NotNull(message = "Vehicle ID is required")
     Long vehicleId;
-    @NotNull(message = "Station ID is required")
-    Long stationId;
     @NotNull(message = "User email is required")
     String email;
     @NotNull(message = "Staff ID is required")

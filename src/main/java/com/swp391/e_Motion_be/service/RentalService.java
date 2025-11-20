@@ -93,7 +93,7 @@ public class RentalService {
         rental.setStaff(staff);
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservationRepository.save(reservation);
-        return createRentalCommon(rental, reservation.getUser(),reservation.getVehicle(), reservation.getStation().getId(), reservation.getDeposit().getAmount());
+        return createRentalCommon(rental, reservation.getUser(),reservation.getVehicle(), reservation.getDeposit().getAmount());
     }
 
     // Hàm tạo rental khi renter thuê trực tiếp tại trạm
@@ -110,19 +110,17 @@ public class RentalService {
         // kiểm tra có tồn tại object ko
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        Station station = stationRepository.findById(request.getStationId())
-                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTS));
         Staff staff = staffRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
 
-        Rental rental = rentalMapper.toRentalEntity(request, vehicle, station, user, staff);
-        return createRentalCommon(rental, user, vehicle, station.getId(),0);
+        Rental rental = rentalMapper.toRentalEntity(request, vehicle, vehicle.getStation(), user, staff);
+        return createRentalCommon(rental, user, vehicle,0);
     }
 
     // Hàm này chứa các action chung của 2 hàm cách tạo rental
-    private RentalResponse createRentalCommon(Rental rental, User user, Vehicle vehicle, Long stationId, double reservationDepositAmount){
+    private RentalResponse createRentalCommon(Rental rental, User user, Vehicle vehicle, double reservationDepositAmount){
         // Kiểm tra CCCD và GPLX của renter
         if(!documentRepository.existsByUser_IdAndType(user.getId(), DocumentType.CCCD)){
             throw new AppException(ErrorCode.USER_NEED_HAS_CCCD);
@@ -142,10 +140,6 @@ public class RentalService {
         // Kiểm tra xe cho thuê có đang available ko
         if(!vehicle.getStatus().equals(VehicleStatus.AVAILABLE)){
             throw new AppException(ErrorCode.VEHICLE_NOT_READY);
-        }
-        // Kiểm tra station của xe và của đơn có giống nhau ko
-        if(!vehicle.getStation().getId().equals(stationId)) {
-            throw new AppException(ErrorCode.VEHICLE_STATION_MISMATCH);
         }
 
         // save rental

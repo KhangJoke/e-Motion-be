@@ -18,6 +18,7 @@ import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
@@ -230,25 +232,25 @@ public class VehicleService {
     }
 
 
-    public List<FeeResponse> getListFeeBooking(Long vid, String start, String end){
-        Vehicle vehicle = vehicleRepository.findById(vid)
+    public List<FeeResponse> getListFeeBooking(FeeRequest request){
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         List<FeeResponse> fees = new ArrayList<>();
 
-        long hours = Duration.between( LocalDateTime.parse(start), LocalDateTime.parse(end)).toHours();
-        double feePoint = vehicle.getPoint() * ((double) hours /4);
-
-        double bookingFeeValue = rentalService.calculateRentalFee(vehicle, LocalDateTime.parse(start), LocalDateTime.parse(end));
+        double bookingFeeValue = rentalService.calculateRentalFee(vehicle, request.getStartTime(), request.getEndTime());
 
         FeeResponse bookingFee = new FeeResponse("Phí thuê xe", FeeType.BOOKING_FEE, bookingFeeValue);
-//        FeeResponse pointFee = new FeeResponse("Giảm giá", FeeType.BOOKING_FEE, feePoint * 1000);
         FeeResponse deposit = new FeeResponse("Tiền cọc xe", FeeType.DEPOSIT, vehicle.getDepositFee());
-        FeeResponse holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
+        FeeResponse holdCar;
+        if(request.isRental()){
+            holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, 0.0);
+        }else{
+            holdCar = new FeeResponse("Tiền giữ chỗ", FeeType.HOLD_CAR, holdCarFee);
+        }
         FeeResponse total = new FeeResponse("Tổng tiền phải trả", FeeType.TOTAL_AMOUNT,
                 bookingFeeValue + vehicle.getDepositFee());
 
         fees.add(bookingFee);
-//        fees.add(pointFee);
         fees.add(deposit);
         fees.add(holdCar);
         fees.add(total);
