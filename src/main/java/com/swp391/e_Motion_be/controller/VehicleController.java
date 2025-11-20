@@ -177,4 +177,13 @@ public class VehicleController {
         response.setMessage("Dispatch vehicle successfully");
         return response;
     }
+
+    @PutMapping("/{id}/status")
+    public ApiResponse<Void> updateVehicleStatus(
+            @PathVariable Long id,
+            @RequestBody @Valid VehicleStatusUpdateRequest request) {
+        vehicleService.updateVehicleStatus(id, request);
+        return new ApiResponse<>(200, "Vehicle status updated successfully", null);
+    }
+
 }

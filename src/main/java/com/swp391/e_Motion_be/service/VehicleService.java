@@ -559,4 +559,17 @@ public class VehicleService {
         ) == 0;
         return new VehicleCheckAvailableResponse(isAvailable);
     }
+
+    @Transactional
+    public void updateVehicleStatus(Long vehicleId, VehicleStatusUpdateRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
+
+        // Validation: không cho đổi status nếu xe đang ONGOING
+        if (vehicle.getStatus() == VehicleStatus.ONGOING && request.getStatus() != VehicleStatus.ONGOING) {
+            throw new AppException(ErrorCode.VEHICLE_IS_ONGOING);
+        }
+        vehicle.setStatus(request.getStatus());
+        vehicleRepository.save(vehicle);
+    }
 }
