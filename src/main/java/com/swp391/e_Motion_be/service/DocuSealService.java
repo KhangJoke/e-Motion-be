@@ -1,8 +1,10 @@
 package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.enums.*;
+import com.swp391.e_Motion_be.enums.ContractStatus;
+import com.swp391.e_Motion_be.enums.DocumentType;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
@@ -12,13 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -104,6 +104,7 @@ public class DocuSealService {
         }
         String contractUrl = (String) response.getBody().get(0).get("embed_src");
         emailService.sendContractEmail(rental, contractUrl);
+        rental.setContractUrl(contractUrl);
         rental.setContractStatus(ContractStatus.PENDING);
         rental.setStatus(RentalStatus.CONTRACTING);
         rentalRepository.save(rental);
@@ -122,14 +123,8 @@ public class DocuSealService {
             if ("completed".equals(status)) {
                 Rental rental = rentalRepository.findTopByUserEmailOrderByCreatedAtDesc(email)
                         .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-                Map<String, Object> submission = (Map<String, Object>) data.get("submission");
-                long submissionId = 0;
-                if (submission != null && submission.get("id") != null) {
-                    submissionId = ((Number) submission.get("id")).longValue();
-                }
                 rental.setStatus(RentalStatus.CONTRACTING);
                 rental.setContractStatus(ContractStatus.SIGNED);
-                rental.setSubmissionId(submissionId);
                 rental.setSubmissionUrl(submissionUrl);
                 rentalRepository.save(rental);
             }
@@ -142,49 +137,6 @@ public class DocuSealService {
             rental.setContractStatus(ContractStatus.DECLINED);
             rentalRepository.save(rental);
         }
-    }
-
-    @Transactional
-    public String getContractUrl(long rentalId) {
-        Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-
-        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (!rental.getUser().getId().equals(loginUser.getId()) && loginUser.getRole().equals(Role.ROLE_USER)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Auth-Token", apiKey);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> response;
-        try{
-            response = restTemplate.exchange(
-                    "https://api.docuseal.com/submissions/" + rental.getSubmissionId(),
-                    HttpMethod.GET,
-                    entity,
-                    Map.class
-            );
-        }catch (Exception e){
-            throw new AppException(ErrorCode.CONTRACT_NOT_FOUND);
-        }
-
-        Map<String, Object> body = response.getBody();
-        if (body == null) {
-            throw new AppException(ErrorCode.DOCUSEAL_FETCH_FAILED);
-        }
-
-        // Lấy danh sách document trong JSON
-        List<Map<String, Object>> documents = (List<Map<String, Object>>) body.get("documents");
-        if (documents != null && !documents.isEmpty()) {
-            return (String) documents.get(0).get("url");
-        }
-
-        throw new AppException(ErrorCode.DOCUSEAL_DOCUMENT_NOT_FOUND);
     }
 
 }

@@ -31,6 +31,7 @@ public class RentalResponse {
     String userEmail;
     ContractStatus contractStatus;
     String submissionUrl;
+    String contractUrl;
     DepositResponse rentalDeposit;
     DepositResponse reservationDeposit;
     List<RentalCheckListResponse> rentalCheckLists;
