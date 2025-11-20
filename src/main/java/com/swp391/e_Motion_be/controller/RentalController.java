@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.service.DocuSealService;
 import com.swp391.e_Motion_be.service.RentalService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -98,11 +99,11 @@ public class RentalController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{id}/check-inpayment")
+    @GetMapping("/check-inpayment")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
-    public ApiResponse<VnpayResponse> processCheckInPayment(@PathVariable Long id, HttpServletRequest request) throws Exception {
+    public ApiResponse<VnpayResponse> processCheckInPayment(@RequestParam("rentalId") Long id, @RequestParam("point") int point, HttpServletRequest request) throws Exception {
         ApiResponse<VnpayResponse> response = new ApiResponse<>();
-        response.setData(rentalService.processCheckInPayment(id , request.getRemoteAddr()));
+        response.setData(rentalService.processCheckInPayment(id, point , request.getRemoteAddr()));
         return response;
     }
 

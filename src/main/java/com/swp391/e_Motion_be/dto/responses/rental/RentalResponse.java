@@ -25,6 +25,7 @@ public class RentalResponse {
     LocalDateTime startTime;
     LocalDateTime endTime;
     double rentFee;
+    int discountPoint;
     LocalDateTime createdAt;
     VehicleDetailResponse vehicle;
     String reservationCode;
