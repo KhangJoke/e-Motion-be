@@ -34,11 +34,10 @@ public class ReportService {
     private UserService userService;
 
     public ReportResponse createReport(ReportCreationRequest report){
-        Report newReport = new Report();
+        Report newReport = reportMapper.toReportEntity(report);
         if(report.getType().equals(ReportType.REPORT_USER)){
             User user = userRepository.findByEmail(report.getUserEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-            newReport = reportMapper.toReportEntity(report);
             newReport.setUser(user);
         }
 
@@ -66,6 +65,10 @@ public class ReportService {
     public List<ReportResponse> searchReports(ReportType type, ReportStatus status, String title){
         List<Report> reports = reportRepository.searchReports(type, status, title);
         return reports.stream().map(reportMapper::toResponse).toList();
+    }
+
+    public ReportResponse findReportById(Long id){
+        return reportMapper.toResponse(reportRepository.findById(id).orElse(null));
     }
 
     public List<ReportResponse> findAllReports(){

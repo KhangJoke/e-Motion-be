@@ -69,7 +69,7 @@ public class DocuSealService {
                         Map.of("name", "rentLength", "default_value", rental.getStartTime().getHour()-rental.getEndTime().getHour(), "readonly", true),
                         Map.of("name", "rentFee", "default_value", String.valueOf(rental.getRentFee()), "readonly", true),
                         Map.of("name", "paymentMethod", "default_value", "VNPay", "readonly", true),
-                        Map.of("name", "payDate", "default_value", LocalDateTime.now(), "readonly", true),
+                        Map.of("name", "payDate", "default_value", LocalDateTime.now().toString(), "readonly", true),
                         Map.of("name", "CCCD", "default_value", documentRepository.findByUser_EmailAndType(rental.getUser().getEmail(), DocumentType.CCCD).getNumber(), "readonly", false),
                         Map.of("name", "GPLX", "default_value", documentRepository.findByUser_EmailAndType(rental.getUser().getEmail(), DocumentType.LICENSE).getNumber(), "readonly", false)
                 )
