@@ -1,6 +1,7 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.report.ReportCreationRequest;
+import com.swp391.e_Motion_be.dto.requests.report.ReportSearchRequest;
 import com.swp391.e_Motion_be.dto.requests.report.ReportUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.report.ReportResponse;
@@ -61,6 +62,14 @@ public class ReportController {
     public ApiResponse<List<ReportType>> findAllReportTypes() {
         ApiResponse<List<ReportType>> response = new ApiResponse<>();
         response.setData(reportService.findAllReportTypes());
+        return response;
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ApiResponse<List<ReportResponse>> searchReports(@RequestBody ReportSearchRequest request) {
+        ApiResponse<List<ReportResponse>> response = new ApiResponse<>();
+        response.setData(reportService.searchReports(request.getType(), request.getStatus(), request.getTitle()));
         return response;
     }
 

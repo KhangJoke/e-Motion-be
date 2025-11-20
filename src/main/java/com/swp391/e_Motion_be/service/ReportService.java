@@ -63,6 +63,11 @@ public class ReportService {
     }
 
 
+    public List<ReportResponse> searchReports(ReportType type, ReportStatus status, String title){
+        List<Report> reports = reportRepository.searchReports(type, status, title);
+        return reports.stream().map(reportMapper::toResponse).toList();
+    }
+
     public List<ReportResponse> findAllReports(){
         List<Report> reports = reportRepository.findAll()
                 .stream()
