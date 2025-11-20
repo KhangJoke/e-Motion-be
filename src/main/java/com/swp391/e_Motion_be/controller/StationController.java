@@ -79,7 +79,7 @@ public class StationController {
 
     @GetMapping("/city")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<StationResponse>> getStationsByCity(@PathVariable("city") StationCity stationCity) {
+    public ApiResponse<List<StationResponse>> getStationsByCity(@RequestParam("city") StationCity stationCity) {
         ApiResponse<List<StationResponse>> response = new ApiResponse<>();
         response.setData(stationService.getStationsByCity(stationCity));
         response.setMessage("Get stations by city successfully");
