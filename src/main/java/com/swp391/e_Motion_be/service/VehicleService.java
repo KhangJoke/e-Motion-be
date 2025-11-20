@@ -396,6 +396,20 @@ public class VehicleService {
     }
 
     public PageAndFilterVehicleResponse findUnavailableVehicles(PageAndFilterVehicleRequest request) {
+        if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
+            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        }
+        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
+                request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
+            throw new AppException(ErrorCode.VEHICLE_TIME_MUST_AFTER_NOW_3HOURS);
+        }
+
+        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
+            throw new AppException(ErrorCode.VEHICLE_END_TIME_INVALID);
+        }
+        if(request.getEndTime().isBefore(request.getStartTime().plusHours(4))) {
+            throw new AppException(ErrorCode.INVALID_FILTER_TIME);
+        }
         Integer seats = request.getSeats();
         List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
                 ? Arrays.asList(VehicleBrand.values())

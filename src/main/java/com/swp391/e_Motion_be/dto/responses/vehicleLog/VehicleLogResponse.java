@@ -23,4 +23,5 @@ public class VehicleLogResponse {
     private Long vehicleId;
     private Long staffId;
     private Long rentalId;
+    private Long rentalStatus;
 }
