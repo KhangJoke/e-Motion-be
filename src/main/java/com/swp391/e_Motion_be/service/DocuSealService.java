@@ -124,7 +124,7 @@ public class DocuSealService {
                         .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
                 rental.setStatus(RentalStatus.CONTRACTING);
                 rental.setContractStatus(ContractStatus.SIGNED);
-                rental.setSubmissionUrl(getContractUrl(rental.getSubmissionId()));
+                rental.setSubmissionUrl(getDocumentUrl(rental.getSubmissionId()));
                 rentalRepository.save(rental);
             }
         }else if("form.declined".equalsIgnoreCase(eventType)) {
@@ -139,7 +139,7 @@ public class DocuSealService {
     }
 
     @Transactional
-    public String getContractUrl(long rentalId) {
+    public String getDocumentUrl(long rentalId) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
