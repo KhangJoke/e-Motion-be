@@ -290,18 +290,8 @@ public class RentalService {
         if(!rental.getStatus().equals(RentalStatus.CONTRACTING) || !rental.getContractStatus().equals(ContractStatus.SIGNED)){
             throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
-
-        double rentalDepositAmount = rental.getDeposit().getAmount();
-
         int discountFee = point * 1000;
-        rental.setDiscountPoint(point);
-        User user = rental.getUser();
-        if(user.getPoint() < point){
-            throw new AppException(ErrorCode.USER_POINT_NOT_ENOUGH);
-        }
-        user.setPoint(user.getPoint() - point);
-        rentalRepository.save(rental);
-
+        double rentalDepositAmount = rental.getDeposit().getAmount();
         CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
         request.setRentalId(rental.getId());
         request.setDepositId(rental.getDeposit().getId());
@@ -309,8 +299,15 @@ public class RentalService {
         request.setAmount(rental.getRentFee()+rentalDepositAmount - discountFee);
         request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
         request.setUserEmail(rental.getUser().getEmail());
-
-        return paymentService.createPaymentUrl(request, ipAddr);
+        VnpayResponse response = paymentService.createPaymentUrl(request, ipAddr);
+        rental.setDiscountPoint(point);
+        User user = rental.getUser();
+        if(user.getPoint() < point){
+            throw new AppException(ErrorCode.USER_POINT_NOT_ENOUGH);
+        }
+        user.setPoint(user.getPoint() - point);
+        rentalRepository.save(rental);
+        return response;
     }
 
     @Transactional
