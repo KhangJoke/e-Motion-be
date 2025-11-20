@@ -11,6 +11,7 @@ public enum ErrorCode {
     UNEXPECTED_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi không mong muốn"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Không có quyền truy cập"),
     INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "Khoảng thời gian phải lớn hơn hoặc bằng 4"),
+    INVALID_FILTER_TIME(HttpStatus.BAD_REQUEST, "Thời gian kết thúc phải sau thời gian bắt đầu"),
 
     // User errors
     ROLE_INVALID(HttpStatus.BAD_REQUEST, "Vai trò người dùng không hợp lệ"),
