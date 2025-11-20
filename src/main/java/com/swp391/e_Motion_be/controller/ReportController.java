@@ -47,7 +47,7 @@ public class ReportController {
         return response;
     }
 
-    @PatchMapping("/update-status")
+    @PostMapping("/update-status")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiResponse<ReportResponse> updateReportStatus(@RequestBody @Valid ReportUpdateStatusRequest request) {
         ApiResponse<ReportResponse> response = new ApiResponse<>();
