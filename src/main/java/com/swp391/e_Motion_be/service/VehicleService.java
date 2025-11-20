@@ -472,6 +472,9 @@ public class VehicleService {
 
     public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
         User user = userService.currentUser();
+        if(request.getEndTime().isBefore(request.getStartTime())){
+            throw new AppException(ErrorCode.INVALID_FILTER_TIME);
+        }
 
         List<VehicleStatus> statusList = (request.getStatus() == null || request.getStatus().isEmpty())
                 ? Arrays.asList(VehicleStatus.values())
