@@ -86,7 +86,7 @@ public class DocuSealService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-Auth-Token", apiKey);
+        headers.set("X-API-KEY", apiKey);
 
         ParameterizedTypeReference<List<Map<String, Object>>> responseType = new ParameterizedTypeReference<>() {};
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
