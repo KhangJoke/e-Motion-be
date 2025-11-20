@@ -65,7 +65,7 @@ public class ReportController {
         return response;
     }
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<List<ReportResponse>> searchReports(@RequestBody ReportSearchRequest request) {
         ApiResponse<List<ReportResponse>> response = new ApiResponse<>();
