@@ -64,7 +64,11 @@ public class ReportService {
 
     public List<ReportResponse> searchReports(ReportType type, ReportStatus status, String title){
         List<Report> reports = reportRepository.searchReports(type, status, title);
-        return reports.stream().map(reportMapper::toResponse).toList();
+        return reports.stream()
+                .filter(report -> !report.isDelete())
+                .sorted(Comparator.comparing(Report::getCreatedAt).reversed())
+                .map(reportMapper::toResponse)
+                .toList();
     }
 
     public ReportResponse findReportById(Long id){
