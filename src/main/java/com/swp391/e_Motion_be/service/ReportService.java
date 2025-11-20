@@ -36,7 +36,7 @@ public class ReportService {
     public ReportResponse createReport(ReportCreationRequest report){
         Report newReport = new Report();
         if(report.getType().equals(ReportType.REPORT_USER)){
-            User user = userRepository.findById(report.getUserId())
+            User user = userRepository.findByEmail(report.getUserEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
             newReport = reportMapper.toReportEntity(report);
             newReport.setUser(user);
