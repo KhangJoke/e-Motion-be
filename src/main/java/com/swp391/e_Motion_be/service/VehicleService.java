@@ -472,7 +472,8 @@ public class VehicleService {
 
     public PageAndFilterVehicleResponse manageCar(PageAndFilterManageVehicleRequest request) {
         User user = userService.currentUser();
-        if(request.getEndTime().isBefore(request.getStartTime())){
+
+        if(request.getStartTime() != null && request.getEndTime() != null && request.getEndTime().isBefore(request.getStartTime())){
             throw new AppException(ErrorCode.INVALID_FILTER_TIME);
         }
 
