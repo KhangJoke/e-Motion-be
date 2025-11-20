@@ -153,7 +153,7 @@ public class DocuSealService {
         ResponseEntity<Map> response;
         try{
             response = restTemplate.exchange(
-                    "https://api.docuseal.com/submissions/" + rental.getSubmissionId(),
+                    "https://api.docuseal.com/submissions/" + rental.getSubmissionId()+"/documents",
                     HttpMethod.GET,
                     entity,
                     Map.class
