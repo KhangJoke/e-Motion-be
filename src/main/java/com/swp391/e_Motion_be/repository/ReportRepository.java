@@ -2,6 +2,7 @@ package com.swp391.e_Motion_be.repository;
 
 import com.swp391.e_Motion_be.entity.Report;
 import com.swp391.e_Motion_be.entity.User;
+import com.swp391.e_Motion_be.enums.report.ReportType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
