@@ -120,9 +120,15 @@ public class VehicleService {
 
 
 
-    public List<VehicleBrandResponse> findAllVehicleBrands() {
+    public List<String> findAllVehicleBrands() {
         return Arrays.stream(VehicleBrand.values())
-                .map(VehicleBrandResponse::new)
+                .map(Enum::name)
+                .toList();
+    }
+
+    public List<String> findAllVehicleCategory(){
+        return Arrays.stream(VehicleCategory.values())
+                .map(Enum::name)
                 .toList();
     }
 
