@@ -18,6 +18,7 @@ public interface VehicleLogMapper {
     @Mapping(source = "vehicle.id", target = "vehicleId")
     @Mapping(source = "staff.id", target = "staffId")
     @Mapping(source = "rental.id", target = "rentalId")
+    @Mapping(source = "rental.status", target = "rentalStatus")
     @Mapping(source = "repairItems", target = "repairItems")
     VehicleLogResponse toResponse(VehicleLog vehicleLog);
 
