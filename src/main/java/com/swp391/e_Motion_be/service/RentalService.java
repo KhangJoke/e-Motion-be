@@ -295,6 +295,11 @@ public class RentalService {
 
         int discountFee = point * 1000;
         rental.setDiscountPoint(point);
+        User user = rental.getUser();
+        if(user.getPoint() < point){
+            throw new AppException(ErrorCode.USER_POINT_NOT_ENOUGH);
+        }
+        user.setPoint(user.getPoint() - point);
         rentalRepository.save(rental);
 
         CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
