@@ -1,8 +1,10 @@
 package com.swp391.e_Motion_be.service;
 
 import com.swp391.e_Motion_be.entity.Rental;
-import com.swp391.e_Motion_be.entity.User;
-import com.swp391.e_Motion_be.enums.*;
+import com.swp391.e_Motion_be.enums.ContractStatus;
+import com.swp391.e_Motion_be.enums.DocumentType;
+import com.swp391.e_Motion_be.enums.ErrorCode;
+import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
@@ -12,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -124,7 +125,7 @@ public class DocuSealService {
                         .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
                 rental.setStatus(RentalStatus.CONTRACTING);
                 rental.setContractStatus(ContractStatus.SIGNED);
-                rental.setSubmissionUrl(getDocumentUrl(rental.getSubmissionId()));
+                rental.setSubmissionUrl(getDocumentUrl(rental.getId()));
                 rentalRepository.save(rental);
             }
         }else if("form.declined".equalsIgnoreCase(eventType)) {
@@ -142,12 +143,6 @@ public class DocuSealService {
     public String getDocumentUrl(long rentalId) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-
-        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (!rental.getUser().getId().equals(loginUser.getId()) && loginUser.getRole().equals(Role.ROLE_USER)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Auth-Token", apiKey);
