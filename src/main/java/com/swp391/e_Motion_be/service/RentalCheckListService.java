@@ -98,14 +98,6 @@ public class RentalCheckListService {
             rental.setStatus(RentalStatus.PENDING_FEE);
             rental.getVehicle().setStatus(VehicleStatus.CHECKING);
 
-            long hours = Duration.between(rental.getStartTime(), rental.getEndTime()).toHours();
-            int pointPerHour = rental.getVehicle().getPoint();
-            int earnedPoints = (int) (hours * pointPerHour);
-
-            User user = rental.getUser();
-            user.setPoint(user.getPoint() + earnedPoints);
-            userRepository.save(user);
-
             rentalCheckListRepository.save(checkList);
 
             emailService.sendRentalReturnedNotification(rental);

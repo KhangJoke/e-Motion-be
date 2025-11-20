@@ -102,13 +102,13 @@ public class DocuSealService {
             throw new AppException(ErrorCode.DOCUSEAL_CREATE_FAILED);
         }
         String contractUrl = (String) response.getBody().get(0).get("embed_src");
-        emailService.sendContractEmail(rental, contractUrl);
         Number subId = (Number) response.getBody().get(0).get("submission_id");
         rental.setSubmissionId(subId.longValue());
         rental.setContractUrl(contractUrl);
         rental.setContractStatus(ContractStatus.PENDING);
         rental.setStatus(RentalStatus.CONTRACTING);
         rentalRepository.save(rental);
+        emailService.sendContractEmail(rental, contractUrl);
         return contractUrl;
     }
 

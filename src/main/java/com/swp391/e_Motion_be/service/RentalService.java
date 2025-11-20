@@ -357,6 +357,14 @@ public class RentalService {
 
                 paymentService.refundPayment(refundRequest);
             }
+            // Cộng điểm cho user
+            long hours = Duration.between(rental.getStartTime(), rental.getEndTime()).toHours();
+            int pointPerHour = rental.getVehicle().getPoint();
+            int earnedPoints = (int) (hours * pointPerHour);
+
+            User user = rental.getUser();
+            user.setPoint(user.getPoint() + earnedPoints);
+            userRepository.save(user);
 
             rental.setStatus(RentalStatus.COMPLETED);
             if(rental.getVehicleLog()==null){
