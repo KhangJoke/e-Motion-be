@@ -186,12 +186,12 @@ public class VehicleService {
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
         Station station = stationRepository.findById(request.getStationId())
                 .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
-        vehicle.setStation(station);
 
-        if (!vehicle.getPlateNumber().equals(request.getPlateNumber())
-                && vehicleRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
-            throw new AppException(ErrorCode.VEHICLE_EXIST);
+        if (vehicleRepository.existsByPlateNumberAndIdNot(request.getPlateNumber(), vehicle.getId())){
+            throw new AppException(ErrorCode.VEHICLE_PLATE_EXISTS);
         }
+
+        vehicle.setStation(station);
 
         // Xóa ảnh đã up trên cloud mà request gửi update ko còn url
         List<ImgVehicle> oldImages = imgVehicleRepository.findByVehicle_Id(vehicle.getId());

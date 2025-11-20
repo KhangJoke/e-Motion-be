@@ -33,6 +33,7 @@ public enum ErrorCode {
 
     // Vehicle errors
     VEHICLE_EXIST(HttpStatus.CONFLICT, "Phương tiện đã tồn tại"),
+    VEHICLE_PLATE_EXISTS(HttpStatus.CONFLICT, "Biển số phương tiện đã tồn tại"),
     VEHICLE_NOT_EXIST(HttpStatus.NOT_FOUND, "Phương tiện không tồn tại"),
     VEHICLE_NOT_AVAILABLE(HttpStatus.NOT_FOUND, "Phương tiện không khả dụng"),
     VEHICLE_NOT_READY(HttpStatus.CONFLICT, "Phương tiện chưa sẵn sàng sử dụng"),

@@ -19,7 +19,7 @@ public class VehicleListResponse {
     private String plateNumber;
     private int seats;
     private Double priceRate;
-    private int hourRate;
+    private double hourRate;
     private Double consumptionRate;
     private Double batteryCapacity;
     private int batteryLevel;
