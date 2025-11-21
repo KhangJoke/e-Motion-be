@@ -123,7 +123,7 @@ public class DocuSealService {
             if ("completed".equals(status)) {
                 Rental rental = rentalRepository.findTopByUserEmailOrderByCreatedAtDesc(email)
                         .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-                rental.setStatus(RentalStatus.PENDING);
+                rental.setStatus(RentalStatus.CONTRACTING);
                 rental.setContractStatus(ContractStatus.SIGNED);
                 rental.setSubmissionUrl(getDocumentUrl(rental.getId()));
                 rentalRepository.save(rental);
