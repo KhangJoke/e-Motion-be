@@ -54,8 +54,8 @@ public class RefreshTokenService {
         RefreshToken newRefreshToken = new RefreshToken();
         newRefreshToken.setToken(hashedNewToken);
         newRefreshToken.setUser(old.getUser());
-//        newRefreshToken.setExpiresAt(LocalDateTime.now().plusDays(7));
-        newRefreshToken.setExpiresAt(LocalDateTime.now().plusMinutes(1));
+        newRefreshToken.setExpiresAt(LocalDateTime.now().plusDays(7));
+//        newRefreshToken.setExpiresAt(LocalDateTime.now().plusMinutes(1));
 
         old.setRevoked(true);
         old.setReplacedBy(newRefreshToken.getId());
