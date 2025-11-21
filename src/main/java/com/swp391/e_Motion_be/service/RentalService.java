@@ -559,7 +559,7 @@ public class RentalService {
         }
 
         RentalResponse response = rentalMapper.toRentalResponse(rental);
-        String redisValue = (String) redisTemplate.opsForValue().get("extendRental:" + rental.getId());
+        String redisValue = (String) redisTemplate.opsForValue().get("paymentUrl:" + rental.getId());
         if(redisValue != null){
             response.setPaymentUrl(redisValue);
         }
