@@ -30,7 +30,7 @@ public class PaymentController {
     }
 
     @PostMapping("/vnpay")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     public ApiResponse<VnpayResponse> createPaymentUrl(HttpServletRequest request,
                                                        @RequestBody @Valid CreatePaymentUrlRequest input) throws Exception
     {

@@ -20,6 +20,7 @@ public enum ErrorCode {
     CANNOT_DELETE_OWN_ACCOUNT(HttpStatus.BAD_REQUEST, "Không thể xóa tài khoản của chính bạn"),
     ACCOUNT_BLOCKED(HttpStatus.FORBIDDEN, "Tài khoản đã bị khóa"),
     USER_POINT_NOT_ENOUGH(HttpStatus.BAD_REQUEST, "Điểm của người dùng không đủ"),
+    USER_BLOCKED(HttpStatus.FORBIDDEN, "Người dùng đã bị khóa"),
 
     // Update password errors
     OLD_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "Mật khẩu cũ không đúng"),

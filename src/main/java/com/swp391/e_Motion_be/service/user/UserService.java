@@ -6,10 +6,7 @@ import com.swp391.e_Motion_be.dto.responses.user.PageAndFilterUserResponse;
 import com.swp391.e_Motion_be.dto.responses.user.StaffStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.entity.*;
-import com.swp391.e_Motion_be.enums.CheckType;
-import com.swp391.e_Motion_be.enums.ErrorCode;
-import com.swp391.e_Motion_be.enums.RentalStatus;
-import com.swp391.e_Motion_be.enums.Role;
+import com.swp391.e_Motion_be.enums.*;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.UserMapper;
@@ -83,7 +80,14 @@ public class UserService {
     public UserResponse getRenterByEmail(String email) {
         User user = userRepository.findByEmailAndRole(email, Role.ROLE_USER)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-
+        if(user.isBlocked()) {
+            throw new AppException(ErrorCode.USER_BLOCKED);
+        }
+        boolean hasOngoingRental = rentalRepository.existsByUser_EmailAndStatusNotIn(user.getEmail(), List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED));
+        boolean hasOngoingReservation = reservationRepository.existsByUser_EmailAndStatusNotIn(user.getEmail(), List.of(ReservationStatus.COMPLETED, ReservationStatus.FAILED, ReservationStatus.CANCELLED));
+        if(hasOngoingRental || hasOngoingReservation) {
+            throw new AppException(ErrorCode.USER_HAS_ONGOING_RENTAL);
+        }
         return userMapper.toUserResponse(user);
     }
 

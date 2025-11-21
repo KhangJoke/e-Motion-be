@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.dto.responses.user.StaffStatsResponse;
 import com.swp391.e_Motion_be.dto.responses.user.UserResponse;
 import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,7 +77,7 @@ public class UserController {
 
     @GetMapping("/renter/{email}")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<UserResponse>> getRenterByEmail(@PathVariable String email){
+    public ResponseEntity<ApiResponse<UserResponse>> getRenterByEmail(@PathVariable @NotBlank String email){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         UserResponse userResponse = userService.getRenterByEmail(email);
         apiResponse.setMessage("Get user by email successfully");

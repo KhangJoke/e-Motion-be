@@ -19,7 +19,7 @@ public class StaffController {
 
 
     @GetMapping("/{email}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<StaffResponse> getStaffByUserEmail(@PathVariable String email) {
         ApiResponse<StaffResponse> response = new ApiResponse<>();
         response.setData(staffService.getStaffByUserEmail(email));

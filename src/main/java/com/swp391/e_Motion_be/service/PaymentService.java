@@ -174,8 +174,8 @@ public class PaymentService {
         }
 
         // tạo redis cho extend rental
-        if(payment.getType().equals(PaymentType.RENTAL_EXTENSION) && rental != null){
-            String key = "extendRental:" + rental.getId();
+        if(rental != null){
+            String key = "paymentUrl:" + rental.getId();
             redisTemplate.opsForValue().set(key, paymentUrl, 15, TimeUnit.MINUTES);
             log.info("Redis key created for extend rental payment: {}", key);
         }
