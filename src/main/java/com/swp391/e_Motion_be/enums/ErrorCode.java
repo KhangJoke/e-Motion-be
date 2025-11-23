@@ -45,7 +45,9 @@ public enum ErrorCode {
     VEHICLE_END_TIME_INVALID(HttpStatus.BAD_REQUEST, "Thời gian kết thúc phương tiện phải sau thời gian hiện tại"),
     VEHICLE_TIME_MUST_AFTER_NOW_3HOURS(HttpStatus.BAD_REQUEST, "Thời gian bắt đầu thuê phương tiện phải sau thời điểm hiện tại ít nhất 3 giờ"),
     BELOW_CURRENT_BATTERY_LEVEL(HttpStatus.BAD_REQUEST, "Mức pin mới phải cao hơn mức pin hiện tại"),
-
+    PRICE_4H_HIGHER_8H(HttpStatus.BAD_REQUEST,"Giá 4h phải nhỏ hơn  giá 8h"),
+    PRICE_8H_HIGHER_12H(HttpStatus.BAD_REQUEST,"Giá 8h phải nhỏ hơn  giá 12h"),
+    PRICE_12H_HIGHER_DAY(HttpStatus.BAD_REQUEST,"Giá 12h phải nhỏ hơn  giá ngày"),
     // Vehicle Log errors
     VEHICLE_LOG_NOT_EXIST(HttpStatus.NOT_FOUND, "Nhật ký phương tiện không tồn tại"),
     VEHICLE_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy mã phương tiện"),

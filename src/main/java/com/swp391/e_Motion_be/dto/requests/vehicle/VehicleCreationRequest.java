@@ -26,7 +26,7 @@ public class VehicleCreationRequest {
     @NotNull(message = "Brand is required")
     private VehicleBrand brand;
 
-    @NotNull(message = "Depsoit fee status is required")
+    @NotNull(message = "Deposit fee status is required")
     private double depositFee;
 
     @NotNull(message = "Seats is required")
@@ -40,6 +40,16 @@ public class VehicleCreationRequest {
     @NotNull(message = "Price 4 hours hour is required")
     @Positive(message = "Price 4 hours hour must be positive")
     private Double pricePer4Hours;
+
+    @NotNull(message = "Price 8 hours hour is required")
+    @Positive(message = "Price 8 hours hour must be positive")
+    private double pricePer8Hours;
+    @NotNull(message = "Price 12 hours hour is required")
+    @Positive(message = "Price 12 hours hour must be positive")
+    private double pricePer12Hours;
+    @NotNull(message = "Price day is required")
+    @Positive(message = "Price day must be positive")
+    private double pricePerDay;
 
     @NotNull(message = "The consumption rate is required")
     @Positive(message = "Consumption rate must be positive")

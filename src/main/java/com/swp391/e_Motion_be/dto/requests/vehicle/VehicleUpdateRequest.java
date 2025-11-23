@@ -38,6 +38,15 @@ public class VehicleUpdateRequest {
     @NotNull(message = "Price 4 hours hour is required")
     @Positive(message = "Price 4 hours must be positive")
     private Double pricePer4Hours;
+    @NotNull(message = "Price 8 hours hour is required")
+    @Positive(message = "Price 8 hours hour must be positive")
+    private double pricePer8Hours;
+    @NotNull(message = "Price 12 hours hour is required")
+    @Positive(message = "Price 12 hours hour must be positive")
+    private double pricePer12Hours;
+    @NotNull(message = "Price day is required")
+    @Positive(message = "Price day must be positive")
+    private double pricePerDay;
 
     @NotNull(message = "Consumption rate is required")
     @Positive(message = "Consumption rate must be positive")

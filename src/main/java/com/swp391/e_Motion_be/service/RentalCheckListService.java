@@ -38,8 +38,7 @@ public class RentalCheckListService {
     private double pricePerBattery;
     @Value("${penalty.fee.rate}")
     private double penaltyFeeRate;
-    @Value("${price.day.rate}")
-    private double priceDayRate;
+
 
     private final RentalCheckListRepository rentalCheckListRepository;
     private final RentalCheckListMapper rentalCheckListMapper;
@@ -127,7 +126,7 @@ public class RentalCheckListService {
         }
 
         Rental rental = checkOut.getRental();
-        double pricePerDay = rental.getVehicle().getPricePer4Hours()*priceDayRate;
+        double pricePerDay = rental.getVehicle().getPricePerDay();
 
         LocalDateTime actualReturnTime = checkOut.getCreatedAt();
         LocalDateTime expectedReturnTime = rental.getEndTime();

@@ -56,15 +56,6 @@ public class VehicleService {
     @Value("${hold.fee.value}")
     private double holdCarFee;
 
-    @Value("${price.8h.rate}")
-    private double price8hRate;
-
-    @Value("${price.12h.rate}")
-    private double price12hRate;
-
-    @Value("${price.day.rate}")
-    private double priceDayRate;
-
 
 
     // Find by ID
@@ -171,6 +162,7 @@ public class VehicleService {
         }
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
         vehicle.setLastMaintenance(LocalDateTime.now());
+        priceValidationVehicle(vehicle); //check price validation
 
         vehicleRepository.save(vehicle);
         imgVehicleService.createMultipleImagesForVehicle(vehicle,request.getImages());
@@ -227,7 +219,22 @@ public class VehicleService {
         });
 
         vehicleMapper.updateVehicleFromRequest(vehicle, request);
+        priceValidationVehicle(vehicle); //check price validation
         vehicleRepository.save(vehicle);
+    }
+
+    public void priceValidationVehicle(Vehicle vehicle){
+
+        if(vehicle.getPricePer4Hours()>vehicle.getPricePer8Hours()){
+            throw new AppException(ErrorCode.PRICE_4H_HIGHER_8H);
+        }
+        if(vehicle.getPricePer8Hours()>vehicle.getPricePer12Hours()){
+            throw new AppException(ErrorCode.PRICE_8H_HIGHER_12H);
+        }
+        if(vehicle.getPricePer12Hours()> vehicle.getPricePerDay()){
+            throw new AppException(ErrorCode.PRICE_12H_HIGHER_DAY);
+        }
+
     }
 
     //DELETE
@@ -363,11 +370,11 @@ public class VehicleService {
                     if(hours < 8){
                         priceValue = v.getPricePer4Hours();
                     }else if(hours < 12){
-                        priceValue = v.getPricePer4Hours() * price8hRate;
+                        priceValue = v.getPricePer8Hours();
                     }else if(hours < 24){
-                        priceValue = v.getPricePer4Hours() * price12hRate;
+                        priceValue = v.getPricePer12Hours();
                     }else{
-                        priceValue = v.getPricePer4Hours() * priceDayRate;
+                        priceValue = v.getPricePerDay();
                     }
                     if(request.getMinPrice() != null && request.getMaxPrice() != null){
                         return priceValue >= request.getMinPrice()
@@ -467,11 +474,11 @@ public class VehicleService {
                     if(hours < 8){
                         priceValue = v.getPricePer4Hours();
                     }else if(hours < 12){
-                        priceValue = v.getPricePer4Hours() * price8hRate;
+                        priceValue = v.getPricePer8Hours();
                     }else if(hours < 24){
-                        priceValue = v.getPricePer4Hours() * price12hRate;
+                        priceValue = v.getPricePer12Hours();
                     }else{
-                        priceValue = v.getPricePer4Hours() * priceDayRate;
+                        priceValue = v.getPricePerDay();
                     }
                     if(request.getMinPrice() != null && request.getMaxPrice() != null){
                         return priceValue >= request.getMinPrice()

@@ -27,9 +27,6 @@ public abstract class VehicleMapper {
     @Mapping(target = "images", ignore = true)
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
-    @Mapping(target = "pricePer8Hours", expression = "java(getPriceEachRate(vehicle, price8hRate))")
-    @Mapping(target = "pricePer12Hours", expression = "java(getPriceEachRate(vehicle, price12hRate))")
-    @Mapping(target = "pricePerDay", expression = "java(getPriceEachRate(vehicle, priceDayRate))")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
     @Mapping(source = "station.id", target = "stationId")
@@ -62,9 +59,9 @@ public abstract class VehicleMapper {
 
     double getPriceRate(Vehicle vehicle, long hours) {
         if(hours < 8) return vehicle.getPricePer4Hours();
-        else if(hours < 12) return vehicle.getPricePer4Hours()*price8hRate;
-        else if (hours < 24) return vehicle.getPricePer4Hours()*price12hRate;
-        else return vehicle.getPricePer4Hours()*priceDayRate;
+        else if(hours < 12) return vehicle.getPricePer8Hours();
+        else if (hours < 24) return vehicle.getPricePer12Hours();
+        else return vehicle.getPricePerDay();
     }
 
     double calculateHourRate(long hours) {

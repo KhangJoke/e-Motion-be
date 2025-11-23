@@ -58,12 +58,6 @@ public class RentalService {
     private final UserService userService;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${price.8h.rate}")
-    private double price8hRate;
-    @Value("${price.12h.rate}")
-    private double price12hRate;
-    @Value("${price.day.rate}")
-    private double priceDayRate;
 
 
     public List<RentalListResponse> getAllRentals(){
@@ -191,11 +185,11 @@ public class RentalService {
         else if (hours < 8) {
             fee += pricePer4Hours/4 * hours;
         } else if (hours < 12) {
-            fee += (pricePer4Hours*price8hRate/8 )* hours;
+            fee += vehicle.getPricePer8Hours()/8* hours;
         } else if (hours < 24) {
-            fee += (pricePer4Hours*price12hRate/12) * hours;
+            fee += vehicle.getPricePer12Hours()/12 * hours;
         } else {
-            fee += (pricePer4Hours*priceDayRate/24) * hours;
+            fee += vehicle.getPricePerDay()/24 * hours;
         }
         fee = BigDecimal.valueOf(fee)
                 .setScale(2, RoundingMode.HALF_UP)

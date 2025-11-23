@@ -46,6 +46,12 @@ public class Vehicle {
 
     @Column(name="price_4_hours", nullable = false)
     private double pricePer4Hours;
+    @Column(name="price_8_hours", nullable = false)
+    private double pricePer8Hours;
+    @Column(name="price_12_hours", nullable = false)
+    private double pricePer12Hours;
+    @Column(name="price_day", nullable = false)
+    private double pricePerDay;
 
     @Column(name = "deposit_fee", nullable = false)
     private double depositFee;
