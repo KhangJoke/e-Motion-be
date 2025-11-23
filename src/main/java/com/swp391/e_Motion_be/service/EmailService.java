@@ -237,6 +237,15 @@ public class EmailService {
             total += rental.getRentFee();
         }
 
+        if(rental.getDiscountPoint() > 0){
+            double discountFee = rental.getDiscountPoint() * 1000;
+            items.add(PaymentItem.builder()
+                    .label("Giảm giá (điểm thưởng)")
+                    .amount(-discountFee)
+                    .build());
+            total -= discountFee;
+        }
+
         if(reservation != null && reservation.getDeposit().getAmount() > 0) {
             items.add(PaymentItem.builder()
                     .label("Phí đặt cọc giữ chỗ")
