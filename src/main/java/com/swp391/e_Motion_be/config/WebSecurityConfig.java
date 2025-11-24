@@ -67,10 +67,10 @@ public class WebSecurityConfig {
                         .requestMatchers("api/payment/vnpay/{txnRef}").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/vehicles/**", "/api/stations/**", "/api/ratings/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/vehicles/filter").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/vehicle/booking").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/vehicles/filter/**").permitAll()
+                        .requestMatchers("/api/vehicles/booking").permitAll()
+                        .requestMatchers("/api/vehicles/filter/**").permitAll()
                         .requestMatchers("/api/chat/**", "/api/contracts/webhook").permitAll()
+                        .requestMatchers("/api/imgVehicles/vehicle/{vehicleId}").permitAll()
                         .requestMatchers("/api/test/emails/**").permitAll() // Allow test email endpoints
                         .anyRequest().authenticated()
                 )
