@@ -56,21 +56,21 @@ public class AuthenticationController {
 
         // Create and store refresh token in HttpOnly cookie
         String refreshToken = refreshTokenService.CreateAndStore(loginUser);
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("Lax")
-                .domain("localhost")
-                .build();
 //        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
 //                .httpOnly(true)
-//                .secure(true)
+//                .secure(false)
 //                .path("/")
 //                .maxAge(Duration.ofDays(7))
-//                .sameSite("None")
+//                .sameSite("Lax")
+//                .domain("localhost")
 //                .build();
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .sameSite("None")
+                .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok(apiResponse);
@@ -89,21 +89,21 @@ public class AuthenticationController {
             throw new AppException(ErrorCode.REFRESH_TOKEN_IS_REUSED);
         }
         String newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("Lax")
-                .domain("localhost")
-                .build();
-//        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+//        ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
 //                .httpOnly(true)
-//                .secure(true)
+//                .secure(false)
 //                .path("/")
 //                .maxAge(Duration.ofDays(7))
-//                .sameSite("None")
+//                .sameSite("Lax")
+//                .domain("localhost")
 //                .build();
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .sameSite("None")
+                .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         String newAccessToken = jwtService.generateToken(oldRefreshToken.getUser());
@@ -125,20 +125,20 @@ public class AuthenticationController {
         }
         authenticationService.logout(refreshToken, accessToken);
         ApiResponse<Void> apiResponse = new ApiResponse<>( 204, "User logged out successfully", null);
+//        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
+//                .httpOnly(true)
+//                .secure(false)
+//                .path("/")
+//                .maxAge(0)
+//                .sameSite("Lax")
+//                .build();
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
+                .maxAge(Duration.ofDays(7))
+                .sameSite("None")
                 .build();
-//        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
-//                .httpOnly(true)
-//                .secure(true)
-//                .path("/")
-//                .maxAge(Duration.ofDays(7))
-//                .sameSite("None")
-//                .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
