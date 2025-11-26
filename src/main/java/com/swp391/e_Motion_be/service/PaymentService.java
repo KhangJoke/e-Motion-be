@@ -440,11 +440,11 @@ public class PaymentService {
             deposit.setStatus(DepositStatus.FAILED);
             Rental rental = deposit.getRental();
             depositRepository.save(deposit);
-            if (rental != null) {
-                rental.setStatus(RentalStatus.CONTRACTING);
-                rentalRepository.save(rental);
-                log.info("Deleted failed rental: {}", rental.getId());
-            }
+//            if (rental != null) {
+//                rental.setStatus(RentalStatus.CONTRACTING);
+//                rentalRepository.save(rental);
+//                log.info("Deleted failed rental: {}", rental.getId());
+//            }
         }
         payment.setStatus(PaymentStatus.FAILED);
         paymentRepository.save(payment);
