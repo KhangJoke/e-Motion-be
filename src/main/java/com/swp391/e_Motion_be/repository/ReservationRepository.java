@@ -42,4 +42,6 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     );
     Page<Reservation> findByStatusInAndUser_IdAndVehicle_NameContains(List<ReservationStatus> statusList, Long id, String search, Pageable pageable);
     Optional<Reservation> findByVehicle_IdAndStartTimeAfter(Long id, LocalDateTime now);
+    Page<Reservation> findByStatusInAndStation_Id(List<ReservationStatus> statusList, Long id, Pageable pageable);
+    Page<Reservation> findByStatusIn(List<ReservationStatus> statusList, Pageable pageable);
 }

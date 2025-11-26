@@ -517,13 +517,21 @@ public class ReservationService {
             Station station = stationRepository.findById(user.getStaff().getStation().getId())
                     .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
             if (!keyword.matches(".*[A-Za-z].*")) {
-                reservationPage = reservationRepository.findByCodeContainingAndStatusInAndStation_Id(keyword, statusList, station.getId(), pageable);
+                if(keyword.isEmpty()) {
+                    reservationPage = reservationRepository.findByStatusInAndStation_Id(statusList, station.getId(), pageable);
+                } else {
+                    reservationPage = reservationRepository.findByCodeContainingAndStatusInAndStation_Id(keyword, statusList, station.getId(), pageable);
+                }
             } else {
                 reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCaseAndStatusInAndStation_Id(keyword, statusList, station.getId(), pageable);
             }
         }else{
             if (!keyword.matches(".*[A-Za-z].*")) {
-                reservationPage = reservationRepository.findByCodeContainingAndStatusIn(keyword, statusList, pageable);
+                if(keyword.isEmpty()) {
+                    reservationPage = reservationRepository.findByStatusIn(statusList, pageable);
+                } else {
+                    reservationPage = reservationRepository.findByCodeContainingAndStatusIn(keyword, statusList, pageable);
+                }
             } else {
                 reservationPage = reservationRepository.findByUser_EmailContainingIgnoreCaseAndStatusIn(keyword, statusList, pageable);
             }
