@@ -462,7 +462,7 @@ public class EmailService {
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", rental.getStation().getName());
         context.setVariable("stationAddress", rental.getStation().getAddress());
-        context.setVariable("contactLink", "https://e-motion.vn/support");
+        context.setVariable("contactLink", "https://e-motion-fe.vercel.app");
 
         String htmlMessage = templateEngine.process("rental-overdue-email", context);
 
@@ -489,7 +489,7 @@ public class EmailService {
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", rental.getStation().getName());
         context.setVariable("stationAddress", rental.getStation().getAddress());
-        context.setVariable("contactLink", "https://e-motion.vn/support");
+        context.setVariable("contactLink", "https://e-motion-fe.vercel.app");
 
         String htmlMessage = templateEngine.process("rental-expiring-email", context);
 
@@ -530,7 +530,7 @@ public class EmailService {
         context.setVariable("location", rental.getStation().getName());
         context.setVariable("stationAddress", rental.getStation().getAddress());
         context.setVariable("usageFee", CurrencyFee.toVND(checkOut.getFee()));
-        context.setVariable("contactLink", "https://e-motion.vn/support");
+        context.setVariable("contactLink", "https://e-motion-fe.vercel.app");
 
         String htmlMessage = templateEngine.process("rental-returned-email", context);
 
@@ -557,7 +557,7 @@ public class EmailService {
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", reservation.getStation().getName());
         context.setVariable("stationAddress", reservation.getStation().getAddress());
-        context.setVariable("contactLink", "https://e-motion.vn/support");
+        context.setVariable("contactLink", "https://e-motion-fe.vercel.app");
 
         String htmlMessage = templateEngine.process("reservation-overdue-email", context);
 
@@ -584,7 +584,7 @@ public class EmailService {
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", reservation.getStation().getName());
         context.setVariable("stationAddress", reservation.getStation().getAddress());
-        context.setVariable("contactLink", "https://e-motion.vn/support");
+        context.setVariable("contactLink", "https://e-motion-fe.vercel.app");
 
         String htmlMessage = templateEngine.process("reservation-expiring-email", context);
 
@@ -611,7 +611,7 @@ public class EmailService {
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", reservation.getStation().getName());
         context.setVariable("stationAddress", reservation.getStation().getAddress());
-        context.setVariable("contactLink", "https://e-motion.vn/support");
+        context.setVariable("contactLink", "https://e-motion-fe.vercel.app");
 
         String htmlMessage = templateEngine.process("reservation-cancel-email", context);
 
@@ -638,7 +638,7 @@ public class EmailService {
         context.setVariable("endTime", endTimeFormatted);
         context.setVariable("stationName", rental.getStation().getName());
         context.setVariable("stationAddress", rental.getStation().getAddress());
-        context.setVariable("contactLink", "https://e-motion.vn/support");
+        context.setVariable("contactLink", "https://e-motion-fe.vercel.app");
 
         String htmlMessage = templateEngine.process("rental-cancel-email", context);
 
