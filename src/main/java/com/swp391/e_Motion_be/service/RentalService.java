@@ -20,7 +20,6 @@ import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -284,6 +283,7 @@ public class RentalService {
         if(!rental.getStatus().equals(RentalStatus.CONTRACTING) || !rental.getContractStatus().equals(ContractStatus.SIGNED)){
             throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
+        point = rental.getDiscountPoint()!=0 ? rental.getDiscountPoint() : point;
         int discountFee = point * 1000;
         double rentalDepositAmount = rental.getDeposit().getAmount();
         CreatePaymentUrlRequest request = new CreatePaymentUrlRequest();
