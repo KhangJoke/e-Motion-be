@@ -5,6 +5,8 @@ import com.swp391.e_Motion_be.enums.ReservationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,7 +29,17 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     Page<Reservation> findByUser_EmailContainingIgnoreCaseAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId, Pageable pageable);
     Page<Reservation> findByCodeContainingAndStatusInAndStation_Id(String keyword, List<ReservationStatus> status, Long stationId, Pageable pageable);
     List<Reservation> findByStatusInAndCreatedAtBefore(List<ReservationStatus> failed, LocalDateTime limitTime);
-    List<Reservation> findByVehicle_IdAndStatusInAndStartTimeAfter(Long id, List<ReservationStatus> overdue, LocalDateTime now);
+    @Query("""
+    SELECT r FROM Reservation r
+    WHERE r.vehicle.id = :id
+      AND r.status IN :statuses
+      AND (r.startTime > :time OR r.endTime > :time)
+""")
+    List<Reservation> findActiveReservations(
+            @Param("id") Long id,
+            @Param("statuses") List<ReservationStatus> statuses,
+            @Param("time") LocalDateTime time
+    );
     Page<Reservation> findByStatusInAndUser_IdAndVehicle_NameContains(List<ReservationStatus> statusList, Long id, String search, Pageable pageable);
     Optional<Reservation> findByVehicle_IdAndStartTimeAfter(Long id, LocalDateTime now);
 }

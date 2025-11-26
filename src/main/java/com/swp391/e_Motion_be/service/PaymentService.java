@@ -441,7 +441,7 @@ public class PaymentService {
             Rental rental = deposit.getRental();
             depositRepository.save(deposit);
             if (rental != null) {
-                rental.setStatus(RentalStatus.PENDING);
+                rental.setStatus(RentalStatus.CONTRACTING);
                 rentalRepository.save(rental);
                 log.info("Deleted failed rental: {}", rental.getId());
             }
