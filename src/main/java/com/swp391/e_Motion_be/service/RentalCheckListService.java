@@ -45,7 +45,6 @@ public class RentalCheckListService {
     private final RentalRepository rentalRepository;
     private final StaffRepository staffRepository;
     private final EmailService emailService;
-    private final UserRepository userRepository;
 
     public RentalCheckListResponse createCheckList(RentalCheckListCreateRequest request) {
         // --- Kiểm tra trùng check ---
@@ -139,13 +138,6 @@ public class RentalCheckListService {
         return fee;
     }
 
-    public List<RentalCheckListResponse> getAllCheckLists(){
-        List<RentalCheckList> checkLists = rentalCheckListRepository.findAll();
-        return checkLists.stream()
-                .map(rentalCheckListMapper::toRentalCheckListResponse)
-                .toList();
-    }
-
     public List<RentalCheckListListResponse> getListCheckLists(){
         List<RentalCheckList> checkLists = rentalCheckListRepository.findLatestChecklistPerRental();
         return checkLists.stream()
@@ -210,7 +202,7 @@ public class RentalCheckListService {
         if(staffRepository.findByUser_EmailAndIsDeleteFalse(request.getStaffEmail()).isEmpty()) {
             throw new AppException(ErrorCode.STAFF_NOT_FOUND);
         }
-        if(request.getStaffEmail().equalsIgnoreCase(rentalCheckList.getStaff().getUser().getEmail())) {
+        if(!request.getStaffEmail().equalsIgnoreCase(rentalCheckList.getStaff().getUser().getEmail())) {
             throw new AppException(ErrorCode.NOT_SAME_STAFF_EMAIL);
         }
         if(rentalRepository.findById(request.getRentalId()).isEmpty()) {
