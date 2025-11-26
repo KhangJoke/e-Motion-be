@@ -5,6 +5,8 @@ import com.swp391.e_Motion_be.enums.RentalStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +24,17 @@ public interface RentalRepository extends JpaRepository<Rental,Long> {
     List<Rental> findByUserEmailContainsAndStatusIn(String email, List<RentalStatus> status);
     Page<Rental> findByStatusInAndUser_EmailContains(List<RentalStatus> statusList, String search, Pageable pageable);
     Page<Rental> findByStatusInAndUser_EmailContainsAndStation_Id(List<RentalStatus> statusList, String search, Long stationId, Pageable pageable);
-    List<Rental> findByVehicle_IdAndStatusNotInAndStartTimeAfter(Long id, List<RentalStatus> completed, LocalDateTime now);
+    @Query("""
+    SELECT r FROM Rental r
+    WHERE r.vehicle.id = :id
+      AND r.status NOT IN :statuses
+      AND (r.startTime > :time OR r.endTime > :time)
+""")
+    List<Rental> findActiveRentals(
+            @Param("id") Long id,
+            @Param("statuses") List<RentalStatus> statuses,
+            @Param("time") LocalDateTime time
+    );
     Optional<Rental> findTopByUserEmailOrderByCreatedAtDesc(String email);
     Page<Rental> findByStatusInAndUser_IdAndVehicle_NameContains(List<RentalStatus> statusList, Long id, String search, Pageable pageable);
 }

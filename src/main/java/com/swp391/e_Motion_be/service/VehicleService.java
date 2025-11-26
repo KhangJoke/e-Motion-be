@@ -559,11 +559,11 @@ public class VehicleService {
     public List<VehicleScheduleResponse> getVehicleFullSchedule(Long id) {
 
         List<VehicleScheduleResponse> schedules = new ArrayList<>();
-        List<Rental> rentals = rentalRepository.findByVehicle_IdAndStatusNotInAndStartTimeAfter(id, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED), LocalDateTime.now());
+        List<Rental> rentals = rentalRepository.findActiveRentals(id, List.of(RentalStatus.COMPLETED, RentalStatus.CANCELLED), LocalDateTime.now());
         schedules.addAll(rentals.stream()
                 .map(rental -> new VehicleScheduleResponse(rental.getStartTime(), rental.getEndTime()))
                 .toList());
-        List<Reservation> reservations = reservationRepository.findByVehicle_IdAndStatusInAndStartTimeAfter(id, List.of(ReservationStatus.OVERDUE, ReservationStatus.CONFIRM), LocalDateTime.now());
+        List<Reservation> reservations = reservationRepository.findActiveReservations(id, List.of(ReservationStatus.OVERDUE, ReservationStatus.CONFIRM), LocalDateTime.now());
         schedules.addAll(reservations.stream()
                 .map(reservation -> new VehicleScheduleResponse(reservation.getStartTime(), reservation.getEndTime()))
                 .toList());
