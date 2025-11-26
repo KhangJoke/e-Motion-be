@@ -318,9 +318,6 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_TIME_MUST_AFTER_NOW_3HOURS);
         }
 
-        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
-            throw new AppException(ErrorCode.VEHICLE_END_TIME_INVALID);
-        }
         if(request.getEndTime().isBefore(request.getStartTime().plusHours(4))) {
             throw new AppException(ErrorCode.INVALID_FILTER_TIME);
         }
@@ -410,10 +407,7 @@ public class VehicleService {
                 request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
             throw new AppException(ErrorCode.VEHICLE_TIME_MUST_AFTER_NOW_3HOURS);
         }
-
-        if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {
-            throw new AppException(ErrorCode.VEHICLE_END_TIME_INVALID);
-        }
+        
         if(request.getEndTime().isBefore(request.getStartTime().plusHours(4))) {
             throw new AppException(ErrorCode.INVALID_FILTER_TIME);
         }

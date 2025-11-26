@@ -56,7 +56,7 @@ public class AuthenticationService {
         }
         if(userRepository.existsByEmail(input.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        } else if(userRepository.existsByPhone(input.getPhone())) {
+        } else if(userRepository.findByPhoneAndEnabledTrue(input.getPhone())!=null) {
             throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
         }
         User user = userMapper.toUser(input);
