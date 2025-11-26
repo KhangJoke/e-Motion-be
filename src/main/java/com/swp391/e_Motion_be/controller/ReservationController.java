@@ -47,10 +47,10 @@ public class ReservationController {
         return response;
     }
 
-    @GetMapping("/{code}")
+    @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ApiResponse<ReservationResponse> getReservationByCode(@PathVariable String code) {
-        ReservationResponse reservationResponse = reservationService.getReservationByCode(code);
+    public ApiResponse<ReservationResponse> getReservationById(@PathVariable Long id) {
+        ReservationResponse reservationResponse = reservationService.getReservationById(id);
 
         ApiResponse<ReservationResponse> response = new ApiResponse<>();
         response.setData(reservationResponse);

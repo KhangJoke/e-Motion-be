@@ -314,8 +314,8 @@ public class ReservationService {
                 .toList();
     }
 
-    public ReservationResponse getReservationByCode(String code) {
-        Reservation reservation = reservationRepository.findByCode(code)
+    public ReservationResponse getReservationById(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RESERVATION_NOT_FOUND));
         return reservationMapper.toReservationResponse(reservation);
     }
