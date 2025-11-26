@@ -294,12 +294,14 @@ public class RentalService {
         request.setDescription("Check-in Payment for Rental ID: " + rental.getId());
         request.setUserEmail(rental.getUser().getEmail());
         VnpayResponse response = paymentService.createPaymentUrl(request, ipAddr);
-        rental.setDiscountPoint(point);
         User user = rental.getUser();
-        if(user.getPoint() < point){
-            throw new AppException(ErrorCode.USER_POINT_NOT_ENOUGH);
+        if(rental.getDiscountPoint()==0){
+            if(user.getPoint() < point){
+                throw new AppException(ErrorCode.USER_POINT_NOT_ENOUGH);
+            }
+            user.setPoint(user.getPoint() - point);
         }
-        user.setPoint(user.getPoint() - point);
+        rental.setDiscountPoint(point);
         rentalRepository.save(rental);
         return response;
     }
