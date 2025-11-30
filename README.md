@@ -1,3162 +1,1225 @@
-# e-Motion Backend API Documentation
+# e-Motion Backend - Electric Vehicle Rental Management System
 
-## 📋 Table of Contents
+<div align="center">
 
-- [Introduction](#introduction)
-- [Technology Stack](#technology-stack)
-- [System Requirements](#system-requirements)
-- [Getting Started](#getting-started)
-- [Database Configuration](#database-configuration)
-- [API Documentation](#api-documentation)
-  - [Authentication](#authentication-apiauth)
-  - [Users](#users-apiusers)
-  - [User Documents](#user-documents-apidocuments)
-  - [Vehicles](#vehicle-api-apivehicles)
-  - [Staff](#staff-api-apistaffs)
-  - [Stations](#station-api-apistations)
-  - [Rentals](#rental-api-apirentals)
-  - [Reservations](#reservation-api-apireservations)
-  - [Payments](#payment-api-apipayment)
-  - [Vehicle Logs](#vehiclelog-api-apivehicle-logs)
-  - [Rental Checklists](#rentalchecklist-api-apirental-checklists)
-- [Error Handling](#error-response-format)
-- [Developer Notes](#notes-for-frontend-developers)
+![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-brightgreen?style=for-the-badge&logo=spring-boot)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?style=for-the-badge&logo=mysql)
+![Redis](https://img.shields.io/badge/Redis-7.0-red?style=for-the-badge&logo=redis)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+
+**Modern REST API for Electric Vehicle Rental & Management Platform**
+
+[Features](#-key-features) • [Tech Stack](#-technology-stack) • [Getting Started](#-getting-started) • [API Docs](#-api-documentation) • [Security](#-security-architecture)
+
+</div>
 
 ---
 
 ## Introduction
 
-**e-Motion** is a comprehensive electric vehicle rental management system designed to streamline the process of renting electric vehicles across multiple stations.
+**e-Motion** is an enterprise-grade electric vehicle (EV) rental management system built with Spring Boot 3. The platform enables seamless vehicle booking, reservation management, digital contract signing, integrated payment processing, and comprehensive fleet tracking across multiple stations.
 
-### Key Features
+### Project Objectives
 
-- 🔐 **JWT-based Authentication** - Secure user authentication with access and refresh tokens
-- 👥 **Role-based Access Control** - Support for Admin, Staff, and User roles
-- 🚗 **Vehicle Management** - Complete CRUD operations for electric vehicles
-- 📍 **Multi-station Support** - Manage vehicles across different locations
-- 💳 **VNPay Integration** - Seamless payment processing with Vietnam's leading payment gateway
-- 📧 **Email Notifications** - Automated email alerts for reservations, rentals, and reminders
-- 📊 **Comprehensive Tracking** - Monitor vehicle logs, rental checklists, and maintenance records
-
-### User Roles
-
-- **Admin**: Full system administration and management capabilities
-- **Staff**: Station operations, vehicle management, and rental processing
-- **User (Renter)**: Vehicle browsing, reservation, and rental services
+- **Digitize EV Rental Process**: Transform traditional vehicle rental into a modern, paperless experience
+- **Multi-Station Management**: Centralized platform for managing vehicles across multiple locations
+- **Secure Payments**: Integrated VNPay payment gateway for safe transactions
+- **Smart Automation**: Automated notifications, reminders, and contract generation
+- **Real-time Tracking**: Monitor vehicle status, battery levels, and rental activities
 
 ---
 
-## Technology Stack
+## Key Features
 
+### Authentication & Authorization
+- **JWT-based Security**: Stateless authentication using access and refresh tokens
+- **Role-Based Access Control (RBAC)**: Three-tier role system (Admin, Staff, User)
+- **Email Verification**: Two-factor account verification with OTP
+- **Password Recovery**: Secure forgot password flow with email verification
+- **Session Management**: Redis-backed token storage with automatic expiration
+
+### User Management
+- **User Profiles**: Complete profile management with document uploads
+- **Document Verification**: Support for ID cards (CCCD), Driver's License, and Passport
+- **User Blocking**: Admin capability to block/unblock users
+- **Activity Tracking**: Full audit trail of user activities
+
+### Vehicle Management
+- **Fleet Management**: Comprehensive CRUD for electric vehicles
+- **Real-time Tracking**: Monitor battery levels, location, and status
+- **Multi-category Support**: Cars, motorcycles, e-bikes with various categories
+- **Vehicle Logs**: Maintenance history and usage tracking
+- **Image Gallery**: Multiple images per vehicle with Cloudinary integration
+- **Smart Availability**: Automatic status updates based on rentals
+
+### Station Management
+- **Multi-station Support**: Manage vehicles across different locations
+- **City-based Organization**: Stations organized by cities
+- **Capacity Management**: Track available slots per station
+- **Station Assignment**: Flexible vehicle-to-station assignment
+
+### Reservation System
+- **Advanced Booking**: Reserve vehicles up to 30 days in advance
+- **Reservation Codes**: Unique QR codes for each reservation
+- **Auto-expiration**: Automatic cancellation of expired reservations
+- **Flexible Modification**: Update or cancel reservations before rental starts
+- **Email Notifications**: Automated confirmations and reminders
+
+### Rental Management
+- **Flexible Rental Periods**: 4h, 8h, 12h, or daily rentals
+- **Check-in/Check-out**: Digital checklist with damage reporting
+- **Contract Generation**: Automated digital contract via DocuSeal
+- **Deposit Handling**: Automated deposit hold and release
+- **Rental Extensions**: Extend rentals on-the-fly
+- **Point System**: Loyalty points for discounts
+
+### Payment Integration
+- **VNPay Gateway**: Secure online payment processing
+- **Multiple Payment Types**: Deposits, rentals, penalties
+- **Payment History**: Complete transaction tracking
+- **Auto-refunds**: Automated refund processing for cancellations
+- **Receipt Generation**: Digital receipts via email
+
+### Email Notifications
+- **Welcome Emails**: Account verification emails
+- **Booking Confirmations**: Reservation and rental confirmations
+- **Reminders**: Upcoming rental/reservation reminders
+- **Status Updates**: Rental status change notifications
+- **Overdue Alerts**: Automated overdue rental warnings
+- **Payment Receipts**: Transaction confirmations
+
+### AI Integration
+- **Smart Chat**: Gemini 2.5 Pro AI-powered customer support chatbot
+- **OCR Document Reading**: Automatic ID card data extraction
+
+### Reports & Analytics
+- **User Reports**: Problem reporting with image uploads
+- **Staff Dashboard**: Rental statistics and performance metrics
+- **Rating System**: User feedback and vehicle ratings
+- **Vehicle Analytics**: Usage patterns and maintenance needs
+
+---
+
+## 🛠 Technology Stack
+
+### Backend Framework
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Java | 17+ | Core programming language |
-| Spring Boot | 3.5.5 | Application framework |
-| Spring Security | 6.x | Authentication & authorization |
-| Spring Data JPA | 3.x | Database ORM |
-| MySQL | 8.0 | Primary database |
-| Redis | 7.0 | Caching & session management |
-| JWT | - | Token-based authentication |
-| JavaMail | - | Email notifications |
-| Springdoc OpenAPI | 2.x | API documentation (Swagger) |
-| Maven | 3.9.11+ | Build & dependency management |
-| VNPay API | 2.1.0 | Payment gateway integration |
+| **Java** | 17 | Core programming language |
+| **Spring Boot** | 3.5.5 | Application framework |
+| **Spring Security** | 6.5.3 | Authentication & authorization |
+| **Spring Data JPA** | 3.x | Database ORM with Hibernate |
+| **Spring Validation** | 3.5.5 | Input validation |
+| **Spring AI** | 1.0.3 | AI integration (Gemini) |
+
+### Database & Caching
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **MySQL** | 8.4.0 | Primary relational database |
+| **Redis** | 7.0+ | Caching & session management |
+| **Hibernate** | 6.x | ORM with auto-DDL |
+
+### Security & Authentication
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **JWT (JJWT)** | 0.11.5 | Token-based authentication |
+| **BCrypt** | - | Password hashing |
+
+### Third-Party Integrations
+| Service | Purpose |
+|---------|---------|
+| **VNPay** | Payment gateway integration |
+| **Cloudinary** | Image hosting and management |
+| **SendGrid** | Transactional email service |
+| **DocuSeal** | Digital contract signing |
+| **Gemini AI** | Chatbot and AI features |
+| **Tess4J** | OCR for document scanning |
+
+### Documentation & Tools
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Springdoc OpenAPI** | 2.8.13 | Auto-generated API docs (Swagger) |
+| **Lombok** | 1.18.30 | Reduce boilerplate code |
+| **MapStruct** | 1.5.5 | DTO mapping |
+| **Gson** | 2.11.0 | JSON processing |
+| **Maven** | 3.11.0 | Build & dependency management |
+
+### Other Libraries
+- **Thymeleaf**: HTML email templates
+- **ZXing**: QR code generation
+- **Jackson**: JSON serialization/deserialization
 
 ---
 
 ## System Requirements
 
 ### Development Environment
-
 - **JDK**: 17 or higher
 - **Maven**: 3.9.11 or higher
-- **MySQL**: 8.0 or higher (running on port `3306`)
-- **Redis**: 7.0 or higher (running on port `6379`)
-- **IDE**: IntelliJ IDEA, Eclipse, or VS Code (recommended)
+- **MySQL**: 8.0+ (port 3306)
+- **Redis**: 7.0+ (port 6379)
+- **IDE**: IntelliJ IDEA (recommended), Eclipse, or VS Code
 
-### Runtime Environment
+### Runtime Requirements
+- **Memory**: Minimum 2GB RAM (4GB recommended for production)
+- **Disk Space**: 1GB for application, dependencies, and logs
+- **Network**: Internet connection required for:
+    - VNPay payment processing
+    - Email services (SendGrid/SMTP)
+    - Cloudinary image hosting
+    - AI services (Gemini)
+    - DocuSeal contract generation
 
-- **Memory**: Minimum 2GB RAM recommended
-- **Disk Space**: 500MB for application and dependencies
-- **Network**: Internet connection for VNPay integration and email services
+### External Services (Required)
+1. **VNPay Merchant Account** (for payments)
+2. **Cloudinary Account** (for image storage)
+3. **SendGrid Account** or Gmail App Password (for emails)
+4. **Google AI API Key** (for Gemini chatbot)
+5. **DocuSeal API Key** (for contracts)
+6. **Railway/Cloud Database** (for production deployment)
 
 ---
 
 ## Getting Started
 
-### 1. Clone the Repository
+### Prerequisites Checklist
+- [ ] Java 17+ installed
+- [ ] Maven 3.9.11+ installed
+- [ ] MySQL 8.0+ running
+- [ ] Redis server running
+- [ ] API keys for external services ready
+
+### 1️⃣ Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-username/e-Motion-be.git
 cd e-Motion-be
 ```
 
-### 2. Configure Application Properties
+### 2️⃣ Configure Environment Variables
 
-Edit `src/main/resources/application.properties`:
+**⚠️ IMPORTANT FOR PRODUCTION**: Never commit sensitive data to version control!
+
+Create `.env` file in project root (or use environment variables):
 
 ```properties
 # Database Configuration
-spring.datasource.url=jdbc:mysql://localhost:3306/e_motion
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-
-# JWT Configuration
-security.jwt.secret-key=your_secret_key_here
-security.jwt.expiration-time=86400000
-
-# Email Configuration
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=your_email@gmail.com
-spring.mail.password=your_app_password
-
-# VNPay Configuration
-vnpay.tmnCode=your_tmn_code
-vnpay.hashSecret=your_hash_secret
-vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-vnpay.returnUrl=http://localhost:8080/api/payment/vnpay-return
+DB_URL=jdbc:mysql://localhost:3306/e-motion?serverTimezone=Asia/Ho_Chi_Minh
+DB_USERNAME=root
+DB_PASSWORD=your_mysql_password
 
 # Redis Configuration
-spring.redis.host=localhost
-spring.redis.port=6379
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# JWT Configuration (Generate a secure 256-bit key)
+JWT_SECRET_KEY=your_very_long_and_secure_secret_key_min_256_bits
+JWT_EXPIRATION_TIME=5200000
+
+# Email Configuration (Gmail)
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_app_specific_password
+
+# SendGrid (Alternative)
+SENDGRID_API_KEY=your_sendgrid_api_key
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# OCR Configuration
+OCR_API_KEY=your_ocr_api_key
+
+# VNPay Configuration
+VNPAY_TMN_CODE=your_tmn_code
+VNPAY_HASH_SECRET=your_hash_secret
+VNPAY_RETURN_URL=http://localhost:8080/api/payment/vnpay-return
+
+# AI Configuration (Gemini)
+OPENAI_API_KEY=your_gemini_api_key
+
+# DocuSeal Configuration
+DOCUSEAL_API_KEY=your_docuseal_api_key
+DOCUSEAL_TEMPLATE_ID=your_template_id
+DOCUSEAL_RETURN_URL=http://localhost:8080/api/docuseal/return
 ```
 
-### 3. Start MySQL Database
+### 3️⃣ Update Application Properties
 
-Ensure MySQL 8 is running on your local machine:
+Edit `src/main/resources/application.properties` to use environment variables:
+
+```properties
+# Application Name & Port
+spring.application.name=e-Motion-be
+server.port=8080
+
+# MySQL Database
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# Hibernate JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jackson.time-zone=Asia/Ho_Chi_Minh
+spring.jpa.properties.hibernate.jdbc.time_zone=Asia/Ho_Chi_Minh
+
+# Redis
+spring.data.redis.host=${REDIS_HOST}
+spring.data.redis.port=${REDIS_PORT}
+spring.data.redis.password=${REDIS_PASSWORD:}
+
+# JWT
+security.jwt.secret-key=${JWT_SECRET_KEY}
+security.jwt.expiration-time=${JWT_EXPIRATION_TIME:5200000}
+
+# Email
+spring.mail.host=${MAIL_HOST}
+spring.mail.port=${MAIL_PORT}
+spring.mail.username=${MAIL_USERNAME}
+spring.mail.password=${MAIL_PASSWORD}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# SendGrid
+sendgrid.api.key=${SENDGRID_API_KEY}
+
+# Cloudinary
+cloudinary.cloud.name=${CLOUDINARY_CLOUD_NAME}
+cloudinary.api.key=${CLOUDINARY_API_KEY}
+cloudinary.api.secret=${CLOUDINARY_API_SECRET}
+
+# VNPay
+vnpay.tmn-code=${VNPAY_TMN_CODE}
+vnpay.hash-secret=${VNPAY_HASH_SECRET}
+vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+vnpay.return-url=${VNPAY_RETURN_URL}
+vnpay.api-url=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+
+# AI
+spring.ai.openai.api-key=${OPENAI_API_KEY}
+spring.ai.openai.chat.base-url=https://generativelanguage.googleapis.com
+spring.ai.openai.chat.completions-path=/v1beta/openai/chat/completions
+spring.ai.openai.chat.options.model=gemini-2.5-flash
+
+# DocuSeal
+docuseal.api-key=${DOCUSEAL_API_KEY}
+docuseal.url=https://api.docuseal.com/submissions
+docuseal.template-id=${DOCUSEAL_TEMPLATE_ID}
+docuseal.return-url=${DOCUSEAL_RETURN_URL}
+
+# Business Rules
+price.8h.rate=1.4
+price.12h.rate=1.6
+price.day.rate=2.0
+price.per.battery=12000
+penalty.fee.rate=0.06
+vat.percentage=0.1
+hold.fee.value=500000
+```
+
+### 4️⃣ Setup MySQL Database
 
 ```bash
-# Start MySQL service
-# Windows: Start from Services or MySQL Workbench
-# Linux/Mac: sudo systemctl start mysql
+# Login to MySQL
+mysql -u root -p
+
+# Create database
+CREATE DATABASE e_motion CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# Exit MySQL
+EXIT;
 ```
 
-The application uses **Code First approach** (Hibernate Auto DDL), so database tables will be automatically created on first run.
+**Note**: Tables will be auto-created on first application startup (Hibernate Auto-DDL).
 
-### 4. Start Redis Server
+### 5️⃣ Start Redis Server
 
-Run Redis using Docker:
+**Using Docker** (Recommended):
+```bash
+docker run -d --name e-motion-redis -p 6379:6379 redis:7-alpine
+```
+
+**Using Local Installation**:
+```bash
+# Windows
+redis-server
+
+# Linux/Mac
+redis-server /usr/local/etc/redis.conf
+```
+
+Verify Redis is running:
+```bash
+redis-cli ping
+# Expected output: PONG
+```
+
+### 6️⃣ Build the Application
 
 ```bash
-docker run -d --name e-motion-redis -p 6379:6379 redis:7
+# Clean and build
+mvn clean install
+
+# Skip tests (faster)
+mvn clean install -DskipTests
 ```
 
-Or start Redis locally if installed:
+### 7️⃣ Run the Application
 
-```bash
-# Windows: redis-server
-# Linux/Mac: redis-server /path/to/redis.conf
-```
-
-### 5. Build the Application
-
-```bash
-mvn clean package
-```
-
-This will:
-- Clean previous builds
-- Compile source code
-- Run tests
-- Package as JAR file in `target/` directory
-
-### 6. Run the Application
-
-```bash
-java -jar target/e-Motion-0.0.1-SNAPSHOT.jar
-```
-
-Or run directly with Maven:
-
+**Option 1: Using Maven**
 ```bash
 mvn spring-boot:run
 ```
 
-### 7. Access the Application
-
-Once started, the application will be available at:
-
-- **API Base URL**: `http://localhost:8080`
-- **Swagger UI**: `http://localhost:8080/swagger-ui/index.html`
-- **API Docs (JSON)**: `http://localhost:8080/v3/api-docs`
-
----
-
-## Database Configuration
-
-### Database Schema
-
-The application uses **Hibernate Auto DDL** (Code First approach). Database tables are automatically generated based on JPA entity classes.
-
-**Database Name**: `e_motion`
-
-### Initial Setup
-
-1. Create the database:
-```sql
-CREATE DATABASE e_motion;
+**Option 2: Using JAR file**
+```bash
+java -jar target/e-Motion-be-0.0.1-SNAPSHOT.jar
 ```
 
-2. The application will automatically create all required tables on first startup.
+**Option 3: Using IDE**
+- Open project in IntelliJ IDEA
+- Run `EMotionBeApplication.java`
 
-### Redis Configuration
+### 8️⃣ Verify Installation
 
-Redis is used for:
-- Session management
-- Refresh token storage
-- Caching frequently accessed data
+Once started, you should see:
+```
+Started EMotionBeApplication in X.XXX seconds
+```
 
-**Default Configuration**:
-- Host: `localhost`
-- Port: `6379`
-- No password (development)
+Access these URLs:
+- **API Base URL**: http://localhost:8080/api
+- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
+- **API Docs (JSON)**: http://localhost:8080/v3/api-docs
+
+### 9️⃣ Test the API
+
+**Health Check**:
+```bash
+curl http://localhost:8080/api/health
+```
+
+**Register a Test User**:
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "userPassword": "Test123456",
+    "fullName": "Test User",
+    "phone": "0912345678"
+  }'
+```
 
 ---
 
-# API Documentation
+## Project Structure
 
-This section provides comprehensive documentation for all API endpoints in the e-Motion system.
+```
+e-Motion-be/
+├── src/
+│   ├── main/
+│   │   ├── java/com/swp391/e_Motion_be/
+│   │   │   ├── config/               # Configuration classes
+│   │   │   │   ├── CloudinaryConfig.java
+│   │   │   │   ├── EmailConfig.java
+│   │   │   │   ├── JwtAuthenticationFilter.java
+│   │   │   │   ├── RedisConfiguration.java
+│   │   │   │   ├── SwaggerConfig.java
+│   │   │   │   ├── VNPayConfig.java
+│   │   │   │   └── WebSecurityConfig.java
+│   │   │   ├── controller/           # REST API controllers
+│   │   │   │   ├── AuthenticationController.java
+│   │   │   │   ├── UserController.java
+│   │   │   │   ├── VehicleController.java
+│   │   │   │   ├── ReservationController.java
+│   │   │   │   ├── RentalController.java
+│   │   │   │   ├── PaymentController.java
+│   │   │   │   ├── StationController.java
+│   │   │   │   ├── StaffController.java
+│   │   │   │   ├── DocumentController.java
+│   │   │   │   ├── DepositController.java
+│   │   │   │   ├── RatingController.java
+│   │   │   │   ├── ReportController.java
+│   │   │   │   ├── ChatController.java
+│   │   │   │   ├── ContractController.java
+│   │   │   │   ├── VehicleLogController.java
+│   │   │   │   ├── RentalCheckListController.java
+│   │   │   │   └── ImgVehicleController.java
+│   │   │   ├── entity/               # JPA entities (database models)
+│   │   │   │   ├── User.java
+│   │   │   │   ├── Vehicle.java
+│   │   │   │   ├── Reservation.java
+│   │   │   │   ├── Rental.java
+│   │   │   │   ├── Payment.java
+│   │   │   │   ├── Station.java
+│   │   │   │   ├── Staff.java
+│   │   │   │   ├── Document.java
+│   │   │   │   ├── Deposit.java
+│   │   │   │   ├── Rating.java
+│   │   │   │   ├── Report.java
+│   │   │   │   ├── VehicleLog.java
+│   │   │   │   ├── RentalCheckList.java
+│   │   │   │   ├── ImgVehicle.java
+│   │   │   │   ├── RefreshToken.java
+│   │   │   │   └── RedisToken.java
+│   │   │   ├── service/              # Business logic layer
+│   │   │   │   ├── auth/
+│   │   │   │   ├── user/
+│   │   │   │   ├── document/
+│   │   │   │   ├── VehicleService.java
+│   │   │   │   ├── ReservationService.java
+│   │   │   │   ├── RentalService.java
+│   │   │   │   ├── PaymentService.java
+│   │   │   │   ├── StationService.java
+│   │   │   │   ├── StaffService.java
+│   │   │   │   ├── DepositService.java
+│   │   │   │   ├── RatingService.java
+│   │   │   │   ├── ReportService.java
+│   │   │   │   ├── EmailService.java
+│   │   │   │   ├── CloudinaryService.java
+│   │   │   │   ├── ChatService.java
+│   │   │   │   ├── DocuSealService.java
+│   │   │   │   ├── VehicleLogService.java
+│   │   │   │   ├── RentalCheckListService.java
+│   │   │   │   └── ImgVehicleService.java
+│   │   │   ├── repository/           # Data access layer (JPA repositories)
+│   │   │   ├── dto/                  # Data Transfer Objects
+│   │   │   │   ├── requests/
+│   │   │   │   ├── responses/
+│   │   │   │   ├── convert/
+│   │   │   │   ├── email/
+│   │   │   │   └── vehicleLog/
+│   │   │   ├── enums/                # Enumerations
+│   │   │   │   ├── Role.java
+│   │   │   │   ├── ReservationStatus.java
+│   │   │   │   ├── RentalStatus.java
+│   │   │   │   ├── ContractStatus.java
+│   │   │   │   ├── DepositStatus.java
+│   │   │   │   ├── DocumentType.java
+│   │   │   │   ├── ErrorCode.java
+│   │   │   │   ├── CheckType.java
+│   │   │   │   ├── payment/
+│   │   │   │   ├── vehicle/
+│   │   │   │   ├── station/
+│   │   │   │   └── report/
+│   │   │   ├── exception/            # Custom exceptions & handlers
+│   │   │   ├── mapper/               # MapStruct mappers
+│   │   │   ├── validator/            # Custom validators
+│   │   │   ├── deserializer/         # Custom JSON deserializers
+│   │   │   ├── scheduler/            # Scheduled tasks
+│   │   │   ├── util/                 # Utility classes
+│   │   │   └── EMotionBeApplication.java
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── templates/            # Email HTML templates
+│   │           ├── verify-email.html
+│   │           ├── reservation-email.html
+│   │           ├── reservation-expiring-email.html
+│   │           ├── reservation-overdue-email.html
+│   │           ├── reservation-cancel-email.html
+│   │           ├── contract-email.html
+│   │           ├── rental-expiring-email.html
+│   │           ├── rental-overdue-email.html
+│   │           ├── rental-cancel-email.html
+│   │           ├── rental-returned-email.html
+│   │           └── payment-status-email.html
+│   └── test/                         # Unit and integration tests
+├── target/                           # Compiled output
+├── pom.xml                           # Maven configuration
+├── README.md                         # This file
+├── HELP.md                           # Spring Boot help
+├── mvnw                              # Maven wrapper (Unix)
+├── mvnw.cmd                          # Maven wrapper (Windows)
+└── e-Motion-be.iml                   # IntelliJ IDEA module file
+```
 
-## General Information
+---
+
+## Security Architecture
+
+### Authentication Flow
+
+```
+┌─────────┐          ┌──────────────┐          ┌─────────┐          ┌──────┐
+│ Client  │          │   Filter     │          │ Service │          │  DB  │
+└────┬────┘          └──────┬───────┘          └────┬────┘          └───┬──┘
+     │                      │                       │                   │
+     │ POST /auth/login     │                       │                   │
+     ├─────────────────────>│                       │                   │
+     │                      │ loadUserByUsername()  │                   │
+     │                      ├──────────────────────>│                   │
+     │                      │                       │  findByEmail()    │
+     │                      │                       ├──────────────────>│
+     │                      │                       │<──────────────────┤
+     │                      │<──────────────────────┤   User Entity     │
+     │                      │   UserDetails         │                   │
+     │                      │                       │                   │
+     │                      │  Validate Password    │                   │
+     │                      │  (BCrypt)             │                   │
+     │                      │                       │                   │
+     │                      │  Generate JWT Token   │                   │
+     │                      │  Save Refresh Token   │                   │
+     │                      │  to Redis             │                   │
+     │                      │                       │                   │
+     │<─────────────────────┤                       │                   │
+     │   Access Token +     │                       │                   │
+     │   Refresh Token      │                       │                   │
+     │   (HttpOnly Cookie)  │                       │                   │
+     │                      │                       │                   │
+```
+
+### Authorization Flow
+
+```
+┌─────────┐          ┌──────────────────────┐          ┌─────────────┐
+│ Client  │          │  JwtAuthFilter       │          │  Secured    │
+└────┬────┘          └──────┬───────────────┘          │  Endpoint   │
+     │                      │                           └──────┬──────┘
+     │ GET /api/vehicles    │                                  │
+     │ Authorization: Bearer<token>                            │
+     ├─────────────────────>│                                  │
+     │                      │                                  │
+     │                      │  1. Extract JWT from Header      │
+     │                      │                                  │
+     │                      │  2. Validate Token               │
+     │                      │     - Signature                  │
+     │                      │     - Expiration                 │
+     │                      │     - Blacklist (Redis)          │
+     │                      │                                  │
+     │                      │  3. Extract User Email           │
+     │                      │                                  │
+     │                      │  4. Load UserDetails             │
+     │                      │                                  │
+     │                      │  5. Create Authentication        │
+     │                      │     UsernamePasswordAuthToken    │
+     │                      │                                  │
+     │                      │  6. Set SecurityContext          │
+     │                      │                                  │
+     │                      ├─────────────────────────────────>│
+     │                      │  Forward to Controller           │
+     │                      │                                  │
+     │                      │  7. Check @PreAuthorize          │
+     │                      │     hasRole('USER')              │
+     │                      │                                  │
+     │                      │<─────────────────────────────────┤
+     │<─────────────────────┤  Response                        │
+     │                      │                                  │
+```
+
+### Security Features
+
+#### 1. **Password Security**
+- BCrypt hashing with salt (10 rounds)
+- Password strength validation
+- Secure password reset flow
+
+#### 2. **Token Management**
+- **Access Token**: Short-lived JWT (~1.5 hours)
+- **Refresh Token**: Long-lived token (7 days) stored in HttpOnly cookie
+- **Token Blacklisting**: Redis-based blacklist for logged-out tokens
+- **Automatic Expiration**: Redis TTL for token cleanup
+
+#### 3. **CORS Configuration**
+```java
+// Allowed origins: Frontend domains
+allowedOrigins: ["http://localhost:3000", "https://yourdomain.com"]
+allowedMethods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+allowedHeaders: ["*"]
+allowCredentials: true
+```
+
+#### 4. **CSRF Protection**
+- Disabled for stateless REST API
+- JWT used instead for CSRF protection
+
+#### 5. **Rate Limiting** (Recommended to implement)
+- TODO: Add rate limiting with Redis
+
+#### 6. **Input Validation**
+- Jakarta Validation annotations
+- Custom validators for business rules
+- SQL Injection prevention via JPA
+
+---
+
+## API Documentation
 
 ### Base URL
 ```
 http://localhost:8080/api
 ```
 
+### Interactive API Documentation
+Visit **Swagger UI** for interactive API testing:
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+### Authentication Header
+Most endpoints require JWT authentication:
+```http
+Authorization: Bearer <your_access_token>
+```
+
 ### Standard Response Format
-
-All API responses follow this consistent structure:
-
+All API responses follow this structure:
 ```json
 {
   "status": 200,
   "message": "Success message",
-  "data": { }
+  "data": { /* Response payload */ }
 }
-```
-
-**Response Fields**:
-- `status` (integer): HTTP status code
-- `message` (string): Human-readable message describing the result
-- `data` (object/array): Response payload (can be null for some operations)
-
-### Authentication
-
-Most endpoints require JWT authentication. Include the access token in the request header:
-
-```http
-Authorization: Bearer <your_jwt_token>
 ```
 
 ### Date/Time Format
-
-All date and time values use **ISO 8601** format:
-```
-yyyy-MM-ddTHH:mm:ss
-```
-
-Example: `2025-10-12T14:30:00`
-
----
-
-## Authentication (`/api/auth`)
-
-Base URL: `http://localhost:8080/api/auth`
-
-### 1. Register a New User
-
-**Endpoint:** `POST /api/auth/register`
-
-**Description:** Creates a new user account and sends verification email.
-
-**Authentication:** None required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "userPassword": "password123",
-  "fullName": "John Doe",
-  "phone": "0912345678"
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "status": 201,
-  "message": "User registered successfully. Please check your email for verification code.",
-  "data": "user@example.com"
-}
-```
-
----
-
-### 2. Login
-
-**Endpoint:** `POST /api/auth/login`
-
-**Description:** Authenticates user credentials and returns JWT access token. Refresh token is set in HTTP-only cookie.
-
-**Authentication:** None required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "User logged in successfully",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "expiresIn": 1678886400000
-  }
-}
-```
-
-**Response Headers:**
-```http
-Set-Cookie: refreshToken=<refresh_token>; HttpOnly; Path=/; Max-Age=604800
-```
-
----
-
-### 3. Refresh Token
-
-**Endpoint:** `POST /api/auth/refresh`
-
-**Description:** Issues a new access token and refresh token using the refresh token from cookie.
-
-**Authentication:** Requires refresh token in cookie
-
-**Request:** No body required (uses cookie)
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Token refreshed successfully",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "expiresIn": 1678886400000
-  }
-}
-```
-
-**Response Headers:**
-```http
-Set-Cookie: refresh_token=<new_refresh_token>; HttpOnly; Secure; Path=/api/auth/refresh; Max-Age=604800
-```
-
----
-
-### 4. Logout
-
-**Endpoint:** `POST /api/auth/logout`
-
-**Description:** Logs out user, invalidates access token, and clears refresh token cookie.
-
-**Authentication:** Requires JWT token
-
-**Request Headers:**
-```http
-Authorization: Bearer <access_token>
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "User logout in successfully",
-  "data": null
-}
-```
-
-**Response Headers:**
-```http
-Set-Cookie: refreshToken=; HttpOnly; Path=/; Max-Age=0
-```
-
----
-
-### 5. Verify User Account
-
-**Endpoint:** `POST /api/auth/verify`
-
-**Description:** Verifies user's email address using the 6-digit verification code.
-
-**Authentication:** None required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "verificationCode": "123456"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "User verified successfully",
-  "data": "user@example.com"
-}
-```
-
----
-
-### 6. Resend Verification Code
-
-**Endpoint:** `POST /api/auth/resend`
-
-**Description:** Resends the verification code to user's email.
-
-**Authentication:** None required
-
-**Query Parameters:**
-- `email` (string, required): User's email address
-
-**Example Request:**
-```http
-POST /api/auth/resend?email=user@example.com
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Verification code resent successfully",
-  "data": "user@example.com"
-}
-```
-
----
-
-### 7. Send Forgot Password Verification
-
-**Endpoint:** `POST /api/auth/forgotPassword/sendVerify/{email}`
-
-**Description:** Sends a password reset verification code to user's email.
-
-**Authentication:** None required
-
-**Path Parameter:**
-- `email` (string): User's email address
-
-**Example Request:**
-```http
-POST /api/auth/forgotPassword/sendVerify/user@example.com
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Verification code sent successfully",
-  "data": "user@example.com"
-}
-```
-
----
-
-### 8. Verify Forgot Password Code
-
-**Endpoint:** `POST /api/auth/forgotPassword/verify`
-
-**Description:** Verifies the password reset code.
-
-**Authentication:** None required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "verificationCode": "123456"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "User verified successfully",
-  "data": "user@example.com"
-}
-```
-
----
-
-### 9. Update Password
-
-**Endpoint:** `POST /api/auth/forgotPassword/update`
-
-**Description:** Updates user's password after successful verification.
-
-**Authentication:** None required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "newPassword": "newPassword456",
-  "confirmNewPassword": "newPassword456",
-  "forgotPasswordCode": "123456"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Password updated successfully",
-  "data": "user@example.com"
-}
-```
-
----
-
-## Users (`/api/users`)
-
-Base URL: `http://localhost:8080/api/users`
-
-### 1. Get Current User Details
-
-**Endpoint:** `GET /api/users/me`
-
-**Description:** Retrieves the profile details of the currently authenticated user.
-
-**Authentication:** Requires JWT token
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Get current user successfully",
-  "data": {
-    "fullName": "John Doe",
-    "email": "user@example.com",
-    "phone": "0912345678",
-    "role": "USER",
-    "userDocuments": [
-      {
-        "imgUrl": "http://example.com/image.jpg",
-        "docType": "CCCD",
-        "docNumber": "123456789012",
-        "email": "user@example.com"
-      }
-    ]
-  }
-}
-```
-
----
-
-### 2. Get All Users
-
-**Endpoint:** `GET /api/users`
-
-**Description:** Retrieves a list of all registered users.
-
-**Authentication:** Requires JWT token (ADMIN role)
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Get all users successfully",
-  "data": [
-    {
-      "fullName": "John Doe",
-      "email": "user@example.com",
-      "phone": "0912345678",
-      "role": "USER",
-      "userDocuments": []
-    }
-  ]
-}
-```
-
----
-
-### 3. Get User by Email
-
-**Endpoint:** `GET /api/users/{email}`
-
-**Description:** Retrieves a specific user's details by email address.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `email` (string): The user's email address
-
-**Example Request:**
-```http
-GET /api/users/user@example.com
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Get user by email successfully",
-  "data": {
-    "fullName": "John Doe",
-    "email": "user@example.com",
-    "phone": "0912345678",
-    "role": "USER",
-    "userDocuments": []
-  }
-}
-```
-
----
-
-### 4. Delete User
-
-**Endpoint:** `DELETE /api/users/delete/{email}`
-
-**Description:** Deletes a user account by email address.
-
-**Authentication:** Requires JWT token (ADMIN role)
-
-**Path Parameter:**
-- `email` (string): The user's email address
-
-**Example Request:**
-```http
-DELETE /api/users/delete/user@example.com
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Delete user by email successfully",
-  "data": null
-}
-```
-
----
-
-### 5. Change Password
-
-**Endpoint:** `POST /api/users/me/change-password`
-
-**Description:** Allows authenticated user to change their password.
-
-**Authentication:** Requires JWT token
-
-**Request Body:**
-```json
-{
-  "oldPassword": "password123",
-  "newPassword": "newPassword456",
-  "confirmNewPassword": "newPassword456"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Change password successfully",
-  "data": null
-}
-```
-
----
-
-### 6. Update User Profile
-
-**Endpoint:** `POST /api/users/me/update-profile`
-
-**Description:** Updates the authenticated user's profile information.
-
-**Authentication:** Requires JWT token
-
-**Request Body:**
-```json
-{
-  "fullName": "Johnathan Doe",
-  "phone": "0987654321"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Update profile successfully",
-  "data": {
-    "fullName": "Johnathan Doe",
-    "email": "user@example.com",
-    "phone": "0987654321",
-    "role": "USER",
-    "userDocuments": []
-  }
-}
-```
-
----
-
-## User Documents (`/api/documents`)
-
-Base URL: `http://localhost:8080/api/documents`
-
-### 1. Create Document
-
-**Endpoint:** `POST /api/documents`
-
-**Description:** Creates a new document (ID card, driver's license, etc.) for a user.
-
-**Authentication:** Requires JWT token
-
-**Request Body:**
-```json
-{
-  "imgUrl": "http://example.com/new_doc.jpg",
-  "docType": "PASSPORT",
-  "docNumber": "C1234567",
-  "email": "user@example.com"
-}
-```
-
-**Available Document Types:**
-- `CCCD`: Citizen Identification Card
-- `LICENSE`: Driver's License
-- `PASSPORT`: Passport
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "imgUrl": "http://example.com/new_doc.jpg",
-    "docType": "PASSPORT",
-    "docNumber": "C1234567",
-    "email": "user@example.com"
-  }
-}
-```
-
----
-
-### 2. Get All Documents
-
-**Endpoint:** `GET /api/documents`
-
-**Description:** Retrieves all documents for all users.
-
-**Authentication:** Requires JWT token (ADMIN role)
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": [
-    {
-      "imgUrl": "http://example.com/image.jpg",
-      "docType": "CCCD",
-      "docNumber": "123456789012",
-      "email": "user@example.com"
-    }
-  ]
-}
-```
-
----
-
-### 3. Get Document by ID
-
-**Endpoint:** `GET /api/documents/{docId}`
-
-**Description:** Retrieves a specific document by its ID.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `docId` (long): Document ID
-
-**Example Request:**
-```http
-GET /api/documents/1
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "imgUrl": "http://example.com/image.jpg",
-    "docType": "CCCD",
-    "docNumber": "123456789012",
-    "email": "user@example.com"
-  }
-}
-```
-
----
-
-### 4. Get Documents by User ID
-
-**Endpoint:** `GET /api/documents/user/{userId}`
-
-**Description:** Retrieves all documents for a specific user.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `userId` (long): User ID
-
-**Example Request:**
-```http
-GET /api/documents/user/5
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": [
-    {
-      "imgUrl": "http://example.com/image.jpg",
-      "docType": "CCCD",
-      "docNumber": "123456789012",
-      "email": "user@example.com"
-    }
-  ]
-}
-```
-
----
-
-### 5. Update Document
-
-**Endpoint:** `PUT /api/documents/{docId}`
-
-**Description:** Updates an existing document.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `docId` (long): Document ID
-
-**Request Body:**
-```json
-{
-  "imgUrl": "http://example.com/updated_image.jpg",
-  "docType": "CCCD",
-  "docNumber": "098765432109"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "imgUrl": "http://example.com/updated_image.jpg",
-    "docType": "CCCD",
-    "docNumber": "098765432109",
-    "email": "user@example.com"
-  }
-}
-```
-
----
-
-### 6. Delete Document
-
-**Endpoint:** `DELETE /api/documents/{docId}`
-
-**Description:** Deletes a document by its ID.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `docId` (long): Document ID
-
-**Example Request:**
-```http
-DELETE /api/documents/1
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Document deleted successfully",
-  "data": null
-}
-```
-
----
-
-## Vehicle API (`/api/vehicles`)
-
-Base URL: `http://localhost:8080/api/vehicles`
-
-### 1. Get All Vehicles
-
-**Endpoint:** `GET /api/vehicles`
-
-**Description:** Retrieves a list of all vehicles.
-
-**Authentication:** Requires JWT token
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": [
-    {
-      "id": 1,
-      "name": "Tesla Model X",
-      "type": "ELECTRIC",
-      "status": "AVAILABLE",
-      "category": "SUV",
-      "seats": 5,
-      "pricePerDay": 150.0,
-      "consumptionRate": 20.0,
-      "batteryCapacity": 100.0,
-      "stationId": 2,
-      "city": "Hanoi"
-    }
-  ]
-}
-```
-
----
-
-### 2. Find Vehicle by ID
-
-**Endpoint:** `GET /api/vehicles/id/{id}`
-
-**Description:** Retrieves a vehicle by its ID.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `id` (Long): Vehicle ID
-
-**Example Request:**
-```http
-GET /api/vehicles/id/1
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": {
-    "id": 1,
-    "name": "BYD M6 2024",
-    "description": "BYD M6 2024 là mẫu MPV hiện đại dành cho khách hàng yêu thích sự thoải mái và công nghệ tiên tiến. Không gian rộng rãi 7 chỗ, cửa trượt điện tiện lợi và điều hòa tự động mang đến trải nghiệm như xe gia đình cao cấp. Xe vận hành êm ái, tiết kiệm nhiên liệu, phù hợp cho cả đi phố lẫn hành trình dài. Hệ thống giải trí thông minh, màn hình cảm ứng lớn và kết nối đa phương tiện giúp mọi chuyến đi thêm phần thú vị. Thiết kế mạnh mẽ, sang trọng phù hợp với khách hàng chú trọng cả tiện nghi lẫn hình ảnh.",
-    "type": "CAR",
-    "category": "MPV",
-    "status": "AVAILABLE",
-    "seats": 6,
-    "pricePerHour": 54000.0,
-    "pricePerDay": 1300000.0,
-    "depositFee": 3000000.0,
-    "consumptionRate": 6.3,
-    "batteryLevel": 0.85,
-    "batteryCapacity": 75.0,
-    "plateNumber": "51H-2025",
-    "lastMaintenance": "2025-09-20T10:00:00",
-    "stationId": 1
-  }
-}
-```
-
----
-
-### 3. Find Vehicle by Plate Number
-
-**Endpoint:** `GET /api/vehicles/plate/{plateNumber}`
-
-**Description:** Retrieves a vehicle by its plate number.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `plateNumber` (string): Vehicle plate number
-
-**Example Request:**
-```http
-GET /api/vehicles/plate/59A-77777
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": {
-    "id": 12,
-    "name": "VINFAST VF8 2023",
-    "description": "Khám phá đỉnh cao trải nghiệm tự lái với VinFast VF8 2024 – VF8 mang lại cảm giác êm ái, sang trọng và hiện đại với thiết kế tinh tế và công nghệ an toàn tiên tiến.",
-    "type": "CAR",
-    "category": "SUV",
-    "status": "AVAILABLE",
-    "seats": 5,
-    "pricePerHour": 165000.0,
-    "pricePerDay": 1300000.0,
-    "depositFee": 3000000.0,
-    "consumptionRate": 19.5,
-    "batteryLevel": 1.0,
-    "batteryCapacity": 82.0,
-    "plateNumber": "59A-77777",
-    "lastMaintenance": "2025-09-25T10:00:00",
-    "stationId": 4
-  }
-}
-```
-
----
-
-### 4. Create a New Vehicle
-
-**Endpoint:** `POST /api/vehicles`
-
-**Description:** Adds a new vehicle to the system.
-
-**Authentication:** Requires JWT token (ADMIN role)
-
-**Request Body:**
-```json
-{
-  "name": "VINFAST VF8 2023",
-  "description": "Khám phá đỉnh cao trải nghiệm tự lái với VinFast VF8 2024 – VF8 mang lại cảm giác êm ái, sang trọng và hiện đại với thiết kế tinh tế và công nghệ an toàn tiên tiến.",
-  "vehicleType": "CAR",
-  "vehicleStatus": "AVAILABLE",
-  "category": "SEDAN",
-  "seats": 5,
-  "pricePerHour": 165000,
-  "pricePerDay": 1300000,
-  "depositFee": 3000000,
-  "consumptionRate": 19.5,
-  "batteryLevel": 1.0,
-  "batteryCapacity": 82.0,
-  "plateNumber": "59A-77777",
-  "lastMaintenance": "2025-09-25T10:00:00",
-  "stationId": 4
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "status": 201,
-  "message": "Vehicle created successfully",
-  "data": {
-    "id": 13,
-    "name": "VINFAST VF8 2023",
-    "description": "Khám phá đỉnh cao trải nghiệm tự lái với VinFast VF8 2024 – VF8 mang lại cảm giác êm ái, sang trọng và hiện đại với thiết kế tinh tế và công nghệ an toàn tiên tiến.",
-    "type": "CAR",
-    "category": "SEDAN",
-    "status": "AVAILABLE",
-    "seats": 5,
-    "pricePerHour": 165000,
-    "pricePerDay": 1300000,
-    "depositFee": 3000000,
-    "consumptionRate": 19.5,
-    "batteryLevel": 1.0,
-    "batteryCapacity": 82.0,
-    "plateNumber": "59A-77777",
-    "lastMaintenance": "2025-09-25T10:00:00",
-    "stationId": 4
-  }
-}
-```
-
----
-
-### 5. Update Vehicle by ID
-
-**Endpoint:** `PUT /api/vehicles/{id}`
-
-**Description:** Updates a vehicle's information by its ID.
-
-**Authentication:** Requires JWT token (ADMIN role)
-
-**Path Parameter:**
-- `id` (Long): Vehicle ID
-
-**Request Body:**
-```json
-{
-  "name": "Updated Vehicle Name",
-  "description": "Updated description",
-  "pricePerDay": 1400000
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Vehicle updated successfully",
-  "data": null
-}
-```
-
----
-
-### 6. Delete Vehicle by ID
-
-**Endpoint:** `DELETE /api/vehicles/{id}`
-
-**Description:** Deletes a vehicle by its ID.
-
-**Authentication:** Requires JWT token (ADMIN role)
-
-**Path Parameter:**
-- `id` (Long): Vehicle ID
-
-**Example Request:**
-```http
-DELETE /api/vehicles/5
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Vehicle deleted successfully",
-  "data": null
-}
-```
-
----
-
-## Rental API (`/api/rentals`)
-
-Base URL: `http://localhost:8080/api/rentals`
-
-### 1. Get All Rentals
-
-**Endpoint:** `GET /api/rentals`
-
-**Description:** Retrieves a list of all rentals.
-
-**Authentication:** Requires JWT token
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": [
-    {
-      "id": 1,
-      "status": "ACTIVE",
-      "startTime": "2025-10-15T10:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "rentFee": 6500000.0,
-      "createdAt": "2025-10-12T09:30:00",
-      "vehicleId": 5,
-      "reservationId": 10,
-      "userId": 3,
-      "stationId": 2,
-      "staffId": 7
-    }
-  ]
-}
-```
-
----
-
-### 2. Create Rental from Reservation
-
-**Endpoint:** `POST /api/rentals/reservation`
-
-**Description:** Creates a new rental from an existing reservation.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role)
-
-**Request Body:**
-```json
-{
-  "reservationCode": "123456",
-  "staffId": 7
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "id": 15,
-    "status": "PENDING",
-    "startTime": "2025-10-15T10:00:00",
-    "endTime": "2025-10-20T10:00:00",
-    "rentFee": 6500000.0,
-    "createdAt": "2025-10-12T10:30:00",
-    "vehicleId": 5,
-    "reservationId": 10,
-    "userId": 3,
-    "stationId": 2,
-    "staffId": 7
-  }
-}
-```
-
----
-
-### 3. Create Rental (Direct)
-
-**Endpoint:** `POST /api/rentals`
-
-**Description:** Creates a new rental directly without a reservation.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role)
-
-**Request Body:**
-```json
-{
-  "startTime": "2025-10-15T10:00:00",
-  "endTime": "2025-10-20T10:00:00",
-  "vehicleId": 5,
-  "stationId": 2,
-  "email": "user@example.com",
-  "staffId": 7
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "id": 16,
-    "status": "PENDING",
-    "startTime": "2025-10-15T10:00:00",
-    "endTime": "2025-10-20T10:00:00",
-    "rentFee": 6500000.0,
-    "createdAt": "2025-10-12T11:00:00",
-    "vehicleId": 5,
-    "reservationId": null,
-    "userId": 3,
-    "stationId": 2,
-    "staffId": 7
-  }
-}
-```
-
----
-
-### 4. Get Rentals by Status
-
-**Endpoint:** `GET /api/rentals/status/{status}`
-
-**Description:** Retrieves rentals filtered by status.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `status` (string): Rental status (e.g., ACTIVE, COMPLETED)
-
-**Example Request:**
-```http
-GET /api/rentals/status/ACTIVE
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": [
-    {
-      "id": 1,
-      "status": "ACTIVE",
-      "startTime": "2025-10-15T10:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "rentFee": 6500000.0,
-      "createdAt": "2025-10-12T09:30:00",
-      "vehicleId": 5,
-      "reservationId": 10,
-      "userId": 3,
-      "stationId": 2,
-      "staffId": 7
-    }
-  ]
-}
-```
-
----
-
-### 5. Update Rental Status
-
-**Endpoint:** `PATCH /api/rentals/status`
-
-**Description:** Updates the status of a rental.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role)
-
-**Request Body:**
-```json
-{
-  "id": 15,
-  "status": "ACTIVE"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "id": 15,
-    "status": "ACTIVE",
-    "startTime": "2025-10-15T10:00:00",
-    "endTime": "2025-10-20T10:00:00",
-    "rentFee": 6500000.0,
-    "createdAt": "2025-10-12T10:30:00",
-    "vehicleId": 5,
-    "reservationId": 10,
-    "userId": 3,
-    "stationId": 2,
-    "staffId": 7
-  }
-}
-```
-
----
-
-### 6. Get Rental Details by ID
-
-**Endpoint:** `GET /api/rentals/{id}/details`
-
-**Description:** Retrieves detailed information about a specific rental.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `id` (long): Rental ID
-
-**Example Request:**
-```http
-GET /api/rentals/15/details
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "id": 15,
-    "status": "ACTIVE",
-    "startTime": "2025-10-15T10:00:00",
-    "endTime": "2025-10-20T10:00:00",
-    "rentFee": 6500000.0,
-    "createdAt": "2025-10-12T10:30:00",
-    "vehicleId": 5,
-    "reservationId": 10,
-    "userId": 3,
-    "stationId": 2,
-    "staffId": 7
-  }
-}
-```
-
----
-
-### 7. Get Rental Overview by ID
-
-**Endpoint:** `GET /api/rentals/{id}/overview`
-
-**Description:** Retrieves comprehensive overview of a rental including deposits, fees, and damages.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `id` (long): Rental ID
-
-**Example Request:**
-```http
-GET /api/rentals/15/overview
-```
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "rentalResponse": {
-      "id": 15,
-      "status": "ACTIVE",
-      "startTime": "2025-10-15T10:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "rentFee": 6500000.0,
-      "createdAt": "2025-10-12T10:30:00",
-      "vehicleId": 5,
-      "reservationId": 10,
-      "userId": 3,
-      "stationId": 2,
-      "staffId": 7
-    },
-    "reservationDeposit": 3000000.0,
-    "rentalDeposit": 3000000.0,
-    "checkListFee": 500000.0,
-    "vehicleDamages": {
-      "Scratched bumper": 200000.0,
-      "Broken mirror": 300000.0
-    },
-    "vehicleDamageFee": 500000.0,
-    "refundEligible": false
-  }
-}
-```
-
----
-
-### 8. Process Check-In Payment
-
-**Endpoint:** `POST /api/rentals/{id}/check-inpayment`
-
-**Description:** Processes the check-in payment for a rental and generates VNPay payment URL.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `id` (long): Rental ID
-
-**Example Request:**
-```http
-POST /api/rentals/15/check-inpayment
-```
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=..."
-}
-```
-
----
-
-### 9. Process Check-Out Payment
-
-**Endpoint:** `POST /api/rentals/{id}/check-outpayment`
-
-**Description:** Processes the check-out payment for a rental and determines if additional payment is required.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `id` (long): Rental ID
-
-**Example Request:**
-```http
-POST /api/rentals/15/check-outpayment
-```
-
-**Success Response (Payment Required):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "processStatus": "PAYMENT_REQUIRED",
-    "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=...",
-    "rental": {
-      "id": 15,
-      "status": "COMPLETED",
-      "startTime": "2025-10-15T10:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "rentFee": 6500000.0,
-      "createdAt": "2025-10-12T10:30:00",
-      "vehicleId": 5,
-      "reservationId": 10,
-      "userId": 3,
-      "stationId": 2,
-      "staffId": 7
-    }
-  }
-}
-```
-
-**Success Response (Completed - No Additional Payment):**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "processStatus": "COMPLETED",
-    "paymentUrl": null,
-    "rental": {
-      "id": 15,
-      "status": "COMPLETED",
-      "startTime": "2025-10-15T10:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "rentFee": 6500000.0,
-      "createdAt": "2025-10-12T10:30:00",
-      "vehicleId": 5,
-      "reservationId": 10,
-      "userId": 3,
-      "stationId": 2,
-      "staffId": 7
-    }
-  }
-}
-```
-
----
-
-## Reservation API (/api/reservations)
-
-Base URL: `http://localhost:8080/api/reservations`
-
-### 1. Create Reservation
-
-**Endpoint:** `POST /api/reservations`
-
-**Description:** Creates a new vehicle reservation and generates payment URL.
-
-**Authentication:** Requires JWT token
-
-**Request Body:**
-```json
-{
-  "userEmail": "user@example.com",
-  "vehicleId": 5,
-  "stationId": 2,
-  "startTime": "2025-10-15T10:00:00",
-  "endTime": "2025-10-20T10:00:00"
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "status": 201,
-  "message": "Reservation created successfully",
-  "data": {
-    "vnpayUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=...",
-    "reservation": {
-      "code": "123456",
-      "status": "PENDING",
-      "createdAt": "2025-10-12T12:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "overdueNotified": false,
-      "expiringNotified": false,
-      "userEmail": "user@example.com",
-      "vehicleId": 5,
-      "stationId": 2
-    },
-    "deposit": {
-      "id": 10,
-      "status": "PENDING",
-      "amount": 500000.0,
-      "createdAt": "2025-10-12T12:00:00",
-      "reservationId": 15,
-      "rentalId": null
-    }
-  }
-}
-```
-
----
-
-### 2. Get All Reservations
-
-**Endpoint:** `GET /api/reservations`
-
-**Description:** Retrieves a list of all reservations.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role)
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Fetched all reservations successfully",
-  "data": [
-    {
-      "code": "123456",
-      "status": "CONFIRMED",
-      "createdAt": "2025-10-12T12:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "overdueNotified": false,
-      "expiringNotified": false,
-      "userEmail": "user@example.com",
-      "vehicleId": 5,
-      "stationId": 2
-    }
-  ]
-}
-```
-
----
-
-### 3. Get Reservation by Code
-
-**Endpoint:** `GET /api/reservations/{code}`
-
-**Description:** Retrieves a specific reservation by its 6-digit code.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `code` - 6-digit reservation code
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Fetched reservation successfully",
-  "data": {
-    "code": "123456",
-    "status": "CONFIRMED",
-    "createdAt": "2025-10-12T12:00:00",
-    "endTime": "2025-10-20T10:00:00",
-    "overdueNotified": false,
-    "expiringNotified": false,
-    "userEmail": "user@example.com",
-    "vehicleId": 5,
-    "stationId": 2
-  }
-}
-```
-
----
-
-### 4. Update Reservation Status
-
-**Endpoint:** `PATCH /api/reservations/update-status`
-
-**Description:** Updates the status of a reservation.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role)
-
-**Request Body:**
-```json
-{
-  "reservationCode": "123456",
-  "newStatus": "CONFIRMED"
-}
-```
-
-**Available Status Values:** `PENDING`, `CONFIRMED`, `CANCELLED`, `EXPIRED`, `COMPLETED`
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Updated reservation status successfully",
-  "data": {
-    "code": "123456",
-    "status": "CONFIRMED",
-    "createdAt": "2025-10-12T12:00:00",
-    "endTime": "2025-10-20T10:00:00",
-    "overdueNotified": false,
-    "expiringNotified": false,
-    "userEmail": "user@example.com",
-    "vehicleId": 5,
-    "stationId": 2
-  }
-}
-```
-
----
-
-### 5. Delete Reservation
-
-**Endpoint:** `DELETE /api/reservations/{code}`
-
-**Description:** Deletes a reservation by its code.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role)
-
-**Path Parameter:**
-- `code` - 6-digit reservation code
-
-**Success Response (204):**
-```json
-{
-  "status": 204,
-  "message": "Deleted reservation successfully",
-  "data": null
-}
-```
-
----
-
-### 6. Get Reservations by Status
-
-**Endpoint:** `GET /api/reservations/status/{status}`
-
-**Description:** Retrieves reservations filtered by status.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `status` - Reservation status
-
-**Available Status Values:** `PENDING`, `CONFIRMED`, `CANCELLED`, `EXPIRED`, `COMPLETED`
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Fetched reservations by status successfully",
-  "data": [
-    {
-      "code": "123456",
-      "status": "CONFIRMED",
-      "createdAt": "2025-10-12T12:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "overdueNotified": false,
-      "expiringNotified": false,
-      "userEmail": "user@example.com",
-      "vehicleId": 5,
-      "stationId": 2
-    }
-  ]
-}
-```
-
----
-
-### 7. Get Reservations by User Email
-
-**Endpoint:** `GET /api/reservations/email/{email}`
-
-**Description:** Retrieves all reservations for a specific user.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `email` - User email address
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Fetched reservations by user email successfully",
-  "data": [
-    {
-      "code": "123456",
-      "status": "CONFIRMED",
-      "createdAt": "2025-10-12T12:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "overdueNotified": false,
-      "expiringNotified": false,
-      "userEmail": "user@example.com",
-      "vehicleId": 5,
-      "stationId": 2
-    }
-  ]
-}
-```
-
----
-
-### 8. Get Reservations by Station Name
-
-**Endpoint:** `GET /api/reservations/station/{stationName}`
-
-**Description:** Retrieves all reservations for a specific station.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `stationName` - Station name
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Fetched reservations by station name successfully",
-  "data": [
-    {
-      "code": "123456",
-      "status": "CONFIRMED",
-      "createdAt": "2025-10-12T12:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "overdueNotified": false,
-      "expiringNotified": false,
-      "userEmail": "user@example.com",
-      "vehicleId": 5,
-      "stationId": 2
-    }
-  ]
-}
-```
-
----
-
-### 9. Get Reservations by Vehicle ID
-
-**Endpoint:** `GET /api/reservations/vehicle/{vehicleId}`
-
-**Description:** Retrieves all reservations for a specific vehicle.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `vehicleId` - Vehicle ID
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Fetched reservations by vehicle ID successfully",
-  "data": [
-    {
-      "code": "123456",
-      "status": "CONFIRMED",
-      "createdAt": "2025-10-12T12:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "overdueNotified": false,
-      "expiringNotified": false,
-      "userEmail": "user@example.com",
-      "vehicleId": 5,
-      "stationId": 2
-    }
-  ]
-}
-```
-
----
-
-### 10. Get Valid Reservations Before Time
-
-**Endpoint:** `GET /api/reservations/time/{time}`
-
-**Description:** Retrieves valid reservations before a specified time.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `time` - LocalDateTime in format `yyyy-MM-ddTHH:mm:ss`
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Fetched reservations before specified time successfully",
-  "data": [
-    {
-      "code": "123456",
-      "status": "CONFIRMED",
-      "createdAt": "2025-10-12T12:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "overdueNotified": false,
-      "expiringNotified": false,
-      "userEmail": "user@example.com",
-      "vehicleId": 5,
-      "stationId": 2
-    }
-  ]
-}
-```
-
----
-
-### 11. Cancel Reservation
-
-**Endpoint:** `POST /api/reservations/{code}/cancel`
-
-**Description:** Cancels a reservation and processes refund if applicable.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `code` - 6-digit reservation code
-
-**Success Response (200):**
-```json
-{
-  "status": 200,
-  "message": "Cancelled reservation successfully",
-  "data": true
-}
-```
-
----
-
-## Payment API (/api/payment)
-
-Base URL: `http://localhost:8080/api/payment`
-
-All responses are wrapped in:
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": { ... }
-}
-```
-
-### 1. Create VNPay Payment URL
-
-Endpoint: POST /api/payment/vnpay
-
-Description: Generate a VNPay payment URL for processing payments.
-
-Authentication: Requires JWT token.
-
-Request Body: http://localhost:8080/api/payment/vnpay
-
-```json
-{
-  "amount": 3000000.0,
-  "description": "Deposit for reservation 123456",
-  "userEmail": "user@example.com",
-  "type": "DEPOSIT",
-  "depositId": 10,
-  "rentalId": null
-}
-```
-
-Available payment types: DEPOSIT, RENTAL, REFUND
-
-Success Response:
-```json
-{
-  "status": 201,
-  "message": "Create VnPay Url Successfully",
-  "data": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=300000000&vnp_BankCode=&vnp_Command=pay&vnp_CreateDate=20251012120000&vnp_CurrCode=VND&vnp_IpAddr=127.0.0.1&vnp_Locale=vn&vnp_OrderInfo=Deposit+for+reservation+123456&vnp_OrderType=other&vnp_ReturnUrl=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fpayment%2Fvnpay-return&vnp_TmnCode=ABCD1234&vnp_TxnRef=PAY1697097600000&vnp_Version=2.1.0&vnp_SecureHash=..."
-}
-```
-
-### 2. VNPay Payment Return
-
-Endpoint: GET /api/payment/vnpay-return
-
-Description: Callback endpoint for VNPay to return payment results. Redirects to frontend.
-
-Authentication: Not required (VNPay callback).
-
-Query Parameters: VNPay payment response parameters
-
-Success Redirect:
-```
-http://localhost:5173/booking/payment-result?status=success&txnRef=PAY1697097600000
-```
-
-Failed Redirect:
-```
-http://localhost:5173/booking/payment-result?status=failed
-```
-
-### 3. Create Payment Record
-
-Endpoint: POST /api/payment
-
-Description: Create a payment record manually (for internal use).
-
-Authentication: Requires JWT token (STAFF or ADMIN role).
-
-Request Body: http://localhost:8080/api/payment
-
-```json
-{
-  "amount": 3000000,
-  "description": "Manual payment for rental",
-  "userEmail": "user@example.com",
-  "paymentType": "RENTAL",
-  "depositId": null,
-  "rentalId": 15
-}
-```
-
-Success Response:
-```json
-{
-  "status": 201,
-  "message": "Create VnPay Url Successfully",
-  "data": {
-    "paymentId": 25,
-    "amount": 3000000.0,
-    "method": "VNPAY",
-    "type": "RENTAL",
-    "status": "PENDING",
-    "createdAt": "2025-10-12T12:30:00",
-    "txnRef": "PAY1697098200000",
-    "description": "Manual payment for rental",
-    "responseCode": null,
-    "transactionNo": null,
-    "bankCode": null,
-    "payDate": null,
-    "userEmail": "user@example.com",
-    "rentalResponse": {
-      "id": 15,
-      "status": "ACTIVE",
-      "startTime": "2025-10-15T10:00:00",
-      "endTime": "2025-10-20T10:00:00",
-      "rentFee": 6500000.0,
-      "createdAt": "2025-10-12T10:30:00",
-      "vehicleId": 5,
-      "reservationId": 10,
-      "userId": 3,
-      "stationId": 2,
-      "staffId": 7
-    },
-    "depositResponse": null
-  }
-}
-```
-
-### 4. Get All Payments
-
-Endpoint: GET /api/payment
-
-Description: Retrieves a list of all payment records.
-
-Authentication: Requires JWT token (STAFF or ADMIN role).
-
-Path Parameter: http://localhost:8080/api/payment
-
-Success Response:
-```json
-{
-  "status": 201,
-  "message": "Create VnPay Url Successfully",
-  "data": [
-    {
-      "paymentId": 25,
-      "amount": 3000000.0,
-      "method": "VNPAY",
-      "type": "DEPOSIT",
-      "status": "SUCCESS",
-      "createdAt": "2025-10-12T12:30:00",
-      "txnRef": "PAY1697098200000",
-      "description": "Deposit for reservation 123456",
-      "responseCode": "00",
-      "transactionNo": "14234567",
-      "bankCode": "NCB",
-      "payDate": "2025-10-12T12:35:00",
-      "userEmail": "user@example.com",
-      "rentalResponse": null,
-      "depositResponse": {
-        "id": 10,
-        "status": "PAID",
-        "amount": 3000000.0,
-        "createdAt": "2025-10-12T12:00:00",
-        "reservationId": 5,
-        "rentalId": null
-      }
-    }
-  ]
-}
-```
-
-### 5. Delete Payment
-
-Endpoint: DELETE /api/payment/delete/{id}
-
-Description: Deletes a payment record by its ID.
-
-Authentication: Requires JWT token (ADMIN role).
-
-Path Parameter: http://localhost:8080/api/payment/delete/25
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Delete Payment By 25 Successfully",
-  "data": null
-}
-```
-
-### 6. Update Payment
-
-Endpoint: PUT /api/payment/update/{id}
-
-Description: Updates a payment record.
-
-Authentication: Requires JWT token (STAFF or ADMIN role).
-
-Request Body: http://localhost:8080/api/payment/update/25
-
-```json
-{
-  "method": "VNPAY",
-  "status": "SUCCESS",
-  "type": "DEPOSIT",
-  "amount": 3000000,
-  "description": "Updated deposit payment",
-  "userEmail": "user@example.com",
-  "depositId": 10,
-  "rentalId": null
-}
-```
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Update Payment Successfully",
-  "data": {
-    "paymentId": 25,
-    "amount": 3000000.0,
-    "method": "VNPAY",
-    "type": "DEPOSIT",
-    "status": "SUCCESS",
-    "createdAt": "2025-10-12T12:30:00",
-    "txnRef": "PAY1697098200000",
-    "description": "Updated deposit payment",
-    "responseCode": "00",
-    "transactionNo": "14234567",
-    "bankCode": "NCB",
-    "payDate": "2025-10-12T12:35:00",
-    "userEmail": "user@example.com",
-    "rentalResponse": null,
-    "depositResponse": {
-      "id": 10,
-      "status": "PAID",
-      "amount": 3000000.0,
-      "createdAt": "2025-10-12T12:00:00",
-      "reservationId": 5,
-      "rentalId": null
-    }
-  }
-}
-```
-
-### 7. Get Payment by ID
-
-Endpoint: GET /api/payment/{id}
-
-Description: Retrieves a specific payment by its ID.
-
-Authentication: Requires JWT token.
-
-Path Parameter: http://localhost:8080/api/payment/25
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Get Payment By 25 Successfully",
-  "data": {
-    "paymentId": 25,
-    "amount": 3000000.0,
-    "method": "VNPAY",
-    "type": "DEPOSIT",
-    "status": "SUCCESS",
-    "createdAt": "2025-10-12T12:30:00",
-    "txnRef": "PAY1697098200000",
-    "description": "Deposit for reservation 123456",
-    "responseCode": "00",
-    "transactionNo": "14234567",
-    "bankCode": "NCB",
-    "payDate": "2025-10-12T12:35:00",
-    "userEmail": "user@example.com",
-    "rentalResponse": null,
-    "depositResponse": {
-      "id": 10,
-      "status": "PAID",
-      "amount": 3000000.0,
-      "createdAt": "2025-10-12T12:00:00",
-      "reservationId": 5,
-      "rentalId": null
-    }
-  }
-}
-```
-
-### 8. Get Payment by Transaction Reference
-
-Endpoint: GET /api/payment/vnpay/{txnRef}
-
-Description: Retrieves a payment by its VNPay transaction reference.
-
-Authentication: Requires JWT token.
-
-Path Parameter: http://localhost:8080/api/payment/vnpay/PAY1697098200000
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Get Payment By PAY1697098200000 Successfully",
-  "data": {
-    "paymentId": 25,
-    "amount": 3000000.0,
-    "method": "VNPAY",
-    "type": "DEPOSIT",
-    "status": "SUCCESS",
-    "createdAt": "2025-10-12T12:30:00",
-    "txnRef": "PAY1697098200000",
-    "description": "Deposit for reservation 123456",
-    "responseCode": "00",
-    "transactionNo": "14234567",
-    "bankCode": "NCB",
-    "payDate": "2025-10-12T12:35:00",
-    "userEmail": "user@example.com",
-    "rentalResponse": null,
-    "depositResponse": {
-      "id": 10,
-      "status": "PAID",
-      "amount": 3000000.0,
-      "createdAt": "2025-10-12T12:00:00",
-      "reservationId": 5,
-      "rentalId": null
-    }
-  }
-}
-```
-
-### 9. Get Payments by Status
-
-Endpoint: GET /api/payment/status/{status}
-
-Description: Retrieves payments filtered by status.
-
-Authentication: Requires JWT token.
-
-Path Parameter: http://localhost:8080/api/payment/status/SUCCESS
-
-Available status values: PENDING, SUCCESS, FAILED, REFUNDED
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Get Payment By SUCCESS Successfully",
-  "data": [
-    {
-      "paymentId": 25,
-      "amount": 3000000.0,
-      "method": "VNPAY",
-      "type": "DEPOSIT",
-      "status": "SUCCESS",
-      "createdAt": "2025-10-12T12:30:00",
-      "txnRef": "PAY1697097600000",
-      "description": "Deposit for reservation 123456",
-      "responseCode": "00",
-      "transactionNo": "14234567",
-      "bankCode": "NCB",
-      "payDate": "2025-10-12T12:35:00",
-      "userEmail": "user@example.com",
-      "rentalResponse": null,
-      "depositResponse": {
-        "id": 10,
-        "status": "PAID",
-        "amount": 3000000.0,
-        "createdAt": "2025-10-12T12:00:00",
-        "reservationId": 5,
-        "rentalId": null
-      }
-    }
-  ]
-}
-```
-
-### 10. Get Payments by Method
-
-Endpoint: GET /api/payment/method/{method}
-
-Description: Retrieves payments filtered by payment method.
-
-Authentication: Requires JWT token.
-
-Path Parameter: http://localhost:8080/api/payment/method/VNPAY
-
-Available methods: VNPAY, CASH
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Get Payment By VNPAY Successfully",
-  "data": [
-    {
-      "paymentId": 25,
-      "amount": 3000000.0,
-      "method": "VNPAY",
-      "type": "DEPOSIT",
-      "status": "SUCCESS",
-      "createdAt": "2025-10-12T12:30:00",
-      "txnRef": "PAY1697098200000",
-      "description": "Deposit for reservation 123456",
-      "responseCode": "00",
-      "transactionNo": "14234567",
-      "bankCode": "NCB",
-      "payDate": "2025-10-12T12:35:00",
-      "userEmail": "user@example.com",
-      "rentalResponse": null,
-      "depositResponse": {
-        "id": 10,
-        "status": "PAID",
-        "amount": 3000000.0,
-        "createdAt": "2025-10-12T12:00:00",
-        "reservationId": 5,
-        "rentalId": null
-      }
-    }
-  ]
-}
-```
-
-### 11. Get Payments by Type
-
-Endpoint: GET /api/payment/type/{type}
-
-Description: Retrieves payments filtered by payment type.
-
-Authentication: Requires JWT token.
-
-Path Parameter: http://localhost:8080/api/payment/type/DEPOSIT
-
-Available types: DEPOSIT, RENTAL, REFUND
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Get Payment By DEPOSIT Successfully",
-  "data": [
-    {
-      "paymentId": 25,
-      "amount": 3000000.0,
-      "method": "VNPAY",
-      "type": "DEPOSIT",
-      "status": "SUCCESS",
-      "createdAt": "2025-10-12T12:30:00",
-      "txnRef": "PAY1697098200000",
-      "description": "Deposit for reservation 123456",
-      "responseCode": "00",
-      "transactionNo": "14234567",
-      "bankCode": "NCB",
-      "payDate": "2025-10-12T12:35:00",
-      "userEmail": "user@example.com",
-      "rentalResponse": null,
-      "depositResponse": {
-        "id": 10,
-        "status": "PAID",
-        "amount": 3000000.0,
-        "createdAt": "2025-10-12T12:00:00",
-        "reservationId": 5,
-        "rentalId": null
-      }
-    }
-  ]
-}
-```
-
-### 12. Query VNPay Transaction
-
-Endpoint: POST /api/payment/query/{txnRef}
-
-Description: Queries VNPay for transaction details and status.
-
-Authentication: Requires JWT token.
-
-Path Parameter: http://localhost:8080/api/payment/query/PAY1697098200000
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Query Transaction Successfully",
-  "data": {
-    "responseId": "19685ef160274c268769e37ad9f44c0b",
-    "command": "querydr",
-    "tmnCode": "ABCD1234",
-    "txnRef": "PAY1697098200000",
-    "amount": "300000000",
-    "orderInfo": "Deposit for reservation 123456",
-    "responseCode": "00",
-    "message": "Giao dịch thành công",
-    "bankCode": "NCB",
-    "payDate": "20251012123500",
-    "transactionNo": "14234567",
-    "transactionType": "01",
-    "transactionStatus": "00",
-    "secureHash": "..."
-  }
-}
-```
-
----
-
-## VehicleLog API (/api/vehicle-logs)
-
-Base URL: `http://localhost:8080/api/vehicle-logs`
-
-All responses are wrapped in:
-
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": { ... }
-}
-```
-
-### 1. Get All Vehicle Logs
-
-**Endpoint:** `GET /api/vehicle-logs`
-
-**Description:** Retrieves a list of all vehicle maintenance and service logs.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role).
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Get all vehicle logs successfully",
-  "data": [
-    {
-      "id": 1,
-      "logType": "MAINTENANCE",
-      "description": "Regular oil change and tire rotation",
-      "logDate": "2025-10-10T14:00:00",
-      "cost": 500000.0,
-      "performedBy": "Mechanic John",
-      "vehicleId": 5,
-      "createdAt": "2025-10-10T14:00:00"
-    }
-  ]
-}
-```
-
----
-
-### 2. Create Vehicle Log
-
-**Endpoint:** `POST /api/vehicle-logs`
-
-**Description:** Creates a new vehicle log entry.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role).
-
-Request Body:
-```json
-{
-  "logType": "MAINTENANCE",
-  "description": "Brake pad replacement",
-  "logDate": "2025-10-12T10:00:00",
-  "cost": 800000.0,
-  "performedBy": "Mechanic Smith",
-  "vehicleId": 5
-}
+All timestamps use ISO 8601 format with Asia/Ho_Chi_Minh timezone:
+```
+yyyy-MM-dd'T'HH:mm:ss
+Example: 2025-11-30T14:30:00
+```
+
+---
+
+## API Endpoints Overview
+
+### Authentication (`/api/auth`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/register` | Register new user account | ❌ |
+| POST | `/login` | Login and get JWT token | ❌ |
+| POST | `/logout` | Logout and invalidate tokens | ✅ |
+| POST | `/refresh` | Refresh access token | 🍪 Cookie |
+| POST | `/verify` | Verify email with OTP | ❌ |
+| POST | `/resend` | Resend verification code | ❌ |
+| POST | `/forgotPassword/sendVerify/{email}` | Send password reset code | ❌ |
+| POST | `/forgotPassword/verify` | Verify reset code | ❌ |
+| POST | `/forgotPassword/update` | Update forgotten password | ❌ |
+
+### Users (`/api/users`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/me` | Get current user profile | ✅ |
+| GET | `/` | Get all users | ✅ Admin |
+| GET | `/{email}` | Get user by email | ✅ |
+| DELETE | `/delete/{email}` | Delete user account | ✅ Admin |
+| POST | `/me/change-password` | Change password | ✅ |
+| POST | `/me/update-profile` | Update profile | ✅ |
+
+### Vehicles (`/api/vehicles`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/` | Get all vehicles | ✅ |
+| GET | `/id/{id}` | Get vehicle by ID | ✅ |
+| GET | `/plate/{plateNumber}` | Get vehicle by plate number | ✅ |
+| GET | `/booking` | Search available vehicles | ❌ Public |
+| POST | `/` | Create new vehicle | ✅ Admin/Staff |
+| PUT | `/{id}` | Update vehicle | ✅ Admin/Staff |
+| DELETE | `/{id}` | Delete vehicle | ✅ Admin |
+
+### Reservations (`/api/reservations`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Create reservation | ✅ |
+| GET | `/user` | Get user's reservations | ✅ |
+| GET | `/{id}` | Get reservation details | ✅ |
+| PUT | `/{id}/cancel` | Cancel reservation | ✅ |
+| GET | `/code/{code}` | Get reservation by code | ✅ Staff |
+
+### Rentals (`/api/rentals`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Create rental from reservation | ✅ Staff |
+| GET | `/user` | Get user's rental history | ✅ |
+| GET | `/{id}` | Get rental details | ✅ |
+| PUT | `/{id}/start` | Start rental (check-in) | ✅ Staff |
+| PUT | `/{id}/return` | Return vehicle (check-out) | ✅ Staff |
+| PUT | `/{id}/extend` | Extend rental period | ✅ |
+| PUT | `/{id}/cancel` | Cancel rental | ✅ |
+
+### Payments (`/api/payment`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/create` | Create VNPay payment URL | ✅ |
+| GET | `/vnpay-return` | VNPay callback handler | ❌ |
+| GET | `/user` | Get user's payment history | ✅ |
+| GET | `/{id}` | Get payment details | ✅ |
+
+### Stations (`/api/stations`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/` | Get all stations | ✅ |
+| GET | `/{id}` | Get station by ID | ✅ |
+| POST | `/` | Create station | ✅ Admin |
+| PUT | `/{id}` | Update station | ✅ Admin |
+| DELETE | `/{id}` | Delete station | ✅ Admin |
+
+### Documents (`/api/documents`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Upload user document | ✅ |
+| GET | `/user/{userId}` | Get user's documents | ✅ |
+| PUT | `/{docId}` | Update document | ✅ |
+| DELETE | `/{docId}` | Delete document | ✅ |
+
+### Ratings (`/api/ratings`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Create vehicle rating | ✅ |
+| GET | `/vehicle/{vehicleId}` | Get vehicle ratings | ✅ |
+| GET | `/user` | Get user's ratings | ✅ |
+
+### Reports (`/api/reports`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Submit problem report | ✅ |
+| GET | `/user` | Get user's reports | ✅ |
+| GET | `/` | Get all reports | ✅ Staff |
+| PUT | `/{id}/resolve` | Mark report as resolved | ✅ Staff |
+
+### Chat (`/api/chat`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Send message to AI chatbot | ✅ |
+
+---
+
+## Database Schema
+
+### Core Entities
+
+#### Users
+```sql
+users (
+  user_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  full_name VARCHAR(255) NOT NULL,
+  phone VARCHAR(20) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('USER', 'STAFF', 'ADMIN'),
+  enabled BOOLEAN DEFAULT FALSE,
+  blocked BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP,
+  verification_code VARCHAR(6),
+  verification_code_expires_at TIMESTAMP,
+  forgot_password_code VARCHAR(6),
+  point INT DEFAULT 0
+)
+```
+
+#### Vehicles
+```sql
+vehicles (
+  vehicle_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  vehicle_name VARCHAR(255) NOT NULL,
+  description TEXT,
+  brand ENUM('HONDA', 'YAMAHA', 'SUZUKI', 'VINFAST', 'BYD', ...),
+  vehicle_status ENUM('AVAILABLE', 'RENTED', 'RESERVED', 'MAINTENANCE', 'OUT_OF_SERVICE'),
+  vehicle_category ENUM('SEDAN', 'SUV', 'MPV', 'HATCHBACK', 'SCOOTER', ...),
+  seats INT,
+  price_4_hours DOUBLE,
+  price_8_hours DOUBLE,
+  price_12_hours DOUBLE,
+  price_day DOUBLE,
+  deposit_fee DOUBLE,
+  consumption_rate DOUBLE,
+  current_battery_level INT,
+  battery_capacity DOUBLE,
+  plate_number VARCHAR(20) UNIQUE,
+  last_maintenance TIMESTAMP,
+  is_delete BOOLEAN DEFAULT FALSE,
+  point INT DEFAULT 0,
+  station_id BIGINT FOREIGN KEY
+)
+```
+
+#### Reservations
+```sql
+reservations (
+  reservation_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  reservation_code VARCHAR(50) UNIQUE,
+  reservation_status ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'EXPIRED', 'COMPLETED'),
+  cancel_notified BOOLEAN DEFAULT FALSE,
+  overdue_notified BOOLEAN DEFAULT FALSE,
+  expiring_notified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP,
+  reserved_start_time TIMESTAMP,
+  reserved_end_time TIMESTAMP,
+  user_id BIGINT FOREIGN KEY,
+  vehicle_id BIGINT FOREIGN KEY,
+  station_id BIGINT FOREIGN KEY
+)
+```
+
+#### Rentals
+```sql
+rentals (
+  rental_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  rental_status ENUM('PENDING', 'ONGOING', 'COMPLETED', 'CANCELLED', 'OVERDUE'),
+  start_time TIMESTAMP,
+  end_time TIMESTAMP,
+  cancel_notified BOOLEAN,
+  overdue_notified BOOLEAN,
+  expiring_notified BOOLEAN,
+  rent_fee DOUBLE,
+  discount_point INT DEFAULT 0,
+  created_at TIMESTAMP,
+  pending_end_time TIMESTAMP,
+  pending_rent_fee DOUBLE,
+  pre_status ENUM,
+  submission_id BIGINT,
+  contract_url VARCHAR(500),
+  submission_url VARCHAR(500),
+  contract_status ENUM('PENDING', 'SIGNED', 'REJECTED'),
+  vehicle_id BIGINT FOREIGN KEY,
+  reservation_id BIGINT FOREIGN KEY,
+  station_id BIGINT FOREIGN KEY,
+  user_id BIGINT FOREIGN KEY,
+  staff_id BIGINT FOREIGN KEY
+)
+```
+
+#### Payments
+```sql
+payments (
+  payment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  total_amount DOUBLE,
+  payment_method ENUM('VNPAY', 'CASH', 'BANK_TRANSFER'),
+  payment_type ENUM('DEPOSIT', 'RENTAL', 'PENALTY', 'REFUND'),
+  payment_status ENUM('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED'),
+  created_at TIMESTAMP,
+  is_delete BOOLEAN DEFAULT FALSE,
+  txn_ref VARCHAR(100) UNIQUE,
+  payment_description TEXT,
+  response_code VARCHAR(10),
+  transaction_no VARCHAR(50),
+  bank_code VARCHAR(20),
+  pay_date TIMESTAMP,
+  user_id BIGINT FOREIGN KEY,
+  rental_id BIGINT FOREIGN KEY,
+  deposit_id BIGINT FOREIGN KEY
+)
+```
+
+### Relationships
+- **User** → **Reservations** (1:N)
+- **User** → **Rentals** (1:N)
+- **User** → **Payments** (1:N)
+- **User** → **Documents** (1:N)
+- **Vehicle** → **Reservations** (1:N)
+- **Vehicle** → **Rentals** (1:N)
+- **Vehicle** → **ImgVehicles** (1:N)
+- **Station** → **Vehicles** (1:N)
+- **Station** → **Reservations** (1:N)
+- **Reservation** → **Rental** (1:1)
+- **Rental** → **Deposit** (1:1)
+- **Rental** → **RentalCheckList** (1:1)
+
+---
+
+## Email Templates
+
+The system sends automated HTML emails for various events:
+
+### Email Types
+1. **Verification Email**: Account email verification
+2. **Reservation Confirmation**: Successful reservation
+3. **Reservation Expiring**: 1 hour before pickup
+4. **Reservation Overdue**: Missed pickup time
+5. **Reservation Cancelled**: Cancellation confirmation
+6. **Contract Email**: Digital contract signing link
+7. **Rental Expiring**: 1 hour before return time
+8. **Rental Overdue**: Late return warning
+9. **Rental Cancelled**: Rental cancellation
+10. **Rental Returned**: Successful return confirmation
+11. **Payment Status**: Payment confirmation/failure
+
+### Email Service Providers
+- **Primary**: SendGrid (transactional emails)
+- **Fallback**: Gmail SMTP (development/testing)
+
+---
+
+## Scheduled Tasks
+
+The system runs automated background jobs:
+
+### 1. Reservation Expiration Checker
+- **Frequency**: Every 5 minutes
+- **Action**: Marks overdue reservations as EXPIRED
+
+### 2. Rental Overdue Checker
+- **Frequency**: Every 10 minutes
+- **Action**: Marks late rentals as OVERDUE, calculates penalties
+
+### 3. Email Reminder Scheduler
+- **Frequency**: Every 30 minutes
+- **Actions**:
+    - Reservation expiring soon (1 hour before)
+    - Rental return reminder (1 hour before)
+    - Overdue notifications
+
+### 4. Token Cleanup
+- **Frequency**: Daily at 3:00 AM
+- **Action**: Removes expired refresh tokens from Redis
+
+---
+
+## Testing
+
+### Run Tests
+```bash
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=UserServiceTest
+
+# Run with coverage
+mvn test jacoco:report
+```
+
+### Test Categories
+- **Unit Tests**: Service layer business logic
+- **Integration Tests**: Controller + Service + Repository
+- **Security Tests**: Authentication & authorization
+- **API Tests**: End-to-end REST API testing
+
+---
+
+## Deployment
+
+### Railway Deployment (Current Setup)
+
+The project is configured for Railway deployment:
+
+**Railway Services**:
+1. **MySQL Database** (Railway PostgreSQL/MySQL)
+2. **Redis** (Railway Redis)
+3. **Spring Boot App** (Railway Service)
+
+**Environment Variables on Railway**:
+Set all sensitive variables in Railway dashboard.
+
+### Docker Deployment
+
+**Create `Dockerfile`**:
+```dockerfile
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY target/e-Motion-be-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+**Build and Run**:
+```bash
+# Build JAR
+mvn clean package -DskipTests
+
+# Build Docker image
+docker build -t e-motion-be .
+
+# Run container
+docker run -p 8080:8080 \
+  -e DB_URL="jdbc:mysql://host:port/db" \
+  -e DB_USERNAME="user" \
+  -e DB_PASSWORD="pass" \
+  e-motion-be
+```
+
+### Production Checklist
+- [ ] Change JWT secret key
+- [ ] Update VNPay to production credentials
+- [ ] Configure production database
+- [ ] Set up SSL/TLS
+- [ ] Configure production CORS origins
+- [ ] Enable production logging
+- [ ] Set up monitoring (Prometheus/Grafana)
+- [ ] Configure backup strategy
+- [ ] Implement rate limiting
+- [ ] Set up CI/CD pipeline
+
+---
+
+## Security Best Practices for GitHub
+
+### Before Pushing to Public Repository
+
+#### 1. **Remove Sensitive Data from `application.properties`**
+
+**Create `.env.example`**:
+```properties
+DB_URL=jdbc:mysql://localhost:3306/e-motion
+DB_USERNAME=root
+DB_PASSWORD=your_password
+REDIS_HOST=localhost
+REDIS_PORT=6379
+JWT_SECRET_KEY=your_secret_key_here
+# ... other variables
+```
+
+**Update `application.properties`** to use environment variables (see section 3️⃣ above).
+
+#### 2. **Add `.gitignore`** entries:
+```gitignore
+# Sensitive files
+application.properties
+application-*.properties
+.env
+*.env
+
+# Keystore files
+*.p12
+*.jks
+keystore.*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Build
+target/
+*.class
+*.jar
+*.war
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+```
+
+#### 3. **Remove Sensitive Data from Git History**
+
+If you've already committed sensitive data:
+
+```bash
+# Install BFG Repo-Cleaner
+# Download from: https://rtyley.github.io/bfg-repo-cleaner/
+
+# Remove application.properties from history
+bfg --delete-files application.properties
+
+# Clean up
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+
+# Force push
+git push origin --force --all
 ```
 
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Create vehicle log successfully",
-  "data": {
-    "id": 15,
-    "logType": "MAINTENANCE",
-    "description": "Brake pad replacement",
-    "logDate": "2025-10-12T10:00:00",
-    "cost": 800000.0,
-    "performedBy": "Mechanic Smith",
-    "vehicleId": 5,
-    "createdAt": "2025-10-12T10:00:00"
-  }
-}
-```
-
----
-
-### 3. Get Vehicle Log by ID
-
-**Endpoint:** `GET /api/vehicle-logs/{id}`
-
-**Description:** Retrieves a specific vehicle log by its ID.
-
-**Authentication:** Requires JWT token.
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Get vehicle log successfully",
-  "data": {
-    "id": 15,
-    "logType": "MAINTENANCE",
-    "description": "Brake pad replacement",
-    "logDate": "2025-10-12T10:00:00",
-    "cost": 800000.0,
-    "performedBy": "Mechanic Smith",
-    "vehicleId": 5,
-    "createdAt": "2025-10-12T10:00:00"
-  }
-}
-```
-
----
-
-### 4. Update Vehicle Log
-
-**Endpoint:** `PUT /api/vehicle-logs/{id}`
-
-**Description:** Updates an existing vehicle log.
-
-**Authentication:** Requires JWT token (STAFF or ADMIN role).
-
-Request Body:
-```json
-{
-  "logType": "MAINTENANCE",
-  "description": "Brake pad replacement and alignment",
-  "logDate": "2025-10-12T10:00:00",
-  "cost": 1000000.0,
-  "performedBy": "Mechanic Smith",
-  "vehicleId": 5
-}
-```
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Update vehicle log successfully",
-  "data": {
-    "id": 15,
-    "logType": "MAINTENANCE",
-    "description": "Brake pad replacement and alignment",
-    "logDate": "2025-10-12T10:00:00",
-    "cost": 1000000.0,
-    "performedBy": "Mechanic Smith",
-    "vehicleId": 5,
-    "createdAt": "2025-10-12T10:00:00"
-  }
-}
-```
-
----
-
-### 5. Delete Vehicle Log
-
-**Endpoint:** `DELETE /api/vehicle-logs/{id}`
-
-**Description:** Deletes a vehicle log by its ID.
-
-**Authentication:** Requires JWT token (ADMIN role).
-
-Success Response:
-```json
-{
-  "status": 200,
-  "message": "Delete vehicle log successfully",
-  "data": null
-}
-```
-
----
-
-### 6. Get Vehicle Logs by Vehicle ID
-
-**Endpoint:** `GET /api/vehicle-logs/vehicle/{vehicleId}`
-
-**Description:** Retrieves all logs for a specific vehicle.
-
-**Authentication:** Requires JWT token
-
-**Path Parameter:**
-- `vehicleId` (long): Vehicle ID
-
-**Example Request:**
-```http
-GET /api/vehicle-logs/vehicle/5
-```
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get vehicle logs by vehicle ID successfully",
-  "data": [
-    {
-      "id": 1,
-      "logType": "MAINTENANCE",
-      "description": "Regular oil change and tire rotation",
-      "logDate": "2025-10-10T14:00:00",
-      "cost": 500000.0,
-      "performedBy": "Mechanic John",
-      "vehicleId": 5,
-      "createdAt": "2025-10-10T14:00:00"
-    },
-    {
-      "id": 15,
-      "logType": "MAINTENANCE",
-      "description": "Brake pad replacement and alignment",
-      "logDate": "2025-10-12T10:00:00",
-      "cost": 1000000.0,
-      "performedBy": "Mechanic Smith",
-      "vehicleId": 5,
-      "createdAt": "2025-10-12T10:00:00"
-    }
-  ]
-}
-```
-
----
-
-## Staff API (/api/staffs)
-
-Base URL: `http://localhost:8080/api/staffs`
-
-All responses are wrapped in:
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": { ... }
-}
-```
-
-### 1. Create Staff
-
-**Endpoint:** `POST /api/staffs`
-
-**Description:** Create a new staff member and assign them to a station.
-
-**Authentication:** Requires JWT token (ADMIN role).
-
-**Request Body:**
-```json
-{
-  "email": "nguyen1112894@gmail.com",
-  "stationName": "E-Motion Station Cầu Giấy"
-}
-```
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Create staff successfully",
-  "data": {
-    "email": "nguyen1112894@gmail.com",
-    "stationName": "E-Motion Station Cầu Giấy",
-    "fullName": "Nguyen"
-  }
-}
-```
-
----
-
-### 2. Find Staff by Email
-
-**Endpoint:** `GET /api/staffs/{email}`
-
-**Description:** Retrieve staff information by email address.
-
-**Authentication:** Requires JWT token (ADMIN role).
-
-**Path Parameter:**
-- `email` (string): Staff email address
-
-**Example:** `GET http://localhost:8080/api/staffs/nguyen1112894@gmail.com`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get staff by user email successfully",
-  "data": {
-    "email": "nguyen1112894@gmail.com",
-    "stationName": "E-Motion Station Cầu Giấy",
-    "fullName": "Nguyen"
-  }
-}
-```
-
----
-
-### 3. Find All Staffs
-
-**Endpoint:** `GET /api/staffs`
-
-**Description:** Retrieve a list of all staff members.
-
-**Authentication:** Requires JWT token (ADMIN role).
-
-**Example:** `GET http://localhost:8080/api/staffs`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get all staffs successfully",
-  "data": [
-    {
-      "email": "trungbeat7749@gmail.com",
-      "stationName": "E-Motion Station Hoàn Kiếm",
-      "fullName": "Hồ Thơm"
-    },
-    {
-      "email": "khangngoc3082005@gmail.com",
-      "stationName": "E-Motion Station Hoàn Kiếm",
-      "fullName": "Khang"
-    },
-    {
-      "email": "voquangtrungyb@gmail.com",
-      "stationName": "E-Motion Station Cầu Giấy",
-      "fullName": "vua Quang Trung"
-    }
-  ]
-}
-```
-
----
+#### 4. **Rotate All Compromised Credentials**
 
-### 4. Delete Staff by Email
+If secrets were exposed, immediately change:
+- Database passwords
+- JWT secret key
+- API keys (SendGrid, Cloudinary, VNPay, etc.)
+- Email passwords
+- All other sensitive credentials
 
-**Endpoint:** `DELETE /api/staffs/{email}`
+#### 5. **Enable GitHub Secret Scanning**
 
-**Description:** Remove a staff member from the system.
+GitHub automatically scans for known secret patterns. Enable this in your repository settings.
 
-**Authentication:** Requires JWT token (ADMIN role).
-
-**Path Parameter:**
-- `email` (string): Staff email address
-
-**Example:** `DELETE http://localhost:8080/api/staffs/nguyen1112894@gmail.com`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Delete staff by email successfully",
-  "data": null
-}
-```
-
----
-
-### 5. Update Staff by Email
-
-**Endpoint:** `PUT /api/staffs/{email}`
-
-**Description:** Update staff information (primarily station assignment).
-
-**Authentication:** Requires JWT token (ADMIN role).
-
-**Path Parameter:**
-- `email` (string): Staff email address
-
-**Request Body:**
-```json
-{
-  "email": "voquangtrungtiktok@gmail.com",
-  "oldStationName": "E-Motion Station Cầu Giấy",
-  "newStationName": "E-Motion Station Thủ Đức"
-}
-```
-
-**Example:** `PUT http://localhost:8080/api/staffs/voquangtrungtiktok@gmail.com`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Update staff by id successfully",
-  "data": {
-    "email": "voquangtrungtiktok@gmail.com",
-    "stationName": "E-Motion Station Thủ Đức",
-    "fullName": "Võ Quang Trung"
-  }
-}
-```
-
 ---
 
-## Station API (/api/stations)
+## Additional Resources
 
-Base URL: `http://localhost:8080/api/stations`
+### Documentation
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Spring Security Reference](https://docs.spring.io/spring-security/reference/index.html)
+- [VNPay Integration Guide](https://sandbox.vnpayment.vn/apis/docs/gioi-thieu/)
+- [Cloudinary API Docs](https://cloudinary.com/documentation)
+- [Gemini AI Documentation](https://ai.google.dev/docs)
 
-All responses are wrapped in:
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": { ... }
-}
-```
-
-### 1. Create Station
-
-**Endpoint:** `POST /api/stations`
-
-**Description:** Create a new station location.
-
-**Authentication:** Requires JWT token (ADMIN role).
-
-**Request Body:**
-```json
-{
-  "name": "E-Motion Station Example6",
-  "address": "123 Example Street",
-  "city": "Hà Nội",
-  "status": "ACTIVE",
-  "latitude": 10.762622,
-  "longitude": 106.660172
-}
-```
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Create station successfully",
-  "data": {
-    "name": "E-Motion Station Example6",
-    "address": "123 Example Street",
-    "city": "HANOI",
-    "latitude": 10.762622,
-    "longitude": 106.660172,
-    "status": "ACTIVE"
-  }
-}
-```
-
-**Notes:**
-- `city` accepts values: "Hà Nội" or "TP HCM" (will be converted to enum: HANOI, TP_HCM)
-- `status` can be: ACTIVE, INACTIVE, MAINTENANCE
+### Tools
+- **Postman Collection**: Import `postman_collection.json` for API testing
+- **Database Client**: MySQL Workbench, DBeaver, or DataGrip
+- **Redis Client**: RedisInsight or redis-cli
+- **API Testing**: Swagger UI (included)
 
 ---
-
-### 2. Find Station by Name
-
-**Endpoint:** `GET /api/stations/name/{name}`
 
-**Description:** Retrieve station information by name.
+## Contributing
 
-**Authentication:** Requires JWT token.
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-**Path Parameter:**
-- `name` (string): Station name
+### Code Style
+- Follow Java naming conventions
+- Use Lombok to reduce boilerplate
+- Write meaningful commit messages
+- Add JavaDoc for public methods
+- Write unit tests for new features
 
-**Example:** `GET http://localhost:8080/api/stations/name/E-Motion Station Example6`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get station by name successfully",
-  "data": {
-    "name": "E-Motion Station Example6",
-    "address": "123 Example Street",
-    "city": "HANOI",
-    "latitude": 10.762622,
-    "longitude": 106.660172,
-    "status": "ACTIVE"
-  }
-}
-```
-
 ---
-
-### 3. Find Station by Address
-
-**Endpoint:** `GET /api/stations/address/{address}`
-
-**Description:** Retrieve stations matching a specific address.
-
-**Authentication:** Requires JWT token.
-
-**Path Parameter:**
-- `address` (string): Station address
-
-**Example:** `GET http://localhost:8080/api/stations/address/123 Example Street`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get stations by address successfully",
-  "data": [
-    {
-      "name": "E-Motion Station Example6",
-      "address": "123 Example Street",
-      "city": "HANOI",
-      "latitude": 10.762622,
-      "longitude": 106.660172,
-      "status": "ACTIVE"
-    }
-  ]
-}
-```
 
----
+## Troubleshooting
 
-### 4. Find Station by City
-
-**Endpoint:** `GET /api/stations/city/{city}`
-
-**Description:** Retrieve all stations in a specific city.
-
-**Authentication:** Requires JWT token.
-
-**Path Parameter:**
-- `city` (string): City name (HANOI or TP_HCM)
-
-**Example:** `GET http://localhost:8080/api/stations/city/HANOI`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get stations by city successfully",
-  "data": [
-    {
-      "name": "E-Motion Station Hoàn Kiếm",
-      "address": "66 Tràng Tiền, Hoàn Kiếm",
-      "city": "HANOI",
-      "latitude": 21.02552,
-      "longitude": 105.85335,
-      "status": "ACTIVE"
-    },
-    {
-      "name": "E-Motion Station Cầu Giấy",
-      "address": "69 P. Vũ Phạm Hàm, Trung Hoà, Cầu Giấy",
-      "city": "HANOI",
-      "latitude": 21.0201,
-      "longitude": 105.80095,
-      "status": "ACTIVE"
-    },
-    {
-      "name": "E-Motion Station Thanh Xuân",
-      "address": "183 Đ. Nguyễn Trãi, Thượng Đình, Thanh Xuân",
-      "city": "HANOI",
-      "latitude": 20.99851,
-      "longitude": 105.8139,
-      "status": "ACTIVE"
-    }
-  ]
-}
-```
+### Common Issues
 
----
+#### 1. **Port 8080 already in use**
+```bash
+# Windows
+netstat -ano | findstr :8080
+taskkill /PID <PID> /F
 
-### 5. Find All Stations
-
-**Endpoint:** `GET /api/stations`
-
-**Description:** Retrieve a list of all stations.
-
-**Authentication:** Requires JWT token.
-
-**Example:** `GET http://localhost:8080/api/stations`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Get all stations successfully",
-  "data": [
-    {
-      "name": "E-Motion Station Hoàn Kiếm",
-      "address": "66 Tràng Tiền, Hoàn Kiếm",
-      "city": "HANOI",
-      "latitude": 21.02552,
-      "longitude": 105.85335,
-      "status": "ACTIVE"
-    },
-    {
-      "name": "E-Motion Station Tân Bình",
-      "address": "396 Đ. Lý Thường Kiệt, Phường 7, Tân Bình",
-      "city": "TP_HCM",
-      "latitude": 10.78463,
-      "longitude": 106.65434,
-      "status": "ACTIVE"
-    },
-    {
-      "name": "E-Motion Station Thủ Đức",
-      "address": "5 Đ. Đỗ Xuân Hợp, Phước Long B, Thủ Đức",
-      "city": "TP_HCM",
-      "latitude": 10.82967,
-      "longitude": 106.7679,
-      "status": "ACTIVE"
-    }
-  ]
-}
+# Linux/Mac
+lsof -ti:8080 | xargs kill -9
 ```
-
----
-
-### 6. Delete Station by Name
-
-**Endpoint:** `DELETE /api/stations/{name}`
 
-**Description:** Remove a station from the system.
+#### 2. **MySQL Connection Refused**
+- Verify MySQL is running: `mysql -u root -p`
+- Check port 3306 is not blocked
+- Verify credentials in `application.properties`
 
-**Authentication:** Requires JWT token (ADMIN role).
+#### 3. **Redis Connection Error**
+```bash
+# Check Redis is running
+redis-cli ping
 
-**Path Parameter:**
-- `name` (string): Station name
-
-**Example:** `DELETE http://localhost:8080/api/stations/E-Motion Station Example6`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Delete station successfully",
-  "data": null
-}
+# Start Redis
+docker start e-motion-redis
 ```
-
----
-
-### 7. Update Station by Name
-
-**Endpoint:** `PUT /api/stations/{name}`
-
-**Description:** Update station information.
-
-**Authentication:** Requires JWT token (ADMIN role).
 
-**Path Parameter:**
-- `name` (string): Station name
+#### 4. **JWT Token Invalid**
+- Check system time is synchronized
+- Verify JWT secret key matches
+- Clear Redis token cache
 
-**Request Body:**
-```json
-{
-  "name": "E-Motion Station Example6",
-  "address": "124 Example Street ",
-  "city": "Hà Nội",
-  "status": "ACTIVE",
-  "latitude": 10.762672,
-  "longitude": 106.660172
-}
-```
-
-**Example:** `PUT http://localhost:8080/api/stations/E-Motion Station Example6`
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": "Update station successfully",
-  "data": {
-    "name": "E-Motion Station Example6",
-    "address": "124 Example Street ",
-    "city": "HANOI",
-    "latitude": 10.762672,
-    "longitude": 106.660172,
-    "status": "ACTIVE"
-  }
-}
-```
+#### 5. **Email Not Sending**
+- Verify Gmail App Password (not regular password)
+- Enable "Less secure app access" if using Gmail
+- Check SendGrid API key is valid
 
 ---
-
-## RentalCheckList API (/api/rental-checklists)
-
-Base URL: `http://localhost:8080/api/rental-checklists`
-
-All responses are wrapped in:
-```json
-{
-  "status": 200,
-  "message": "success",
-  "data": { ... }
-}
-```
-
-### 1. Create Check-In Checklist
 
-**Endpoint:** `POST /api/rental-checklists`
+## License
 
-**Description:** Creates a check-in checklist for a rental (records vehicle condition at pick-up).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**Authentication:** Requires JWT token (STAFF role).
-
-**Request Body:**
-```json
-{
-  "rentalId": 3,
-  "currentBattery": 85.0,
-  "staffEmail": "staff@example.com",
-  "type": "CHECK_IN",
-  "img": "http://example.com/checkin_image.png"
-}
-```
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "id": 18,
-    "type": "CHECK_IN",
-    "fee": 0.0,
-    "currentBattery": 85.0,
-    "img": "http://example.com/checkin_image.png",
-    "rentalId": 3,
-    "staffEmail": "staff@example.com",
-    "createdAt": "2025-10-12T12:56:25"
-  }
-}
-```
-
 ---
-
-### 2. Create Check-Out Checklist
 
-**Endpoint:** `POST /api/rental-checklists`
+<div align="center">
 
-**Description:** Creates a check-out checklist for a rental (records vehicle condition at return and calculates fees).
+**Made with ❤️ by e-Motion Team**
 
-**Authentication:** Requires JWT token (STAFF role).
+⭐ Star this repository if you find it helpful!
 
-**Request Body:**
-```json
-{
-  "rentalId": 3,
-  "currentBattery": 10.0,
-  "staffEmail": "staff@example.com",
-  "type": "CHECK_OUT",
-  "img": "http://example.com/checkout_image.png"
-}
-```
-
-**Success Response:**
-```json
-{
-  "status": 200,
-  "message": null,
-  "data": {
-    "id": 19,
-    "type": "CHECK_OUT",
-    "fee": 7470000.0,
-    "currentBattery": 10.0,
-    "img": "http://example.com/checkout_image.png",
-    "rentalId": 3,
-    "staffEmail": "staff@example.com",
-    "createdAt": "2025-10-12T13:01:00"
-  }
-}
-```
+</div>
 
