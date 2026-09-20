@@ -51,13 +51,12 @@ public class ReportService {
                 .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
         report.setStatus(request.getStatus());
 
-        if(request.getStatus() == ReportStatus.APPROVED){
-            if(report.getType().equals(ReportType.REPORT_USER)){
+        if(request.getStatus() == ReportStatus.APPROVED && report.getType().equals(ReportType.REPORT_USER)){
                 User user = report.getUser();
                 user.setBlocked(true);
                 userRepository.save(user);
             }
-        }
+
         return reportMapper.toResponse(reportRepository.save(report));
     }
 
@@ -86,13 +85,13 @@ public class ReportService {
 
     public List<ReportResponse> findAllReportsByUser(Long userId){
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));;
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         List<Report> reports = reportRepository.findByUser(user)
                 .stream()
                 .filter(report -> !report.isDelete())
                 .sorted(Comparator.comparing(Report::getCreatedAt).reversed())
-                .toList();;
+                .toList();
         return reports.stream().map(reportMapper::toResponse).toList();
     }
 

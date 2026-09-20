@@ -62,16 +62,16 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable()) // disable CSRF nếu xài JWT
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Cấu hình CORS
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/verify", "/api/auth/resend", "/api/auth/forgotPassword/**").permitAll()
-                        .requestMatchers("/api/payment/vnpay-return").permitAll()
-                        .requestMatchers("api/payment/vnpay/{txnRef}").permitAll()
+                        .requestMatchers("/api/auth/logout").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/payment/vnpay-return", "/api/payment/vnpay/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/vehicles/**", "/api/stations/**", "/api/ratings/**").permitAll()
                         .requestMatchers("/api/vehicles/booking").permitAll()
                         .requestMatchers("/api/vehicles/filter/**").permitAll()
                         .requestMatchers("/api/chat/**", "/api/contracts/webhook").permitAll()
                         .requestMatchers("/api/imgVehicles/vehicle/{vehicleId}").permitAll()
-                        .requestMatchers("/api/test/emails/**").permitAll() // Allow test email endpoints
+                        .requestMatchers("/api/test/emails/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

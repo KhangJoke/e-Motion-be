@@ -25,22 +25,19 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "full_name")
     private String fullName;
-    @Column(name = "phone", nullable = false, unique = true)
+    @Column(name = "phone", unique = true)
     private String phone;
     @Column(nullable = false, unique = true)
     private String email;
-    @Column(nullable = false)
+
     private String password;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
-    @Column(nullable = false, name = "enabled")
     private boolean enabled;
-    @Column(nullable = false, name = "blocked")
     private boolean blocked = false;
-    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
     @Column(name= "verification_code")

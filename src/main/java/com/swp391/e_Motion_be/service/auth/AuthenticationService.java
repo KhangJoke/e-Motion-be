@@ -156,6 +156,44 @@ public class AuthenticationService {
         }
     }
 
+        public void sendOtp(String email) {
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setRole(Role.ROLE_USER);
+            newUser.setEnabled(false);
+            return userRepository.save(newUser);
+        });
+
+        if (user.isBlocked()) {
+            throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
+        }
+
+        user.setVerificationCode(generateVerificationCode());
+        user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user);
+
+        emailService.sendVerificationEmail(user);
+    }
+
+    public User verifyOtp(VerifyUserDto input) {
+        User user = userRepository.findByEmail(input.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        if (user.getVerificationCodeExpiresAt() == null || user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.VERIFY_EXPIRED);
+        }
+
+        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(input.getVerificationCode())) {
+            throw new AppException(ErrorCode.VERIFY_CODE_NOT_MATCH);
+        }
+
+        user.setEnabled(true);
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiresAt(null);
+        return userRepository.save(user);
+    }
+
     public void resendVerificationCode(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if(optionalUser.isPresent()) {

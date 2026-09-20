@@ -2,6 +2,8 @@ package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.auth.LoginUserDto;
 import com.swp391.e_Motion_be.dto.requests.auth.RegisterUserDto;
+import com.swp391.e_Motion_be.dto.requests.auth.RefreshTokenDto;
+import com.swp391.e_Motion_be.dto.requests.auth.SendOtpDto;
 import com.swp391.e_Motion_be.dto.requests.auth.VerifyUserDto;
 import com.swp391.e_Motion_be.dto.requests.user.ForgotPasswordUserDto;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
@@ -78,25 +80,26 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@CookieValue(name="refresh_token", required = false) String refreshToken,
-                                                            HttpServletResponse response) {
-        if (refreshToken == null || refreshToken.isEmpty()) {
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(
+            @CookieValue(name = "refresh_token", required = false) String cookieRefreshToken,
+            @RequestBody(required = false) RefreshTokenDto refreshTokenDto,
+            HttpServletResponse response) {
+
+        String tokenToRefresh = (refreshTokenDto != null && refreshTokenDto.getRefreshToken() != null && !refreshTokenDto.getRefreshToken().isEmpty())
+                ? refreshTokenDto.getRefreshToken()
+                : cookieRefreshToken;
+
+        if (tokenToRefresh == null || tokenToRefresh.isEmpty()) {
             throw new AppException(ErrorCode.SENDED_TOKEN_NOT_FOUND);
         }
+
         // Rotate refresh token
-        RefreshToken oldRefreshToken = refreshTokenService.findByToken(refreshToken);
-        if(oldRefreshToken.isRevoked() || oldRefreshToken.getReplacedBy() != null) {
+        RefreshToken oldRefreshToken = refreshTokenService.findByToken(tokenToRefresh);
+        if (oldRefreshToken.isRevoked() || oldRefreshToken.getReplacedBy() != null) {
             throw new AppException(ErrorCode.REFRESH_TOKEN_IS_REUSED);
         }
         String newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
-//        ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
-//                .httpOnly(true)
-//                .secure(false)
-//                .path("/")
-//                .maxAge(Duration.ofDays(7))
-//                .sameSite("Lax")
-//                .domain("localhost")
-//                .build();
+
         ResponseCookie cookie = ResponseCookie.from("refresh_token", newRefreshToken)
                 .httpOnly(true)
                 .secure(true)
@@ -107,7 +110,7 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         String newAccessToken = jwtService.generateToken(oldRefreshToken.getUser());
-        LoginResponse loginResponse = new LoginResponse(newAccessToken, jwtService.extractExpiration(newAccessToken).getTime());
+        LoginResponse loginResponse = new LoginResponse(newAccessToken, newRefreshToken, jwtService.extractExpiration(newAccessToken).getTime());
         ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "Token refreshed successfully", loginResponse);
 
         return ResponseEntity.ok(apiResponse);
@@ -163,6 +166,37 @@ public class AuthenticationController {
         apiResponse.setStatus(200);
         apiResponse.setMessage("User verified successfully");
         apiResponse.setData(verifyUserDto.getEmail());
+        return ResponseEntity.ok(apiResponse);
+    }
+
+        @PostMapping("/send-otp")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ApiResponse<String>> sendOtp(@RequestBody SendOtpDto sendOtpDto) {
+        authenticationService.sendOtp(sendOtpDto.getEmail());
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus(200);
+        apiResponse.setMessage("Verification code sent successfully");
+        apiResponse.setData(sendOtpDto.getEmail());
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/verify-otp")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ApiResponse<LoginResponse>> verifyOtp(@RequestBody VerifyUserDto verifyUserDto, HttpServletResponse response) {
+        User user = authenticationService.verifyOtp(verifyUserDto);
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = refreshTokenService.CreateAndStore(user);
+        LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtService.extractExpiration(accessToken).getTime());
+        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "User verified and logged in successfully", loginResponse);
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .sameSite("None")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ResponseEntity.ok(apiResponse);
     }
 

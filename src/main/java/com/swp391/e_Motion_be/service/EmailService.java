@@ -1,12 +1,8 @@
 package com.swp391.e_Motion_be.service;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import com.swp391.e_Motion_be.dto.email.PaymentEmailRequest;
 import com.swp391.e_Motion_be.dto.email.PaymentItem;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
@@ -40,36 +36,28 @@ public class EmailService {
     @Autowired
     private TemplateEngine templateEngine;
 
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
+    private final JavaMailSender mailSender;
     private final RentalCheckListRepository rentalCheckListRepository;
     private final PaymentRepository paymentRepository;
 
+    @Value("${spring.mail.username:le4035040@gmail.com}")
+    private String fromEmail;
+
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
-        Email from = new Email("030739230108@st.buh.edu.vn"); // verified sender
-        Email toEmail = new Email(to);
-        Content content = new Content("text/html", text);
-        Mail mail = new Mail(from, subject, toEmail, content);
-
-        SendGrid sg = new SendGrid(sendGridApiKey);
-        Request request = new Request();
-
         try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sg.api(request);
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
+            helper.setFrom(fromEmail, "E-Motion EV Rental");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text, true);
 
-            System.out.println("SendGrid Response Code: " + response.getStatusCode());
-            System.out.println("SendGrid Response Body: " + response.getBody());
-            System.out.println("SendGrid Response Headers: " + response.getHeaders());
-
-            if (response.getStatusCode() >= 400) {
-                System.err.println("SendGrid error: " + response.getStatusCode() + " " + response.getBody());
-                throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
-            }
-        } catch (IOException e) {
+            mailSender.send(mimeMessage);
+            System.out.println(">>> [JavaMailSender] Đã gửi email thành công tới: " + to);
+        } catch (Exception e) {
+            System.err.println(">>> [JavaMailSender] Lỗi gửi email: " + e.getMessage());
+            e.printStackTrace();
             throw new AppException(ErrorCode.SEND_EMAIL_FAILED);
         }
     }
@@ -86,6 +74,9 @@ public class EmailService {
         String code = user.getVerificationCode() != null
                 ? user.getVerificationCode()
                 : user.getForgotPasswordCode();
+        System.out.println("=================================================");
+        System.out.println(">>> [MÃ OTP CHO " + user.getEmail() + " LÀ]: " + code);
+        System.out.println("=================================================");
         Context context = new Context();
         context.setVariable("code", code);
         String htmlMessage = templateEngine.process("verify-email", context);
