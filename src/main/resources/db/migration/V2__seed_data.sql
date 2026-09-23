@@ -11,12 +11,12 @@
 -- ------------------------------------------------------------------------------
 INSERT INTO users (user_id, full_name, phone, email, password, role, enabled, blocked, created_at, point)
 VALUES
-(1, 'Hệ Thống Admin', '0901000001', 'admin@emotion.vn', '$2a$10$kBPL/8/uvi4u78Tz7N5u7uI7cTgP3AEKpSgXnB9/5u/JjRBQkP2uW', 'ROLE_ADMIN', true, false, NOW(), 1000),
-(2, 'Nguyễn Văn Staff Q1', '0902000001', 'staff.quan1@emotion.vn', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_STAFF', true, false, NOW(), 100),
-(3, 'Trần Thị Staff Cầu Giấy', '0902000002', 'staff.caugiay@emotion.vn', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_STAFF', true, false, NOW(), 100),
-(4, 'Lê Hoàng Anh', '0903000001', 'customer.anh@gmail.com', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_USER', true, false, NOW(), 250),
-(5, 'Phạm Thanh Bình', '0903000002', 'customer.binh@gmail.com', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_USER', true, false, NOW(), 50),
-(6, 'Đỗ Quỳnh Chi', '0903000003', 'customer.chi@gmail.com', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_USER', true, false, NOW(), 0)
+(1, 'Admin', '0901000001', 'admin@emotion.vn', '$2a$10$kBPL/8/uvi4u78Tz7N5u7uI7cTgP3AEKpSgXnB9/5u/JjRBQkP2uW', 'ROLE_ADMIN', true, false, NOW(), 1000),
+(2, 'Nguyen Van Staff Q1', '0902000001', 'staff.quan1@emotion.vn', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_STAFF', true, false, NOW(), 100),
+(3, 'Tran Thi Staff Cầu Giấy', '0902000002', 'staff.caugiay@emotion.vn', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_STAFF', true, false, NOW(), 100),
+(4, 'Le Hoang Anh', '0903000001', 'customer.anh@gmail.com', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_USER', true, false, NOW(), 250),
+(5, 'Pham Thanh Binh', '0903000002', 'customer.binh@gmail.com', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_USER', true, false, NOW(), 50),
+(6, 'Đo Quynh Chi', '0903000003', 'customer.chi@gmail.com', '$2a$10$ddkVQGCZxmtA9BAiUgbvYOwMkADeHWp7vhu1tc07MGvovdGASlDOW', 'ROLE_USER', true, false, NOW(), 0)
 ON CONFLICT (user_id) DO NOTHING;
 
 -- ------------------------------------------------------------------------------
