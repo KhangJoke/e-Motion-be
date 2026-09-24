@@ -131,18 +131,21 @@ public class UserService {
     }
 
     public UserResponse updateProfile(UpdateProfileRequest input) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = ((User) authentication.getPrincipal()).getEmail();
+        User user = currentUser();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-        // Check phone mới có tồn tại chưa
-        if(!user.getPhone().equals(input.getPhone()) && userRepository.existsByPhone(input.getPhone())) {
-            throw new AppException(ErrorCode.PHONE_EXITS);
+        if (input.getFullName() != null && !input.getFullName().trim().isEmpty()) {
+            user.setFullName(input.getFullName().trim());
         }
 
-        user.setFullName(input.getFullName());
-        user.setPhone(input.getPhone());
+        if (input.getPhone() != null && !input.getPhone().trim().isEmpty()) {
+            String newPhone = input.getPhone().trim();
+            if (!newPhone.equals(user.getPhone())) {
+                if (userRepository.existsByPhone(newPhone)) {
+                    throw new AppException(ErrorCode.PHONE_EXITS);
+                }
+                user.setPhone(newPhone);
+            }
+        }
 
         userRepository.save(user);
 
