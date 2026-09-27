@@ -39,6 +39,10 @@ public abstract class VehicleMapper {
     @Mapping(target = "id", source = "vehicle.id")
     @Mapping(target = "batteryLevel", expression = "java(vehicle.getBatteryLevel())")
     @Mapping(target = "point", expression = "java(vehicle.getPoint())")
+    @Mapping(target = "pricePer4Hours", source = "vehicle.pricePer4Hours")
+    @Mapping(target = "pricePer8Hours", source = "vehicle.pricePer8Hours")
+    @Mapping(target = "pricePer12Hours", source = "vehicle.pricePer12Hours")
+    @Mapping(target = "pricePerDay", source = "vehicle.pricePerDay")
     public abstract VehicleListResponse toVehicleListResponse(Vehicle vehicle, long hours);
 
     @Mapping(target = "images", ignore = true)
@@ -71,3 +75,4 @@ public abstract class VehicleMapper {
         else return 24;
     }
 }
+
