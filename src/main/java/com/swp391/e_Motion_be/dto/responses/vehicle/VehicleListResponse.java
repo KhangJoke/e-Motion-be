@@ -20,6 +20,10 @@ public class VehicleListResponse {
     private int seats;
     private Double priceRate;
     private double hourRate;
+    private Double pricePer4Hours;
+    private Double pricePer8Hours;
+    private Double pricePer12Hours;
+    private Double pricePerDay;
     private Double consumptionRate;
     private Double batteryCapacity;
     private int batteryLevel;
@@ -27,3 +31,4 @@ public class VehicleListResponse {
     private String main;
     private int point;
 }
+
