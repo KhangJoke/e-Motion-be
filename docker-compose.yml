@@ -40,7 +40,35 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 10
+  nginx:
+    image: nginx:alpine
+    container_name: emotion-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - postgres
+      - redis
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: emotion-ngrok
+    restart: unless-stopped
+    ports:
+      - "4040:4040"
+    command:
+      - "http"
+      - "nginx:80"
+      - "--url=${NGROK_DOMAIN:-unepauletted-lesley-desperately.ngrok-free.dev}"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    depends_on:
+      - nginx
+
 volumes:
   postgres_data:
   redis_data:

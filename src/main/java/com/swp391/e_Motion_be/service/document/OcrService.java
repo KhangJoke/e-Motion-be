@@ -109,7 +109,12 @@ public class OcrService {
     }
 
     public boolean isExpired(String text){
-        Pattern expiryLabel = Pattern.compile("Có giá trị đến|Expires|Date of expiry", Pattern.CASE_INSENSITIVE);
+        if (text == null || text.isBlank() || text.startsWith("Lỗi") || text.contains("Không tìm thấy văn bản")) {
+            log.warn("OCR text is empty or contains error message. Skipping expiration check.");
+            return false;
+        }
+
+        Pattern expiryLabel = Pattern.compile("Có giá trị đến|Giá trị đến|Giá trị sử dụng đến|Date of expiry|Expires|Hạn sử dụng", Pattern.CASE_INSENSITIVE);
         Matcher mLabel = expiryLabel.matcher(text);
         if (mLabel.find()){
             // Get the position after the expiry label
@@ -117,18 +122,22 @@ public class OcrService {
             // Extract text after the expiry label (next 100 characters to find the date)
             String textAfterLabel = text.substring(labelEndPos, Math.min(labelEndPos + 100, text.length()));
             // Check if there's "không thời hạn" after the expiry label
-            if(textAfterLabel.toLowerCase().contains("không thời hạn")){
+            String lowerText = textAfterLabel.toLowerCase();
+            if(lowerText.contains("không thời hạn") || lowerText.contains("vô thời hạn")){
                 return false;
             }
             Matcher m = DATE_PATTERN.matcher(textAfterLabel);
             if(m.find()){
                 LocalDate d = parseDate(m.group(1));
                 if(d != null){
-                    return d.isBefore(LocalDate.now());
+                    boolean expired = d.isBefore(LocalDate.now());
+                    log.info("Document expiration date found: {}, isExpired: {}", d, expired);
+                    return expired;
                 }
             }
         }
-        return true;
+        // Nếu không trích xuất được ngày hết hạn cụ thể, không tự tiện coi là hết hạn
+        return false;
     }
 
     // ----- Check GPLX class cho thuê xe -----
@@ -145,9 +154,14 @@ public class OcrService {
     }
 
     private LocalDate parseDate(String dateStr){
-        dateStr = dateStr.replaceAll("[^0-9/\\-]", "");
+        if (dateStr == null) return null;
+        dateStr = dateStr.replaceAll("[^0-9/\\-]", "").trim();
         for(DateTimeFormatter fmt: DATE_FORMATTERS){
-            return LocalDate.parse(dateStr, fmt);
+            try {
+                return LocalDate.parse(dateStr, fmt);
+            } catch (Exception ignored) {
+                // Thử định dạng tiếp theo
+            }
         }
         return null;
     }

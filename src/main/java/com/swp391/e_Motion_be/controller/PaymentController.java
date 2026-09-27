@@ -1,15 +1,18 @@
 package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
+import com.swp391.e_Motion_be.dto.requests.payment.PayOSWebhookRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.UpdatePaymentRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
+import com.swp391.e_Motion_be.dto.responses.PayOSResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.TransactionResponse;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
+import com.swp391.e_Motion_be.service.PayOSService;
 import com.swp391.e_Motion_be.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,9 +27,11 @@ import java.util.Map;
 @RequestMapping("/api/payment")
 public class PaymentController {
     private final PaymentService paymentService;
+    private final PayOSService payOSService;
 
-    public PaymentController(PaymentService paymentService) {
+    public PaymentController(PaymentService paymentService, PayOSService payOSService) {
         this.paymentService = paymentService;
+        this.payOSService = payOSService;
     }
 
     @PostMapping("/vnpay")
@@ -56,6 +61,46 @@ public class PaymentController {
             redirectUrl = "https://e-motion-fe.vercel.app/payments/payment-result?status=success&txnRef=" + paymentResponse.getTxnRef() +"&type="+ paymentResponse.getType();
         }
         response.sendRedirect(redirectUrl);
+    }
+
+    @PostMapping("/payos/create-link/{reservationId}")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<PayOSResponse> createPayOSPaymentLink(@PathVariable Long reservationId) {
+        ApiResponse<PayOSResponse> response = new ApiResponse<>();
+        response.setMessage("Create PayOS payment link successfully");
+        response.setStatus(200);
+        response.setData(payOSService.createPaymentLink(reservationId));
+        return response;
+    }
+
+    @PostMapping("/payos/webhook")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<PaymentResponse> payosWebhook(@RequestBody PayOSWebhookRequest request) {
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setMessage("Process PayOS webhook successfully");
+        response.setStatus(200);
+        response.setData(payOSService.handlePayOSWebhook(request));
+        return response;
+    }
+
+    @PostMapping("/payos/confirm/{reservationCode}")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<PaymentResponse> confirmPayOSPayment(@PathVariable String reservationCode) {
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setMessage("Confirm PayOS reservation payment successfully");
+        response.setStatus(200);
+        response.setData(payOSService.checkAndConfirmPayment(reservationCode));
+        return response;
+    }
+
+    @PostMapping("/payos/check/{reservationCode}")
+    @PreAuthorize("permitAll()")
+    public ApiResponse<PaymentResponse> checkPayOSPayment(@PathVariable String reservationCode) {
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setMessage("Check PayOS reservation payment successfully");
+        response.setStatus(200);
+        response.setData(payOSService.checkAndConfirmPayment(reservationCode));
+        return response;
     }
 
     @PostMapping()

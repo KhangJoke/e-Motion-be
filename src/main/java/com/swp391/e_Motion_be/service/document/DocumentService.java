@@ -85,9 +85,17 @@ public class DocumentService {
     public boolean checkExpiredDocumentByUserEmail(String email){
         List<Document> documents = documentRepository.findByUser_Email(email);
         for(Document document : documents){
-            String text = ocrService.extractTextFromUrl(document.getImgUrl());
-            if(ocrService.isExpired(text)){
-                return true;
+            if (document.getImgUrl() == null || document.getImgUrl().isBlank()) {
+                continue;
+            }
+            try {
+                String text = ocrService.extractTextFromUrl(document.getImgUrl());
+                if (text != null && !text.startsWith("Lỗi") && ocrService.isExpired(text)) {
+                    log.warn("Document ID {} of user {} is expired", document.getId(), email);
+                    return true;
+                }
+            } catch (Exception e) {
+                log.warn("Error running OCR expiration check for document ID {}: {}", document.getId(), e.getMessage());
             }
         }
         return false;
