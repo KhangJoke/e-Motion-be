@@ -51,7 +51,7 @@ public class PayOSService {
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${hold.fee.value:500000}")
+    @Value("${hold.fee.value:5000}")
     private double holdFeeValue;
 
     /**

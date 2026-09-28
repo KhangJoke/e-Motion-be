@@ -22,11 +22,14 @@ public abstract class VehicleMapper {
     double price12hRate;
     @Value("${price.day.rate}")
     double priceDayRate;
+    @Value("${hold.fee.value:5000}")
+    double holdFee;
 
     @Mapping(source = "stationId", target = "station.id")
     @Mapping(target = "images", ignore = true)
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
+    @Mapping(target = "holdFee", expression = "java(holdFee)")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
     @Mapping(source = "station.id", target = "stationId")

@@ -23,5 +23,6 @@ public class ReservationResponse {
     private VehicleDetailResponse vehicle;
     private Long stationId;
     private String paymentUrl;
+    private Double depositAmount;
 }
 

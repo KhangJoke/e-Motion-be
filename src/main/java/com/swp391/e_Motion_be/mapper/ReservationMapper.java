@@ -15,6 +15,7 @@ public interface ReservationMapper {
     @Mapping(source = "user.email", target = "userEmail")
     @Mapping(source = "vehicle", target = "vehicle")
     @Mapping(source = "station.id", target = "stationId")
+    @Mapping(source = "deposit.amount", target = "depositAmount")
     ReservationResponse toReservationResponse(Reservation reservation);
 
     @Mapping(source = "user.email", target = "userEmail")

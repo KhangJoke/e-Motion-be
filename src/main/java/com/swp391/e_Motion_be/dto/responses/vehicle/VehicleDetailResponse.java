@@ -26,6 +26,7 @@ public class VehicleDetailResponse {
     private Double pricePer12Hours;
     private Double pricePerDay;
     private Double depositFee;
+    private Double holdFee;
     private Double consumptionRate;
     private int batteryLevel;
     private int batteryCapacity;

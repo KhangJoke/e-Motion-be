@@ -53,7 +53,7 @@ public class VehicleService {
 
     private final VehicleMapper vehicleMapper;
 
-    @Value("${hold.fee.value}")
+    @Value("${hold.fee.value:5000}")
     private double holdCarFee;
 
 
@@ -72,6 +72,7 @@ public class VehicleService {
                 .toList();
         VehicleDetailResponse vehicleDetailResponse = vehicleMapper.toVehicleDetailResponse(vehicle);
         vehicleDetailResponse.setSimilarVehicleList(similarVehicles);
+        vehicleDetailResponse.setHoldFee(holdCarFee);
         return vehicleDetailResponse;
     }
 
@@ -86,7 +87,9 @@ public class VehicleService {
     public VehicleDetailResponse findVehicleByPlateNumber(String plateNumber) {
         Vehicle vehicle = vehicleRepository.findByPlateNumber(plateNumber)
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_EXIST));
-        return vehicleMapper.toVehicleDetailResponse(vehicle);
+        VehicleDetailResponse vehicleDetailResponse = vehicleMapper.toVehicleDetailResponse(vehicle);
+        vehicleDetailResponse.setHoldFee(holdCarFee);
+        return vehicleDetailResponse;
     }
 
     // Find By Brand
