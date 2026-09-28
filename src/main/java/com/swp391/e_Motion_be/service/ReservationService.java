@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +61,9 @@ public class ReservationService {
     private final PayOSService payOSService;
     private final DocumentService documentService;
     private final RedisTemplate<String, Object> redisTemplate;
+
+    @Value("${hold.fee.value:500000}")
+    private double holdFeeValue;
 
     @Transactional
     public Map<String, Object> createReservation(CreateReservationRequest request, HttpServletRequest httpReq) throws Exception {
@@ -151,7 +155,7 @@ public class ReservationService {
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
                 DepositStatus.PENDING,
-                500000,
+                holdFeeValue,
                 reservation.getId(),
                 null
         );

@@ -20,6 +20,7 @@ import com.swp391.e_Motion_be.repository.PaymentRepository;
 import com.swp391.e_Motion_be.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,9 @@ public class PayOSService {
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
 
+    @Value("${hold.fee.value:500000}")
+    private double holdFeeValue;
+
     /**
      * Tạo thông tin thanh toán VietQR / PayOS cho đơn đặt giữ chỗ
      */
@@ -64,7 +68,7 @@ public class PayOSService {
                     .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_NOT_FOUND));
         }
 
-        double amount = deposit.getAmount() > 0 ? deposit.getAmount() : 500000.0;
+        double amount = deposit.getAmount() > 0 ? deposit.getAmount() : holdFeeValue;
         long orderCode = generateOrderCode(reservation.getId());
         String resCode = (reservation.getCode() != null && !reservation.getCode().isBlank())
                 ? reservation.getCode()
@@ -222,7 +226,7 @@ public class PayOSService {
         Payment payment = getLatestPayment(reservation);
         if (payment == null) {
             payment = Payment.builder()
-                    .amount(deposit.getAmount() > 0 ? deposit.getAmount() : 500000.0)
+                    .amount(deposit.getAmount() > 0 ? deposit.getAmount() : holdFeeValue)
                     .description("Hold Deposit via PayOS")
                     .status(PaymentStatus.PENDING)
                     .type(PaymentType.RESERVATION)
