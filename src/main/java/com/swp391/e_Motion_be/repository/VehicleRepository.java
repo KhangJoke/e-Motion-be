@@ -32,16 +32,16 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
 
     @Query(value = """
-    SELECT EXISTS (
+    SELECT CASE WHEN EXISTS (
         -- Kiểm tra xung đột trong bảng reservations
         SELECT 1
         FROM reservations r
         WHERE r.vehicle_id = :vehicleId
           AND r.reservation_status IN (:reservationStatuses)
           AND (:excludeReservationId IS NULL OR r.reservation_id != :excludeReservationId)
-          -- Áp dụng logic khoảng đệm 3 giờ
-          AND :startTime < DATE_ADD(r.reserved_end_time, INTERVAL 3 HOUR)
-          AND :endTime > DATE_SUB(r.reserved_start_time, INTERVAL 3 HOUR)
+          -- Áp dụng logic khoảng đệm 3 giờ (PostgreSQL interval)
+          AND CAST(:startTime AS timestamp) < (r.reserved_end_time + INTERVAL '3 hours')
+          AND CAST(:endTime AS timestamp) > (r.reserved_start_time - INTERVAL '3 hours')
          
         UNION
          
@@ -51,10 +51,10 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
         WHERE rent.vehicle_id = :vehicleId
           AND rent.rental_status NOT IN (:excludedRentalStatuses)
           AND (:excludeRentalId IS NULL OR rent.rental_id != :excludeRentalId)
-          -- Áp dụng logic khoảng đệm 3 giờ
-          AND :startTime < DATE_ADD(rent.end_time, INTERVAL 3 HOUR)
-          AND :endTime > DATE_SUB(rent.start_time, INTERVAL 3 HOUR)
-    )
+          -- Áp dụng logic khoảng đệm 3 giờ (PostgreSQL interval)
+          AND CAST(:startTime AS timestamp) < (rent.end_time + INTERVAL '3 hours')
+          AND CAST(:endTime AS timestamp) > (rent.start_time - INTERVAL '3 hours')
+    ) THEN 1 ELSE 0 END
 """, nativeQuery = true)
     int doesConflictExistForVehicle(
             @Param("vehicleId") Long vehicleId,

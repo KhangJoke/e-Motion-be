@@ -64,7 +64,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/payment/vnpay-return", "/api/payment/vnpay/**").permitAll()
+                        .requestMatchers("/api/payment/vnpay-return", "/api/payment/vnpay/**", "/api/payment/payos/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/vehicles/**", "/api/stations/**", "/api/ratings/**").permitAll()
                         .requestMatchers("/api/vehicles/booking").permitAll()

@@ -8,6 +8,7 @@ import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationH
 import com.swp391.e_Motion_be.dto.requests.reservation.PageAndFilterReservationRequest;
 import com.swp391.e_Motion_be.dto.requests.reservation.UpdateReservationStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.DepositResponse;
+import com.swp391.e_Motion_be.dto.responses.PayOSResponse;
 import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.*;
 import com.swp391.e_Motion_be.entity.*;
@@ -56,6 +57,7 @@ public class ReservationService {
     private final EmailService emailService;
     private final UserService userService;
     private final PaymentService paymentService;
+    private final PayOSService payOSService;
     private final DocumentService documentService;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -139,6 +141,9 @@ public class ReservationService {
         reservation.setVehicle(vehicle);
         reservation.setStation(station);
         reservation.setStatus(ReservationStatus.PENDING);
+        if (reservation.getCode() == null || reservation.getCode().isBlank()) {
+            reservation.setCode(generateReservationCode());
+        }
         reservationRepository.save(reservation);
 
         log.info("Reservation created with ID: {}", reservation.getId());
@@ -172,6 +177,13 @@ public class ReservationService {
         data.put("vnpayUrl", url);
         data.put("reservation", reservationMapper.toReservationResponse(reservation));
         data.put("deposit", depositResponse);
+
+        try {
+            PayOSResponse payOSResponse = payOSService.createPaymentLink(reservation.getId());
+            data.put("payos", payOSResponse);
+        } catch (Exception e) {
+            log.warn("Failed to create PayOS payment link: {}", e.getMessage());
+        }
 
         return data;
     }
@@ -209,6 +221,15 @@ public class ReservationService {
         return dateTime.getMinute() == 0 && dateTime.getSecond() == 0;
     }
 
+    private String generateReservationCode() {
+        Random random = new Random();
+        int code;
+        do {
+            code = random.nextInt(900000) + 100000;
+        } while (reservationRepository.findByCode(String.valueOf(code)).isPresent());
+        return String.valueOf(code);
+    }
+
     @Transactional
     public boolean cancelReservation(String code, boolean isForceRefunded, HttpServletRequest request) {
         log.info("Processing cancellation for reservation: {}", code);
@@ -229,6 +250,25 @@ public class ReservationService {
         }
         if(reservation.getStatus() == ReservationStatus.COMPLETED) {
             throw new AppException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
+        }
+
+        // Allow immediate cancellation for PENDING or FAILED reservations without 5-day rule or refund
+        if (reservation.getStatus() == ReservationStatus.PENDING || reservation.getStatus() == ReservationStatus.FAILED) {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            if (reservation.getDeposit() != null && reservation.getDeposit().getStatus() == DepositStatus.PENDING) {
+                reservation.getDeposit().setStatus(DepositStatus.FAILED);
+                depositRepository.save(reservation.getDeposit());
+            }
+
+            // Immediately release Redis locks so vehicle and user can book again
+            String reservationKey = "reservation:" + reservation.getId();
+            String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+            redisTemplate.delete(reservationKey);
+            redisTemplate.delete(vehicleKey);
+
+            reservationRepository.save(reservation);
+            log.info("Reservation {} in status PENDING/FAILED successfully cancelled and locks released", code);
+            return true;
         }
 
         // Check if cancellation is within allowed timeframe (5 days before start)
