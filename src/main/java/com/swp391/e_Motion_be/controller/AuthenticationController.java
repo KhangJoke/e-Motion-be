@@ -188,23 +188,16 @@ public class AuthenticationController {
 
     @PostMapping("/verify-otp")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<ApiResponse<LoginResponse>> verifyOtp(@RequestBody VerifyUserDto verifyUserDto,
-            HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<LoginResponse>> verifyOtp(@RequestBody VerifyUserDto verifyUserDto) {
         User user = authenticationService.verifyOtp(verifyUserDto);
         String accessToken = jwtService.generateToken(user);
         String refreshToken = refreshTokenService.CreateAndStore(user);
+
         LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken,
                 jwtService.extractExpiration(accessToken).getTime());
+
         ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "User verified and logged in successfully",
                 loginResponse);
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("None")
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok(apiResponse);
     }
@@ -216,10 +209,12 @@ public class AuthenticationController {
         User user = authenticationService.authenticateGoogle(googleLoginDto.getIdToken());
         String accessToken = jwtService.generateToken(user);
         String refreshToken = refreshTokenService.CreateAndStore(user);
+
         LoginResponse loginResponse = new LoginResponse(
                 accessToken,
                 refreshToken,
                 jwtService.extractExpiration(accessToken).getTime());
+
         ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(200, "Google login successfully", loginResponse);
 
         return ResponseEntity.ok(apiResponse);

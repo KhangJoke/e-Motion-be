@@ -51,9 +51,9 @@ public class AuthenticationService {
     public User signup(RegisterUserDto input) {
         User oldUser = userRepository.findByEmail(input.getEmail()).orElse(null);
 
-        if(oldUser != null && oldUser.isEnabled()) {
+        if (oldUser != null && oldUser.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_ALREADY_VERIFIED);
-        }else if(oldUser != null && !oldUser.isEnabled()){
+        } else if (oldUser != null && !oldUser.isEnabled()) {
             oldUser.setFullName(input.getFullName());
             oldUser.setPhone(input.getPhone());
             oldUser.setVerificationCode(generateVerificationCode());
@@ -62,9 +62,9 @@ public class AuthenticationService {
             emailService.sendVerificationEmail(oldUser);
             return userRepository.save(oldUser);
         }
-        if(userRepository.existsByEmail(input.getEmail())) {
+        if (userRepository.existsByEmail(input.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        } else if(userRepository.findByPhoneAndEnabledTrue(input.getPhone())!=null) {
+        } else if (userRepository.findByPhoneAndEnabledTrue(input.getPhone()) != null) {
             throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
         }
         User user = userMapper.toUser(input);
@@ -79,7 +79,7 @@ public class AuthenticationService {
 
     public void logout(String refreshToken, String accessToken) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated()) {
             throw new AppException(ErrorCode.NOT_LOGIN_YET);
         }
 
@@ -88,7 +88,7 @@ public class AuthenticationService {
             refreshTokenService.revokeToken(token);
         }
 
-        if(jwtService.extractExpiration(accessToken).before(new Date())) {
+        if (jwtService.extractExpiration(accessToken).before(new Date())) {
             return;
         }
 
@@ -105,18 +105,16 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(input.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        if(!user.isEnabled()) {
+        if (!user.isEnabled()) {
             throw new AppException(ErrorCode.ACCOUNT_NOT_VERIFIED);
-        }else if(user.isBlocked()) {
+        } else if (user.isBlocked()) {
             throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
         }
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             input.getEmail(),
-                            input.getPassword()
-                    )
-            );
+                            input.getPassword()));
         } catch (Exception e) {
             throw new AppException(ErrorCode.INVALID_PASSWORD);
         }
@@ -127,12 +125,12 @@ public class AuthenticationService {
     public void verifyUser(VerifyUserDto input) {
         Optional<User> optionalUser = userRepository.findByEmail(input.getEmail());
 
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
-            if(user.getVerificationCode().equals(input.getVerificationCode())) {
+            if (user.getVerificationCode().equals(input.getVerificationCode())) {
                 user.setEnabled(true);
                 user.setVerificationCode(null);
                 user.setVerificationCodeExpiresAt(null);
@@ -148,12 +146,12 @@ public class AuthenticationService {
     public void verifyForgotPasswordUser(VerifyUserDto input) {
         Optional<User> optionalUser = userRepository.findByEmail(input.getEmail());
 
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            if (user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
-            if(user.getForgotPasswordCode().equals(input.getVerificationCode())) {
+            if (user.getForgotPasswordCode().equals(input.getVerificationCode())) {
                 user.setForgotPasswordCode(null);
                 userRepository.save(user);
             } else {
@@ -164,7 +162,7 @@ public class AuthenticationService {
         }
     }
 
-        public void sendOtp(String email) {
+    public void sendOtp(String email) {
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(email);
@@ -188,7 +186,8 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(input.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
-        if (user.getVerificationCodeExpiresAt() == null || user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
+        if (user.getVerificationCodeExpiresAt() == null
+                || user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
             throw new AppException(ErrorCode.VERIFY_EXPIRED);
         }
 
@@ -204,9 +203,9 @@ public class AuthenticationService {
 
     public void resendVerificationCode(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(user.isEnabled()) {
+            if (user.isEnabled()) {
                 throw new AppException(ErrorCode.ACCOUNT_ALREADY_VERIFIED);
             }
             user.setVerificationCode(generateVerificationCode());
@@ -220,9 +219,9 @@ public class AuthenticationService {
 
     public void sendVerificationEmailToUpdatePassword(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(!user.isEnabled()) {
+            if (!user.isEnabled()) {
                 throw new AppException(ErrorCode.ACCOUNT_NOT_VERIFIED);
             }
             user.setForgotPasswordCode(generateVerificationCode());
@@ -236,9 +235,9 @@ public class AuthenticationService {
 
     public void updatePassword(ForgotPasswordUserDto input) {
         Optional<User> optionalUser = userRepository.findByEmail(input.getEmail());
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            if (user.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.VERIFY_EXPIRED);
             }
             user.setPassword(passwordEncoder.encode(input.getNewPassword()));
@@ -332,7 +331,6 @@ public class AuthenticationService {
             user.setPoint(0);
             user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
             user = userRepository.save(user);
-            log.info("Registered new user via Google: {}", email);
         }
 
         return user;
