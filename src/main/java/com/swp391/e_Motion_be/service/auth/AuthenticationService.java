@@ -17,20 +17,28 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthenticationService {
+    @Value("${google.client-id:}")
+    private String googleClientId;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -240,6 +248,95 @@ public class AuthenticationService {
         }
     }
 
+    public User authenticateGoogle(String idToken) {
+        if (idToken == null || idToken.trim().isEmpty()) {
+            throw new AppException(ErrorCode.GOOGLE_TOKEN_EMPTY);
+        }
+
+        String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken.trim();
+        Map<String, Object> payload;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            payload = response;
+        } catch (HttpClientErrorException e) {
+            log.error("Google token verification failed: {}", e.getMessage());
+            throw new AppException(ErrorCode.INVALID_GOOGLE_TOKEN);
+        } catch (Exception e) {
+            log.error("Error communicating with Google OAuth service: {}", e.getMessage());
+            throw new AppException(ErrorCode.GOOGLE_AUTH_FAILED);
+        }
+
+        if (payload == null || payload.containsKey("error")) {
+            throw new AppException(ErrorCode.INVALID_GOOGLE_TOKEN);
+        }
+
+        if (googleClientId != null && !googleClientId.trim().isEmpty()) {
+            String aud = (String) payload.get("aud");
+            if (aud == null || !googleClientId.contains(aud)) {
+                log.warn("Google token audience mismatch. Configured: {}, Token aud: {}", googleClientId, aud);
+                throw new AppException(ErrorCode.GOOGLE_AUDIENCE_MISMATCH);
+            }
+        }
+
+        String email = (String) payload.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            log.error("Google token does not contain an email");
+            throw new AppException(ErrorCode.GOOGLE_AUTH_FAILED);
+        }
+
+        Object emailVerifiedObj = payload.get("email_verified");
+        boolean emailVerified = emailVerifiedObj instanceof Boolean
+                ? (Boolean) emailVerifiedObj
+                : Boolean.parseBoolean(String.valueOf(emailVerifiedObj));
+        if (!emailVerified) {
+            throw new AppException(ErrorCode.GOOGLE_EMAIL_NOT_VERIFIED);
+        }
+
+        String name = (String) payload.get("name");
+        if (name == null || name.trim().isEmpty()) {
+            name = (String) payload.get("given_name");
+        }
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        User user;
+        if (optionalUser.isPresent()) {
+            user = optionalUser.get();
+            if (user.isBlocked()) {
+                throw new AppException(ErrorCode.ACCOUNT_BLOCKED);
+            }
+
+            boolean needsUpdate = false;
+            if (!user.isEnabled()) {
+                user.setEnabled(true);
+                user.setVerificationCode(null);
+                user.setVerificationCodeExpiresAt(null);
+                needsUpdate = true;
+            }
+            if ((user.getFullName() == null || user.getFullName().trim().isEmpty())
+                    && name != null && !name.trim().isEmpty()) {
+                user.setFullName(name);
+                needsUpdate = true;
+            }
+            if (needsUpdate) {
+                user = userRepository.save(user);
+            }
+        } else {
+            user = new User();
+            user.setEmail(email);
+            user.setFullName(name != null && !name.trim().isEmpty() ? name : "Google User");
+            user.setRole(Role.ROLE_USER);
+            user.setEnabled(true);
+            user.setBlocked(false);
+            user.setPoint(0);
+            user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+            user = userRepository.save(user);
+            log.info("Registered new user via Google: {}", email);
+        }
+
+        return user;
+    }
 
     private String generateVerificationCode() {
         Random random = new Random();

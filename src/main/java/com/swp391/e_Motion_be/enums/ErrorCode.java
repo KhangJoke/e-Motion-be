@@ -85,6 +85,13 @@ public enum ErrorCode {
     USER_NOT_EXISTS(HttpStatus.NOT_FOUND, "Người dùng không tồn tại"),
     REFRESH_TOKEN_IS_REUSED(HttpStatus.UNAUTHORIZED, "Refresh token đã được sử dụng. Vui lòng đăng nhập lại"),
 
+    // Google authentication errors
+    GOOGLE_TOKEN_EMPTY(HttpStatus.BAD_REQUEST, "ID Token của Google không được để trống"),
+    INVALID_GOOGLE_TOKEN(HttpStatus.UNAUTHORIZED, "Google ID Token không hợp lệ hoặc đã hết hạn"),
+    GOOGLE_AUDIENCE_MISMATCH(HttpStatus.FORBIDDEN, "Token Google không hợp lệ hoặc không thuộc hệ thống E-Motion"),
+    GOOGLE_EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "Email từ tài khoản Google chưa được xác thực"),
+    GOOGLE_AUTH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Xác thực tài khoản Google thất bại"),
+
     // Logout errors
     USER_HAS_BEEN_LOGOUT(HttpStatus.UNAUTHORIZED, "Tài khoản của bạn đã đăng xuất. Vui lòng đăng nhập để tiếp tục"),
 
