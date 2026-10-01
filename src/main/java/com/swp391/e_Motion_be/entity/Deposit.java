@@ -29,14 +29,20 @@ public class Deposit {
     @CreationTimestamp
     LocalDateTime createdAt;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
     Reservation reservation;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rental_id")
     Rental rental;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "deposit", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     List<Payment> payments;
 }

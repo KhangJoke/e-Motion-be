@@ -43,38 +43,6 @@ public class DocumentService {
             cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
             throw new AppException(ErrorCode.USER_ALREADY_HAS_DOCUMENT_OF_TYPE);
         }
-        String text = ocrService.extractTextFromUrl(request.getImgUrl());
-        // 1. Kiểm tra định dạng ảnh có đúng không
-        if((request.getType() == DocumentType.CCCD && !ocrService.isCCCD(text))
-                || (request.getType() == DocumentType.LICENSE && !ocrService.isGPLX(text))){
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-            throw new AppException(ErrorCode.DOCUMENT_INVALID);
-        }
-        // 2. Kiểm tra số CCCD/GPLX có hợp lệ không
-        if(!ocrService.hasValidIdNumber(text)){
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-            throw new AppException(ErrorCode.DOCUMENT_NUMBER_INVALID);
-        }
-        // 3. Kiểm tra số CCCD/GPLX có khớp với số trong ảnh ko
-        if(!ocrService.extractIdNumber(text).equals(request.getNumber())){
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-            throw new AppException(ErrorCode.DOCUMENT_NUMBER_MISMATCH);
-        }
-        // 4. Kiểm tra số CCCD đã tồn tại chưa
-        if(documentRepository.existsByNumber(request.getNumber())){
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-            throw new AppException(ErrorCode.DOCUMENT_NUMBER_EXISTS);
-        }
-        // 5. Kiểm tra giấy tờ có hết hạn không
-        if(ocrService.isExpired(text)){
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-            throw new AppException(ErrorCode.DOCUMENT_EXPIRED);
-        }
-        // 6. Nếu là giấy phép lái xe, kiểm tra có được phép thuê xe không
-        if(request.getType() == DocumentType.LICENSE && !ocrService.isAllowedToRentCar(text)){
-            cloudinaryService.delete(cloudinaryService.getPublicIdFromUrl(request.getImgUrl()));
-            throw new AppException(ErrorCode.LICENSE_NOT_VALID_FOR_VEHICLE);
-        }
 
         Document document = documentMapper.toDocumentEntity(request);
         document.setUser(user);

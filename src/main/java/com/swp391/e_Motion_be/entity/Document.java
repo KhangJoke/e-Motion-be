@@ -4,6 +4,8 @@ import com.swp391.e_Motion_be.enums.DocumentType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 @Entity
@@ -23,6 +25,8 @@ public class Document {
     @Column(name = "doc_number", unique = true, nullable = false)
     String number;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
