@@ -4,10 +4,7 @@ import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -50,14 +47,20 @@ public class Payment {
     private String bankCode;      // vnp_BankCode
     private LocalDateTime payDate;// vnp_PayDate
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rental_id")
     private Rental rental;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deposit_id")
     private Deposit deposit;
