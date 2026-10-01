@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
 import com.swp391.e_Motion_be.enums.station.StationCity;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PageAndFilterVehicleRequest {
-    private List<VehicleBrand> brands;
+    private List<Long> brandIds;
+    private List<String> brands;
     private List<VehicleCategory> categories;
     private Integer page;
     private Integer limit;

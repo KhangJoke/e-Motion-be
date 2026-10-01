@@ -1,8 +1,8 @@
 package com.swp391.e_Motion_be.repository;
 
+import com.swp391.e_Motion_be.entity.Brand;
 import com.swp391.e_Motion_be.entity.Vehicle;
 import com.swp391.e_Motion_be.enums.station.StationCity;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByStation_CityAndStatusIn(StationCity city, List<VehicleStatus> statuses);
     List<Vehicle> findByStation_IdAndStatusIn(Long stationId, List<VehicleStatus> statuses);
     List<Vehicle> findByStatus(VehicleStatus status);
-    List<Vehicle> findByBrandAndStatus(VehicleBrand brand,VehicleStatus status);
+    List<Vehicle> findByBrandAndStatus(Brand brand, VehicleStatus status);
     List<Vehicle> findTop16ByStatusOrderByIdDesc(VehicleStatus status);
     List<Vehicle> findByCategory(VehicleCategory category);
     long countByStation_Id(Long stationId);
@@ -66,9 +66,11 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             @Param("excludeRentalId") Long excludeRentalId
     );
 
-    Page<Vehicle> findByIdInAndBrandInAndCategoryInAndNameContains(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, String search, Pageable pageable);
+    Page<Vehicle> findByIdInAndBrandInAndCategoryInAndNameContains(List<Long> ids, List<Brand> brandsList, List<VehicleCategory> categoryList, String search, Pageable pageable);
     Page<Vehicle> findByIdInAndStatusInAndNameContainsAndStation_Id(List<Long> vehicleIds,List<VehicleStatus> statuses, String search, Long stationId, Pageable pageable);
     Page<Vehicle> findByIdInAndStatusInAndNameContains(List<Long> vehicleIds, List<VehicleStatus> statuses, String search, Pageable pageable);
-    Page<Vehicle> findByIdInAndBrandInAndCategoryInAndSeatsAndNameContainingIgnoreCase(List<Long> ids, List<VehicleBrand> brandsList, List<VehicleCategory> categoryList, Integer seats, String search, Pageable pageable);
+    Page<Vehicle> findByIdInAndBrandInAndCategoryInAndSeatsAndNameContainingIgnoreCase(List<Long> ids, List<Brand> brandsList, List<VehicleCategory> categoryList, Integer seats, String search, Pageable pageable);
     List<Vehicle> findByIsDeleteFalse();
+    boolean existsByBrand_Id(Long brandId);
+    long countByBrand_Id(Long brandId);
 }

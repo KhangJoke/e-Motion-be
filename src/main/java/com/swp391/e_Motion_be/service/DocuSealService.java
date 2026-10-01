@@ -64,7 +64,7 @@ public class DocuSealService {
                         Map.of("name", "carName", "default_value", rental.getVehicle().getName(), "readonly", true),
                         Map.of("name", "carType", "default_value", rental.getVehicle().getCategory(), "readonly", true),
                         Map.of("name", "numberOfSeat", "default_value", rental.getVehicle().getSeats(), "readonly", true),
-                        Map.of("name", "carBrand", "default_value", rental.getVehicle().getBrand(), "readonly", true),
+                        Map.of("name", "carBrand", "default_value", rental.getVehicle().getBrand() != null ? rental.getVehicle().getBrand().getName() : "", "readonly", true),
                         Map.of("name", "plateNumber", "default_value", rental.getVehicle().getPlateNumber(), "readonly", true),
                         Map.of("name", "rentLength", "default_value", rental.getStartTime().getHour()-rental.getEndTime().getHour(), "readonly", true),
                         Map.of("name", "rentFee", "default_value", String.valueOf(rental.getRentFee()), "readonly", true),

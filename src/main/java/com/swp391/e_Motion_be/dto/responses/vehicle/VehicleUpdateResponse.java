@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
 import com.swp391.e_Motion_be.dto.responses.ImgVehicleResponse;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -19,7 +18,8 @@ public class VehicleUpdateResponse {
     private String name;
     private String description;
     private VehicleCategory category;
-    private VehicleBrand brand;
+    private String brand;
+    private Long brandId;
     private double depositFee;
     private int seats;
     private int point;

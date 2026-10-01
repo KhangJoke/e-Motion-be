@@ -57,6 +57,12 @@ public enum ErrorCode {
     VEHICLE_LOG_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Tạo nhật ký phương tiện thất bại"),
     VEHICLE_LOG_RENTAL_COMPLETED(HttpStatus.BAD_REQUEST, "Không thể cập nhật nhật ký phương tiện cho thuê đã hoàn thành"),
 
+    // Brand errors
+    BRAND_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thương hiệu xe"),
+    BRAND_CODE_EXISTED(HttpStatus.CONFLICT, "Mã thương hiệu xe đã tồn tại"),
+    BRAND_NAME_EXISTED(HttpStatus.CONFLICT, "Tên thương hiệu xe đã tồn tại"),
+    BRAND_IN_USE(HttpStatus.CONFLICT, "Không thể xóa thương hiệu đang được sử dụng bởi các phương tiện"),
+
     // Img Vehicle
     IMG_VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy hình ảnh phương tiện"),
 

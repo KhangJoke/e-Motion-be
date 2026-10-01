@@ -647,7 +647,7 @@ public class EmailService {
         context.setVariable("renterName", rental.getUser().getFullName());
         context.setVariable("contractUrl", contractUrl);
         context.setVariable("carName", rental.getVehicle().getName());
-        context.setVariable("carBrand", rental.getVehicle().getBrand());
+        context.setVariable("carBrand", rental.getVehicle().getBrand() != null ? rental.getVehicle().getBrand().getName() : "");
         context.setVariable("carCategory", rental.getVehicle().getCategory());
         context.setVariable("plateNumber", rental.getVehicle().getPlateNumber());
         context.setVariable("rentFee", rental.getRentFee());

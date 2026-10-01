@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.entity;
 
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import jakarta.persistence.*;
@@ -29,9 +28,9 @@ public class Vehicle {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "brand",nullable = false)
-    private VehicleBrand brand;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "brand_id", nullable = false)
+    private Brand brand;
 
     @Enumerated(EnumType.STRING)
     @Column(name="vehicle_status",nullable = false)

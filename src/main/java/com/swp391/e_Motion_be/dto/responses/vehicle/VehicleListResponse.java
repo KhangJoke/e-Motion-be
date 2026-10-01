@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
 import com.swp391.e_Motion_be.dto.responses.station.StationResponse;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +14,9 @@ public class VehicleListResponse {
     private String name;
     private VehicleStatus status;
     private String category;
-    private VehicleBrand brand;
+    private String brand;
+    private Long brandId;
+    private String brandLogo;
     private String plateNumber;
     private int seats;
     private Double priceRate;

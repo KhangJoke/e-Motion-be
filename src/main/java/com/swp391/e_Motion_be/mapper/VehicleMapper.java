@@ -25,14 +25,20 @@ public abstract class VehicleMapper {
     @Value("${hold.fee.value:5000}")
     double holdFee;
 
+    @Mapping(target = "brand", ignore = true)
     @Mapping(source = "stationId", target = "station.id")
     @Mapping(target = "images", ignore = true)
     public abstract Vehicle toVehicleEntity(VehicleCreationRequest request);
 
     @Mapping(target = "holdFee", expression = "java(holdFee)")
+    @Mapping(source = "brand.name", target = "brand")
+    @Mapping(source = "brand.id", target = "brandId")
+    @Mapping(source = "brand.logoUrl", target = "brandLogo")
     public abstract VehicleDetailResponse toVehicleDetailResponse(Vehicle vehicle);
 
     @Mapping(source = "station.id", target = "stationId")
+    @Mapping(source = "brand.name", target = "brand")
+    @Mapping(source = "brand.id", target = "brandId")
     public abstract VehicleUpdateResponse toVehicleUpdateResponse(Vehicle vehicle);
 
     @Mapping(target = "seats", expression = "java(vehicle.getSeats())")
@@ -46,8 +52,12 @@ public abstract class VehicleMapper {
     @Mapping(target = "pricePer8Hours", source = "vehicle.pricePer8Hours")
     @Mapping(target = "pricePer12Hours", source = "vehicle.pricePer12Hours")
     @Mapping(target = "pricePerDay", source = "vehicle.pricePerDay")
+    @Mapping(source = "vehicle.brand.name", target = "brand")
+    @Mapping(source = "vehicle.brand.id", target = "brandId")
+    @Mapping(source = "vehicle.brand.logoUrl", target = "brandLogo")
     public abstract VehicleListResponse toVehicleListResponse(Vehicle vehicle, long hours);
 
+    @Mapping(target = "brand", ignore = true)
     @Mapping(target = "images", ignore = true)
     public abstract void updateVehicleFromRequest(@MappingTarget Vehicle vehicle, VehicleUpdateRequest request);
 

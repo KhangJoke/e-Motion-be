@@ -1,6 +1,5 @@
 package com.swp391.e_Motion_be.dto.responses.vehicle;
 
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,5 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VehicleBrandResponse {
-    private VehicleBrand brand;
+    private String brand;
+    private Long brandId;
+    private String brandLogo;
 }

@@ -9,7 +9,6 @@ import com.swp391.e_Motion_be.enums.RentalStatus;
 import com.swp391.e_Motion_be.enums.ReservationStatus;
 import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.enums.vehicle.FeeType;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
@@ -30,6 +29,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +46,7 @@ public class VehicleService {
     private final RentalRepository rentalRepository;
     private final ReservationRepository reservationRepository;
     private final ImgVehicleRepository imgVehicleRepository;
+    private final BrandRepository brandRepository;
 
     private final RentalService rentalService;
     private final UserService userService;
@@ -92,16 +93,55 @@ public class VehicleService {
         return vehicleDetailResponse;
     }
 
-    // Find By Brand
-    public List<VehicleListResponse> findVehicleByBrand(String brand) {
-        VehicleBrand vehicleBrand;
-        try {
-            vehicleBrand = VehicleBrand.valueOf(brand.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new AppException(ErrorCode.INVALID_VEHICLE_BRAND);
+    // Resolve brand helper
+    private Brand resolveBrand(Long brandId, String brand) {
+        if (brandId != null) {
+            return brandRepository.findById(brandId)
+                    .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+        }
+        if (brand != null && !brand.trim().isEmpty()) {
+            String trimmed = brand.trim();
+            return brandRepository.findByCodeIgnoreCase(trimmed)
+                    .or(() -> brandRepository.findByNameIgnoreCase(trimmed))
+                    .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+        }
+        throw new AppException(ErrorCode.BRAND_NOT_FOUND);
+    }
+
+    private List<Brand> resolveFilterBrands(List<Long> brandIds, List<String> brands) {
+        if ((brandIds == null || brandIds.isEmpty()) && (brands == null || brands.isEmpty())) {
+            return brandRepository.findAll();
         }
 
-        List<Vehicle> vehicles = vehicleRepository.findByBrandAndStatus(vehicleBrand,VehicleStatus.AVAILABLE );
+        List<Brand> result = new ArrayList<>();
+        if (brandIds != null && !brandIds.isEmpty()) {
+            result.addAll(brandRepository.findAllById(brandIds));
+        }
+        if (brands != null && !brands.isEmpty()) {
+            List<String> upperBrands = brands.stream()
+                    .map(String::trim)
+                    .map(String::toUpperCase)
+                    .toList();
+            List<Brand> matched = brandRepository.findAll().stream()
+                    .filter(b -> upperBrands.contains(b.getCode().toUpperCase()) || upperBrands.contains(b.getName().toUpperCase()))
+                    .filter(b -> result.stream().noneMatch(existing -> existing.getId().equals(b.getId())))
+                    .toList();
+            result.addAll(matched);
+        }
+        return result;
+    }
+
+    // Find By Brand
+    public List<VehicleListResponse> findVehicleByBrand(String brand) {
+        if (brand == null || brand.trim().isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_VEHICLE_BRAND);
+        }
+        String trimmed = brand.trim();
+        Brand brandEntity = brandRepository.findByCodeIgnoreCase(trimmed)
+                .or(() -> brandRepository.findByNameIgnoreCase(trimmed))
+                .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+
+        List<Vehicle> vehicles = vehicleRepository.findByBrandAndStatus(brandEntity, VehicleStatus.AVAILABLE);
 
         if (vehicles == null || vehicles.isEmpty()) {
             throw new AppException(ErrorCode.VEHICLE_NOT_EXIST);
@@ -112,11 +152,9 @@ public class VehicleService {
                 .collect(Collectors.toList());
     }
 
-
-
     public List<String> findAllVehicleBrands() {
-        return Arrays.stream(VehicleBrand.values())
-                .map(Enum::name)
+        return brandRepository.findByActiveTrueOrderByDisplayOrderAsc().stream()
+                .map(Brand::getName)
                 .toList();
     }
 
@@ -164,6 +202,8 @@ public class VehicleService {
             throw new AppException(ErrorCode.VEHICLE_EXIST);
         }
         Vehicle vehicle = vehicleMapper.toVehicleEntity(request);
+        Brand brand = resolveBrand(request.getBrandId(), request.getBrand());
+        vehicle.setBrand(brand);
         vehicle.setLastMaintenance(LocalDateTime.now());
         priceValidationVehicle(vehicle); //check price validation
 
@@ -222,6 +262,10 @@ public class VehicleService {
         });
 
         vehicleMapper.updateVehicleFromRequest(vehicle, request);
+        if (request.getBrandId() != null || (request.getBrand() != null && !request.getBrand().trim().isEmpty())) {
+            Brand brand = resolveBrand(request.getBrandId(), request.getBrand());
+            vehicle.setBrand(brand);
+        }
         priceValidationVehicle(vehicle); //check price validation
         vehicleRepository.save(vehicle);
     }
@@ -328,9 +372,10 @@ public class VehicleService {
         }
 
         Integer seats = request.getSeats();
-        List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
-                ? Arrays.asList(VehicleBrand.values())
-                : request.getBrands();
+        List<Brand> brandsList = resolveFilterBrands(request.getBrandIds(), request.getBrands());
+        if (brandsList.isEmpty()) {
+            return new PageAndFilterVehicleResponse(Collections.emptyList(), 0);
+        }
 
         List<VehicleCategory> categoryList = (request.getCategories() == null || request.getCategories().isEmpty())
                 ? Arrays.asList(VehicleCategory.values())
@@ -419,9 +464,10 @@ public class VehicleService {
             throw new AppException(ErrorCode.INVALID_FILTER_TIME);
         }
         Integer seats = request.getSeats();
-        List<VehicleBrand> brandsList = (request.getBrands() == null || request.getBrands().isEmpty())
-                ? Arrays.asList(VehicleBrand.values())
-                : request.getBrands();
+        List<Brand> brandsList = resolveFilterBrands(request.getBrandIds(), request.getBrands());
+        if (brandsList.isEmpty()) {
+            return new PageAndFilterVehicleResponse(Collections.emptyList(), 0);
+        }
 
         List<VehicleCategory> categoryList = (request.getCategories() == null || request.getCategories().isEmpty())
                 ? Arrays.asList(VehicleCategory.values())

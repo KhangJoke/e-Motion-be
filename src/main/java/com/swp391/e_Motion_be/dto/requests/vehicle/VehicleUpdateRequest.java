@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
 import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -25,8 +24,8 @@ public class VehicleUpdateRequest {
     @NotNull(message = "Category is required")
     private VehicleCategory category;
 
-    @NotNull(message = "Brand is required")
-    private VehicleBrand brand;
+    private String brand;
+    private Long brandId;
 
     @NotNull(message = "Seats is required")
     @Positive(message = "Seats must be positive")

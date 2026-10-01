@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.vehicle;
 
 import com.swp391.e_Motion_be.dto.requests.ImgVehicle.ImgVehicleCreationRequest;
-import com.swp391.e_Motion_be.enums.vehicle.VehicleBrand;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleCategory;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -23,8 +22,9 @@ public class VehicleCreationRequest {
     @NotNull(message = "Category is required")
     private VehicleCategory category;
 
-    @NotNull(message = "Brand is required")
-    private VehicleBrand brand;
+    @NotNull(message = "Brand ID is required")
+    private Long brandId;
+    private String brand;
 
     @NotNull(message = "Deposit fee status is required")
     private double depositFee;
