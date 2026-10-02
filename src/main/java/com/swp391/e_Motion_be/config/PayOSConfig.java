@@ -12,13 +12,13 @@ import vn.payos.PayOS;
 @Configuration
 public class PayOSConfig {
 
-    @Value("${payos.client-id:}")
+    @Value("${payos.client-id:787400f4-547a-4ded-8a16-bb6ff325087f}")
     private String clientId;
 
-    @Value("${payos.api-key:}")
+    @Value("${payos.api-key:9ed9a0e1-daf4-4a3a-b414-4993c61fedda}")
     private String apiKey;
 
-    @Value("${payos.checksum-key:}")
+    @Value("${payos.checksum-key:fcecbcbd798b8f2da9fed33e0792ecedd414f77bec88f0f981528ef2f275a45e}")
     private String checksumKey;
 
     @Value("${payos.return-url:https://e-motion-fe.vercel.app/payments/payment-result}")

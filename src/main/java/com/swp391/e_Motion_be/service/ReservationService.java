@@ -13,6 +13,8 @@ import com.swp391.e_Motion_be.dto.responses.PaymentResponse;
 import com.swp391.e_Motion_be.dto.responses.reservation.*;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
+import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
+import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
@@ -60,6 +62,7 @@ public class ReservationService {
     private final PaymentService paymentService;
     private final PayOSService payOSService;
     private final DocumentService documentService;
+    private final RentalService rentalService;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Value("${hold.fee.value:5000}")
@@ -163,30 +166,44 @@ public class ReservationService {
 
         log.info("Deposit created with ID: {}", depositResponse.getId());
 
-        // Create VNPay payment URL
-        CreatePaymentUrlRequest paymentUrlRequest = new CreatePaymentUrlRequest(
-                depositResponse.getAmount(),
-                "Reservation Deposit",
-                user.getEmail(),
-                PaymentType.RESERVATION,
-                depositResponse.getId(),
-                null
-        );
-        String url = paymentService.createPaymentUrl(paymentUrlRequest, httpReq.getRemoteAddr()).getUrl();
-
-        log.info("Payment URL created for reservation: {}", reservation.getId());
+        // Determine payment method (Mobile defaults to PAYOS, Web defaults to VNPAY)
+        PaymentMethod paymentMethod = request.getPaymentMethod();
+        if (paymentMethod == null) {
+            String clientPlatform = httpReq != null ? httpReq.getHeader("X-Client-Platform") : null;
+            String userAgent = httpReq != null ? httpReq.getHeader("User-Agent") : null;
+            if ("mobile".equalsIgnoreCase(clientPlatform) || (userAgent != null && userAgent.contains("Dart"))) {
+                paymentMethod = PaymentMethod.PAYOS;
+            } else {
+                paymentMethod = PaymentMethod.VNPAY;
+            }
+        }
 
         // Prepare response
         Map<String, Object> data = new HashMap<>();
-        data.put("vnpayUrl", url);
         data.put("reservation", reservationMapper.toReservationResponse(reservation));
         data.put("deposit", depositResponse);
 
-        try {
-            PayOSResponse payOSResponse = payOSService.createPaymentLink(reservation.getId());
-            data.put("payos", payOSResponse);
-        } catch (Exception e) {
-            log.warn("Failed to create PayOS payment link: {}", e.getMessage());
+        if (paymentMethod == PaymentMethod.PAYOS) {
+            log.info("Creating PayOS payment link for Mobile reservation: {}", reservation.getId());
+            try {
+                PayOSResponse payOSResponse = payOSService.createPaymentLink(reservation.getId());
+                data.put("payos", payOSResponse);
+            } catch (Exception e) {
+                log.error("Failed to create PayOS payment link: {}", e.getMessage(), e);
+                throw new AppException(ErrorCode.CREATE_PAYMENT_URL_FAILED);
+            }
+        } else {
+            log.info("Creating VNPay payment URL for Web reservation: {}", reservation.getId());
+            CreatePaymentUrlRequest paymentUrlRequest = new CreatePaymentUrlRequest(
+                    depositResponse.getAmount(),
+                    "Reservation Deposit",
+                    user.getEmail(),
+                    PaymentType.RESERVATION,
+                    depositResponse.getId(),
+                    null
+            );
+            String url = paymentService.createPaymentUrl(paymentUrlRequest, httpReq != null ? httpReq.getRemoteAddr() : "127.0.0.1").getUrl();
+            data.put("vnpayUrl", url);
         }
 
         return data;
@@ -278,37 +295,48 @@ public class ReservationService {
         // Check if cancellation is within allowed timeframe (5 days before start)
         if (reservation.getStartTime().isBefore(LocalDateTime.now().plusDays(5))) {
             isRefunded = false;
-            if(loginUser.getRole() == Role.ROLE_USER) {
-                throw new AppException(ErrorCode.RESERVATION_TIME_INVALID_TO_CANCEL);
-            }
         }
 
-        // Process refund if deposit exists
+        // Process refund or forfeit if deposit exists
         if (reservation.getDeposit() == null) {
             log.warn("No deposit found for reservation: {}", code);
-            return false;
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationRepository.save(reservation);
+
+            String reservationKey = "reservation:" + reservation.getId();
+            String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+            redisTemplate.delete(reservationKey);
+            redisTemplate.delete(vehicleKey);
+            return true;
         }
 
         Deposit deposit = reservation.getDeposit();
 
-        // Only refund if deposit is HOLD (payment was successful)
+        // Only refund/forfeit if deposit is HOLD (payment was successful)
         if (deposit.getStatus() != DepositStatus.HOLD) {
             log.warn("Deposit is not in HOLD status. Current status: {}", deposit.getStatus());
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
-            return false;
+
+            String reservationKey = "reservation:" + reservation.getId();
+            String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+            redisTemplate.delete(reservationKey);
+            redisTemplate.delete(vehicleKey);
+            return true;
         }
 
-        // Find the successful payment for this deposit
-        Payment depositPayment = paymentRepository.findByDepositIdAndType(
-                deposit.getId(),
-                PaymentType.RESERVATION
-        ).orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_PAYMENT_NOT_FOUND));
-
         // Process refund
-        if(isRefunded || isForceRefunded) {
+        if (isRefunded || isForceRefunded) {
+            // Find the successful payment for this deposit
+            Payment depositPayment = paymentRepository.findTopByDepositIdAndTypeAndStatusOrderByCreatedAtDesc(
+                    deposit.getId(),
+                    PaymentType.RESERVATION,
+                    PaymentStatus.SUCCESS
+            ).or(() -> paymentRepository.findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType.RESERVATION, deposit.getId()))
+            .orElseThrow(() -> new AppException(ErrorCode.DEPOSIT_PAYMENT_NOT_FOUND));
+
             RefundRequest refundRequest = new RefundRequest();
-            refundRequest.setIpAddr(request.getRemoteAddr());
+            refundRequest.setIpAddr(request != null ? request.getRemoteAddr() : "127.0.0.1");
             refundRequest.setTxnRef(depositPayment.getTxnRef());
             refundRequest.setAmount(depositPayment.getAmount());
             refundRequest.setFullRefund(true);
@@ -316,31 +344,40 @@ public class ReservationService {
             PaymentResponse refundResponse = paymentService.refundPayment(refundRequest);
 
             if (refundResponse != null && ("00".equals(refundResponse.getResponseCode()) || "99".equals(refundResponse.getResponseCode()))) {
-                // Update deposit status only if refund was successful
                 deposit.setStatus(DepositStatus.RELEASED);
                 depositRepository.save(deposit);
                 log.info("Refund processed successfully for reservation: {}", code);
 
-                // Update reservation status
                 reservation.setStatus(ReservationStatus.CANCELLED);
                 reservationRepository.save(reservation);
-                emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null),null);
+
+                String reservationKey = "reservation:" + reservation.getId();
+                String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+                redisTemplate.delete(reservationKey);
+                redisTemplate.delete(vehicleKey);
+
+                emailService.sendPaymentStatusToEmail(paymentRepository.findByTxnRef(refundResponse.getTxnRef()).orElse(null), null);
 
                 log.info("Reservation cancelled and refunded: {}", code);
                 return true;
             }
-        }else {
-            // Update deposit status
+        } else {
+            // Update deposit status to FORFEITED
             deposit.setStatus(DepositStatus.FORFEITED);
             depositRepository.save(deposit);
             log.info("FORFEITED Deposit processed successfully for reservation: {}", code);
 
-            // Update reservation status
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
+
+            String reservationKey = "reservation:" + reservation.getId();
+            String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+            redisTemplate.delete(reservationKey);
+            redisTemplate.delete(vehicleKey);
+
             emailService.sendReservationCancelEmail(reservation);
 
-            log.info("Reservation cancelled and not refunded: {}", code);
+            log.info("Reservation cancelled and deposit forfeited: {}", code);
             return true;
         }
 
@@ -412,7 +449,24 @@ public class ReservationService {
         List<ReservationHistoryListResponse> response = new ArrayList<>();
         for(Reservation res : reservationPage){
             ReservationHistoryListResponse reservationResponse = reservationMapper.toReservationHistoryListResponse(res);
-            reservationResponse.setVehicleImage(res.getVehicle().getImages().stream().filter(ImgVehicle::isMain).findFirst().orElse(null).getUrl());
+            if (res.getVehicle() != null && res.getVehicle().getImages() != null) {
+                res.getVehicle().getImages().stream()
+                        .filter(ImgVehicle::isMain)
+                        .findFirst()
+                        .ifPresent(img -> reservationResponse.setVehicleImage(img.getUrl()));
+            }
+            if (res.getVehicle() != null && res.getStartTime() != null && res.getEndTime() != null) {
+                double total;
+                try {
+                    total = rentalService.calculateRentalFee(res.getVehicle(), res.getStartTime(), res.getEndTime());
+                } catch (Exception e) {
+                    total = res.getVehicle().getPricePer4Hours();
+                }
+                reservationResponse.setTotalAmount(total);
+            }
+            if (reservationResponse.getDepositAmount() == null && res.getDeposit() != null) {
+                reservationResponse.setDepositAmount(res.getDeposit().getAmount());
+            }
             response.add(reservationResponse);
         }
 
@@ -604,6 +658,15 @@ public class ReservationService {
             }
 
         ReservationResponse response = reservationMapper.toReservationResponse(reservation);
+        if (reservation.getVehicle() != null && reservation.getStartTime() != null && reservation.getEndTime() != null) {
+            double total;
+            try {
+                total = rentalService.calculateRentalFee(reservation.getVehicle(), reservation.getStartTime(), reservation.getEndTime());
+            } catch (Exception e) {
+                total = reservation.getVehicle().getPricePer4Hours();
+            }
+            response.setTotalRentAmount(total);
+        }
         String redisValue = (String) redisTemplate.opsForValue().get("reservation:" + reservation.getId());
         if(redisValue != null){
             response.setPaymentUrl(redisValue);

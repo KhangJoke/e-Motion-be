@@ -24,5 +24,6 @@ public class ReservationResponse {
     private Long stationId;
     private String paymentUrl;
     private Double depositAmount;
+    private Double totalRentAmount;
 }
 

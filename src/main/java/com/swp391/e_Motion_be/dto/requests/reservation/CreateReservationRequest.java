@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.reservation;
 
+import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.validator.validateTimeVehicleRequest.ValidTimeRequest;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -25,4 +26,6 @@ public class CreateReservationRequest {
     private LocalDateTime startTime;
     @FutureOrPresent(message = "Reservation end time must not be future")
     private LocalDateTime endTime;
+
+    private PaymentMethod paymentMethod;
 }

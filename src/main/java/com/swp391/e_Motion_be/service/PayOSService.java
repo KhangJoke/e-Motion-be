@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -78,70 +79,54 @@ public class PayOSService {
             description = description.substring(0, 25);
         }
 
-        // 1. Nếu PayOS đã cấu hình hợp lệ, gọi PayOS SDK để tạo link chính thức
-        if (payOS != null && payOSConfig.isConfigured()) {
-            try {
-                PaymentLinkItem item = PaymentLinkItem.builder()
-                        .name("Coc giu cho xe #" + resCode)
-                        .quantity(1)
-                        .price((long) amount)
-                        .build();
-
-                CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
-                        .orderCode(orderCode)
-                        .amount((long) amount)
-                        .description(description)
-                        .items(Collections.singletonList(item))
-                        .returnUrl(payOSConfig.getReturnUrl())
-                        .cancelUrl(payOSConfig.getCancelUrl())
-                        .build();
-
-                CreatePaymentLinkResponse checkoutData = payOS.paymentRequests().create(paymentData);
-                log.info("Created PayOS official payment link for reservation #{}: {}",
-                        resCode, checkoutData.getCheckoutUrl());
-
-                saveOrUpdatePaymentRecord(deposit, amount, orderCode, PaymentMethod.PAYOS);
-
-                // Tạo URL ảnh VietQR tương ứng từ chính tài khoản thật của PayOS
-                String officialQrImageUrl = "https://img.vietqr.io/image/" + checkoutData.getBin() + "-"
-                        + checkoutData.getAccountNumber() + "-compact2.png?amount=" + (long) amount
-                        + "&addInfo=" + description + "&accountName="
-                        + URLEncoder.encode(checkoutData.getAccountName(), StandardCharsets.UTF_8);
-
-                return PayOSResponse.builder()
-                        .checkoutUrl(checkoutData.getCheckoutUrl())
-                        .qrCode(officialQrImageUrl)
-                        .accountNumber(checkoutData.getAccountNumber())
-                        .accountName(checkoutData.getAccountName())
-                        .bin(checkoutData.getBin())
-                        .orderCode(orderCode)
-                        .amount(amount)
-                        .description(description)
-                        .status("PENDING")
-                        .build();
-            } catch (Exception e) {
-                log.error("PayOS SDK error creating payment link: {}. Falling back to standard VietQR MBBank.", e.getMessage(), e);
-            }
+        if (payOS == null || !payOSConfig.isConfigured()) {
+            log.error("PayOS is not configured with valid credentials in application.properties or .env");
+            throw new AppException(ErrorCode.CREATE_PAYMENT_URL_FAILED);
         }
 
-        // 2. Chế độ tiêu chuẩn VietQR Napas247 MBBank (4393689999)
-        String vietQrUrl = "https://img.vietqr.io/image/MB-4393689999-compact2.png?amount="
-                + (long) amount + "&addInfo=" + description
-                + "&accountName=CONG%20TY%20CP%20E-MOTION";
+        try {
+            PaymentLinkItem item = PaymentLinkItem.builder()
+                    .name("Coc giu cho xe #" + resCode)
+                    .quantity(1)
+                    .price((long) amount)
+                    .build();
 
-        saveOrUpdatePaymentRecord(deposit, amount, orderCode, PaymentMethod.PAYOS);
+            CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
+                    .orderCode(orderCode)
+                    .amount((long) amount)
+                    .description(description)
+                    .items(Collections.singletonList(item))
+                    .returnUrl(payOSConfig.getReturnUrl())
+                    .cancelUrl(payOSConfig.getCancelUrl())
+                    .build();
 
-        return PayOSResponse.builder()
-                .checkoutUrl(vietQrUrl)
-                .qrCode(vietQrUrl)
-                .accountNumber("4393689999")
-                .accountName("CONG TY CP E-MOTION")
-                .bin("970422")
-                .orderCode(orderCode)
-                .amount(amount)
-                .description(description)
-                .status("PENDING")
-                .build();
+            CreatePaymentLinkResponse checkoutData = payOS.paymentRequests().create(paymentData);
+            log.info("Created PayOS official payment link for reservation #{}: orderCode={}, url={}, account={}, name={}",
+                    resCode, orderCode, checkoutData.getCheckoutUrl(), checkoutData.getAccountNumber(), checkoutData.getAccountName());
+
+            saveOrUpdatePaymentRecord(deposit, amount, orderCode, PaymentMethod.PAYOS);
+
+            // Tạo URL ảnh VietQR tương ứng từ chính tài khoản thật của PayOS
+            String officialQrImageUrl = "https://img.vietqr.io/image/" + checkoutData.getBin() + "-"
+                    + checkoutData.getAccountNumber() + "-compact2.png?amount=" + (long) amount
+                    + "&addInfo=" + description + "&accountName="
+                    + URLEncoder.encode(checkoutData.getAccountName(), StandardCharsets.UTF_8);
+
+            return PayOSResponse.builder()
+                    .checkoutUrl(checkoutData.getCheckoutUrl())
+                    .qrCode(officialQrImageUrl)
+                    .accountNumber(checkoutData.getAccountNumber())
+                    .accountName(checkoutData.getAccountName())
+                    .bin(checkoutData.getBin())
+                    .orderCode(orderCode)
+                    .amount(amount)
+                    .description(description)
+                    .status("PENDING")
+                    .build();
+        } catch (Exception e) {
+            log.error("PayOS SDK error creating payment link for reservation #{}: {}", resCode, e.getMessage(), e);
+            throw new AppException(ErrorCode.CREATE_PAYMENT_URL_FAILED);
+        }
     }
 
     /**
@@ -164,6 +149,12 @@ public class PayOSService {
         Reservation reservation = null;
         if (!code.isEmpty()) {
             reservation = reservationRepository.findByCode(code).orElse(null);
+        }
+        if (reservation == null && data.getOrderCode() != null) {
+            Optional<Payment> paymentOpt = paymentRepository.findByTxnRef(data.getOrderCode().toString());
+            if (paymentOpt.isPresent() && paymentOpt.get().getDeposit() != null) {
+                reservation = paymentOpt.get().getDeposit().getReservation();
+            }
         }
         if (reservation == null && data.getOrderCode() != null) {
             reservation = reservationRepository.findByCode(data.getOrderCode().toString()).orElse(null);
@@ -193,22 +184,31 @@ public class PayOSService {
             }
         }
 
-        // Nếu PayOS SDK đang chạy, thử đối soát trạng thái đơn trên PayOS API
+        // Bắt buộc phải đối soát thành công trạng thái PAID qua PayOS API
         if (payOS != null && payOSConfig.isConfigured()) {
             try {
-                long orderCode = generateOrderCode(reservation.getId());
-                PaymentLink paymentLink = payOS.paymentRequests().get(orderCode);
-                if (paymentLink != null && paymentLink.getStatus() == PaymentLinkStatus.PAID) {
-                    log.info("PayOS confirmed payment status is PAID for orderCode: {}", orderCode);
-                    return confirmReservation(reservation, "PAYOS_VERIFIED_" + orderCode);
+                Payment latestPayment = getLatestPayment(reservation);
+                if (latestPayment != null && latestPayment.getTxnRef() != null) {
+                    long orderCode = Long.parseLong(latestPayment.getTxnRef());
+                    PaymentLink paymentLink = payOS.paymentRequests().get(orderCode);
+                    if (paymentLink != null && paymentLink.getStatus() == PaymentLinkStatus.PAID) {
+                        log.info("PayOS confirmed payment status is PAID for orderCode: {}", orderCode);
+                        return confirmReservation(reservation, "PAYOS_VERIFIED_" + orderCode);
+                    } else {
+                        log.warn("PayOS payment for orderCode {} is not PAID (current status: {})",
+                                orderCode, paymentLink != null ? paymentLink.getStatus() : "null");
+                        throw new AppException(ErrorCode.PAYMENT_NOT_RECEIVED);
+                    }
                 }
+            } catch (AppException e) {
+                throw e;
             } catch (Exception e) {
-                log.warn("PayOS check payment link inquiry failed or not found: {}", e.getMessage());
+                log.error("PayOS inquiry error for reservation {}: {}", reservation.getCode(), e.getMessage());
+                throw new AppException(ErrorCode.PAYMENT_NOT_RECEIVED);
             }
         }
 
-        // Xác nhận thanh toán giữ xe cho đơn
-        return confirmReservation(reservation, "MANUAL_CONFIRM_" + System.currentTimeMillis());
+        throw new AppException(ErrorCode.PAYMENT_NOT_RECEIVED);
     }
 
     private PaymentResponse confirmReservation(Reservation reservation, String transactionNo) {
@@ -271,9 +271,9 @@ public class PayOSService {
     }
 
     private void saveOrUpdatePaymentRecord(Deposit deposit, double amount, long orderCode, PaymentMethod method) {
-        List<Payment> payments = deposit.getPayments();
-        if (payments != null && !payments.isEmpty()) {
-            Payment latest = payments.get(payments.size() - 1);
+        Payment latest = paymentRepository.findTopByTypeAndDepositIdOrderByCreatedAtDesc(PaymentType.RESERVATION, deposit.getId())
+                .orElse(null);
+        if (latest != null && latest.getStatus() == PaymentStatus.PENDING) {
             latest.setMethod(method);
             latest.setAmount(amount);
             latest.setTxnRef(String.valueOf(orderCode));
@@ -303,6 +303,7 @@ public class PayOSService {
     }
 
     private long generateOrderCode(long reservationId) {
-        return 1000000L + reservationId;
+        long epochSeconds = System.currentTimeMillis() / 1000L;
+        return (epochSeconds % 100000000L) * 100L + (reservationId % 100L);
     }
 }

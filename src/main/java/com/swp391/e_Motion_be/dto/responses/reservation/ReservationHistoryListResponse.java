@@ -15,6 +15,11 @@ public class ReservationHistoryListResponse {
     private String vehicleName;
     private String vehicleImage;
     private String stationName;
+    private String stationAddress;
     private String status;
     private LocalDateTime createdAt;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private Double depositAmount;
+    private Double totalAmount;
 }

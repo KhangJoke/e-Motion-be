@@ -23,5 +23,10 @@ public interface ReservationMapper {
 
     @Mapping(source = "vehicle.name", target = "vehicleName")
     @Mapping(source = "station.name", target = "stationName")
+    @Mapping(source = "station.address", target = "stationAddress")
+    @Mapping(source = "deposit.amount", target = "depositAmount")
+    @Mapping(source = "startTime", target = "startTime")
+    @Mapping(source = "endTime", target = "endTime")
+    @Mapping(target = "totalAmount", ignore = true)
     ReservationHistoryListResponse toReservationHistoryListResponse(Reservation res);
 }

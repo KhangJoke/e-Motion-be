@@ -189,6 +189,7 @@ public enum ErrorCode {
     CREATE_PAYMENT_URL_FAILED(HttpStatus.BAD_REQUEST, "Tạo đường dẫn thanh toán thất bại"),
     REFUND_IS_PROCESSING(HttpStatus.BAD_REQUEST, "Yêu cầu hoàn tiền đang được xử lý"),
     REFUND_IS_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy giao dịch yêu cầu hoàn trả"),
+    PAYMENT_NOT_RECEIVED(HttpStatus.BAD_REQUEST, "Hệ thống chưa nhận được thanh toán từ ngân hàng. Vui lòng hoàn tất chuyển khoản trước khi bấm xác nhận."),
 
     //Cloudinary errors
     DELETE_IMG_FAIL(HttpStatus.EXPECTATION_FAILED, "Xóa hình ảnh thất bại"),

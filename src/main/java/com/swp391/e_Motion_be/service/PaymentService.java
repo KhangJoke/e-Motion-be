@@ -459,20 +459,20 @@ public class PaymentService {
             Payment originalPayment = paymentRepository.findByTxnRef(request.getTxnRef())
                     .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
 
-            if(originalPayment.getTransactionNo().equals("999999")) {
+            if (originalPayment.getMethod() == PaymentMethod.PAYOS || "999999".equals(originalPayment.getTransactionNo())) {
                 String refundTxnRef = "REFUND" + System.currentTimeMillis() +
                         (100000 + new Random().nextInt(900000));
 
                 Payment refundPayment = Payment.builder()
                         .amount(Double.parseDouble(String.valueOf(request.getAmount())))
-                        .method(PaymentMethod.VNPAY)
+                        .method(originalPayment.getMethod())
                         .status(PaymentStatus.SUCCESS)
                         .type(PaymentType.REFUND)
                         .txnRef(refundTxnRef)
                         .description("Hoan tien giao dich " + request.getTxnRef())
-                        .responseCode("PostMan Test")
-                        .transactionNo("999999")
-                        .bankCode(originalPayment.getBankCode())
+                        .responseCode("00")
+                        .transactionNo(refundTxnRef)
+                        .bankCode(originalPayment.getBankCode() != null ? originalPayment.getBankCode() : "PAYOS")
                         .payDate(LocalDateTime.now())
                         .user(originalPayment.getUser())
                         .rental(originalPayment.getRental())
@@ -483,14 +483,14 @@ public class PaymentService {
                 log.info("Refund payment created successfully: {}", refundTxnRef);
 
                 List<Deposit> releaseDeposit = new ArrayList<>();
-                if(originalPayment.getDeposit() != null){
+                if (originalPayment.getDeposit() != null) {
                     releaseDeposit.add(originalPayment.getDeposit());
                 }
-                if(originalPayment.getRental().getReservation() != null){
+                if (originalPayment.getRental() != null && originalPayment.getRental().getReservation() != null) {
                     releaseDeposit.add(originalPayment.getRental().getReservation().getDeposit());
                 }
 
-                for(Deposit deposit : releaseDeposit){
+                for (Deposit deposit : releaseDeposit) {
                     deposit.setStatus(DepositStatus.RELEASED);
                     depositRepository.save(deposit);
                 }
