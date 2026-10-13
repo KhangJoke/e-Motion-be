@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,23 +84,50 @@ public class VehicleLogService {
         return vehicleLogMapper.toResponse(vehicleLog);
     }
 
-    //CREATE
+    //CREATE (or UPSERT if log for rental already exists)
     public VehicleLogResponse createVehicleLog(VehicleLogCreationRequest request) {
         // lấy ra các entity liên quan
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_ID_NOT_FOUND));
-        Staff staff = staffRepository.findById(request.getStaffId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
-        double totalCost = request.getRepairItems()
+        Staff staff = null;
+        if (request.getStaffId() != null) {
+            staff = staffRepository.findById(request.getStaffId()).orElse(null);
+        }
+        if (staff == null && rental.getStaff() != null) {
+            staff = rental.getStaff();
+        }
+
+        double totalCost = request.getRepairItems() != null ? request.getRepairItems()
                 .stream()
                 .filter(Objects::nonNull)
                 .mapToDouble(VehicleLogItem::getCost)
-                .sum();
+                .sum() : 0.0;
 
         totalCost = Math.round(totalCost * 100.0) / 100.0;
+
+        Optional<VehicleLog> existingLogOpt = vehicleLogRepository.findByRental_Id(rental.getId());
+        if (existingLogOpt.isPresent()) {
+            VehicleLog vehicleLog = existingLogOpt.get();
+            vehicleLog.setVehicle(vehicle);
+            if (staff != null) {
+                vehicleLog.setStaff(staff);
+            }
+            vehicleLog.setCost(totalCost);
+            vehicleLog.setRepairItems(request.getRepairItems());
+            if (request.getImgs() != null) {
+                vehicleLog.setImgs(request.getImgs());
+            }
+            if (totalCost > 0) {
+                vehicle.setStatus(VehicleStatus.MAINTAINED);
+                vehicle.setLastMaintenance(LocalDateTime.now());
+                vehicleRepository.save(vehicle);
+            }
+            vehicleLogRepository.save(vehicleLog);
+            return vehicleLogMapper.toResponse(vehicleLog);
+        }
 
         VehicleLog vehicleLog = vehicleLogMapper.toEntity(request);
         vehicleLog.setVehicle(vehicle);
@@ -108,13 +136,13 @@ public class VehicleLogService {
         vehicleLog.setCost(totalCost);
         vehicleLog.setRepairItems(request.getRepairItems());
 
-        // Update vehicle status -> maintance
-        vehicle.setStatus(VehicleStatus.MAINTAINED);
-        vehicle.setLastMaintenance(LocalDateTime.now());
+        if (totalCost > 0) {
+            vehicle.setStatus(VehicleStatus.MAINTAINED);
+            vehicle.setLastMaintenance(LocalDateTime.now());
+            vehicleRepository.save(vehicle);
+        }
 
-        vehicleRepository.save(vehicle);
         vehicleLogRepository.save(vehicleLog);
-
         return vehicleLogMapper.toResponse(vehicleLog);
     }
 

@@ -81,7 +81,7 @@ public class RentalController {
     }
 
     @GetMapping("/{id}/overview")
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF') or isAuthenticated()")
     public ApiResponse<RentalOverviewResponse> getRentalOverview(@PathVariable Long id){
         ApiResponse<RentalOverviewResponse> response = new ApiResponse<>();
         response.setData(rentalService.getRentalOverviewById(id));
@@ -107,7 +107,7 @@ public class RentalController {
     }
 
     @PostMapping("/{id}/check-outpayment")
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF') or isAuthenticated()")
     public ApiResponse<CheckOutProcessResponse> processCheckOutPayment(@PathVariable Long id, HttpServletRequest request){
         ApiResponse<CheckOutProcessResponse> response = new ApiResponse<>();
         response.setData(rentalService.processCheckOutPayment(id , request.getRemoteAddr()));
