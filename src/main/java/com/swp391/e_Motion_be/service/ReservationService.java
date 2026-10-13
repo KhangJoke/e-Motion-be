@@ -19,6 +19,7 @@ import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.ReservationMapper;
+import com.swp391.e_Motion_be.rabbitmq.producer.ReservationEventProducer;
 import com.swp391.e_Motion_be.repository.*;
 import com.swp391.e_Motion_be.service.document.DocumentService;
 import com.swp391.e_Motion_be.service.user.UserService;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +66,7 @@ public class ReservationService {
     private final DocumentService documentService;
     private final RentalService rentalService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ReservationEventProducer reservationEventProducer;
 
     @Value("${hold.fee.value:5000}")
     private double holdFeeValue;
@@ -154,6 +157,18 @@ public class ReservationService {
         reservationRepository.save(reservation);
 
         log.info("Reservation created with ID: {}", reservation.getId());
+
+        // Thiết lập Redis hold lock 15 phút cho xe
+        try {
+            String vehicleKey = "vehicle:" + reservation.getVehicle().getId();
+            redisTemplate.opsForValue().set(vehicleKey, reservation.getStartTime() + "|" + reservation.getEndTime(), 15, TimeUnit.MINUTES);
+            log.info("Vehicle hold lock set in Redis for 15 minutes: {}", vehicleKey);
+        } catch (Exception e) {
+            log.warn("Failed to set Redis vehicle hold lock: {}", e.getMessage());
+        }
+
+        // Bắn sự kiện 15 phút đếm ngược vào RabbitMQ Delay Queue
+        reservationEventProducer.sendReservationHoldTimeoutEvent(reservation.getId(), reservation.getCode());
 
         // Create deposit
         DepositCreateRequest depositCreateRequest = new DepositCreateRequest(
@@ -560,12 +575,22 @@ public class ReservationService {
     public void cancelFailedReservations() {
         LocalDateTime limitTime = LocalDateTime.now().minusMinutes(15);
         List<Reservation> cancelReservations = reservationRepository.findByStatusInAndCreatedAtBefore(
-                List.of(ReservationStatus.FAILED),
+                List.of(ReservationStatus.FAILED, ReservationStatus.PENDING),
                 limitTime
         );
         cancelReservations.forEach(reservation -> {
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
+
+            try {
+                String reservationKey = "reservation:" + reservation.getId();
+                redisTemplate.delete(reservationKey);
+                if (reservation.getVehicle() != null) {
+                    redisTemplate.delete("vehicle:" + reservation.getVehicle().getId());
+                }
+            } catch (Exception e) {
+                log.warn("Error deleting redis keys on scheduler cancel: {}", e.getMessage());
+            }
         });
     }
 

@@ -17,11 +17,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}" ]
       interval: 5s
       timeout: 5s
       retries: 10
-
 
   redis:
     image: redis:8-alpine
@@ -37,13 +36,32 @@ services:
     command: redis-server --appendonly yes
 
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: emotion-rabbitmq
+    restart: no
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   nginx:
     image: nginx:alpine
     container_name: emotion-nginx
-    restart: unless-stopped
+    restart: no
     ports:
       - "80:80"
     volumes:
@@ -53,11 +71,12 @@ services:
     depends_on:
       - postgres
       - redis
+      - rabbitmq
 
   ngrok:
     image: ngrok/ngrok:latest
     container_name: emotion-ngrok
-    restart: unless-stopped
+    restart: no
     ports:
       - "4040:4040"
     command:
@@ -72,3 +91,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  rabbitmq_data:
