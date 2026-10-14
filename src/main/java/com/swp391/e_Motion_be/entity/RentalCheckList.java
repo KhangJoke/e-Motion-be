@@ -24,6 +24,7 @@ public class RentalCheckList {
 
     private Double fee = 0.0;
 
+    @Column(name = "img", columnDefinition = "TEXT")
     private String img;
 
     @Column(name = "current_battery")

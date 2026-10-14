@@ -9,6 +9,7 @@ import com.swp391.e_Motion_be.dto.responses.rental.*;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
 import com.swp391.e_Motion_be.entity.*;
 import com.swp391.e_Motion_be.enums.*;
+import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
@@ -34,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 @Service
@@ -48,6 +50,7 @@ public class RentalService {
     private final StationRepository stationRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final DepositRepository depositRepository;
 
     private final DocumentService documentService;
     private final EmailService emailService;
@@ -337,59 +340,118 @@ public class RentalService {
             request.setAmount(balance);
             request.setDescription("Check-out Payment for Rental ID: " + rental.getId());
             request.setUserEmail(rental.getUser().getEmail());
-            if(rental.getVehicleLog()==null){
+            if (rental.getVehicleLog() == null && rental.getVehicle() != null) {
                 rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
+                vehicleRepository.save(rental.getVehicle());
             }
             try {
                 String url = paymentService.createPaymentUrl(request, remoteAddr).getUrl();
-                emailService.sendPaymentStatusToEmail(rental.getPayments()
-                        .stream()
-                        .filter(p -> p.getType() == PaymentType.PENALTY_FEE_RENTAL)
-                        .findFirst()
-                        .orElse(null),url);
+                try {
+                    Payment penaltyPayment = rental.getPayments() != null
+                            ? rental.getPayments()
+                                .stream()
+                                .filter(p -> p.getType() == PaymentType.PENALTY_FEE_RENTAL)
+                                .findFirst()
+                                .orElse(null)
+                            : null;
+                    if (penaltyPayment != null) {
+                        emailService.sendPaymentStatusToEmail(penaltyPayment, url);
+                    }
+                } catch (Exception e) {
+                    log.warn("Lỗi gửi email thanh toán phụ phí: {}", e.getMessage());
+                }
                 return CheckOutProcessResponse.builder()
                         .processStatus("PAYMENT_REQUIRED")
                         .paymentUrl(url)
                         .rental(rentalMapper.toRentalResponse(rental))
                         .build();
             } catch (Exception e) {
+                log.error("Lỗi tạo URL thanh toán phụ phí: {}", e.getMessage());
                 throw new AppException(ErrorCode.CREATE_PAYMENT_URL_FAILED);
             }
         }
-        // TRƯỜNG HỢP 2: Hoàn tiền hoặc không làm gì
+        // TRƯỜNG HỢP 2: Hoàn tiền hoặc không phát sinh nợ thêm
         else {
             if (balance < 0) {
-                RefundRequest refundRequest = new RefundRequest();
-                refundRequest.setIpAddr(remoteAddr);
-                refundRequest.setTxnRef(
-                        paymentRepository.findByRental_idAndTypeAndStatus(rental.getId(),PaymentType.RENTAL, PaymentStatus.SUCCESS).getTxnRef()
-                );
-                refundRequest.setAmount(Math.abs(balance));
-                refundRequest.setFullRefund(false);
+                Payment initialPayment = paymentRepository.findByRental_idAndTypeAndStatus(
+                        rental.getId(), PaymentType.RENTAL, PaymentStatus.SUCCESS);
+                if (initialPayment != null) {
+                    try {
+                        RefundRequest refundRequest = new RefundRequest();
+                        refundRequest.setIpAddr(remoteAddr);
+                        refundRequest.setTxnRef(initialPayment.getTxnRef());
+                        refundRequest.setAmount(Math.abs(balance));
+                        refundRequest.setFullRefund(false);
 
-                paymentService.refundPayment(refundRequest);
+                        paymentService.refundPayment(refundRequest);
+                    } catch (Exception e) {
+                        log.warn("Không thể hoàn tiền tự động qua cổng thanh toán: {}", e.getMessage());
+                    }
+                } else {
+                    // Tạo bản ghi REFUND ghi nhận hoàn cọc cho Rental
+                    String refundTxnRef = "REFUND" + System.currentTimeMillis() + (100000 + new Random().nextInt(900000));
+                    Payment refundPayment = Payment.builder()
+                            .amount(Math.abs(balance))
+                            .method(PaymentMethod.CASH)
+                            .status(PaymentStatus.SUCCESS)
+                            .type(PaymentType.REFUND)
+                            .txnRef(refundTxnRef)
+                            .description("Hoàn tiền cọc trả xe cho đơn thuê #" + rental.getId())
+                            .responseCode("00")
+                            .transactionNo(refundTxnRef)
+                            .payDate(LocalDateTime.now())
+                            .user(rental.getUser())
+                            .rental(rental)
+                            .build();
+                    paymentRepository.save(refundPayment);
+                }
+
+                // Cập nhật trạng thái các khoản tiền cọc sang RELEASED
+                depositRepository.findByRental_Id(rental.getId()).ifPresent(dep -> {
+                    dep.setStatus(DepositStatus.RELEASED);
+                    depositRepository.save(dep);
+                });
+                if (rental.getReservation() != null) {
+                    depositRepository.findByReservation_Id(rental.getReservation().getId()).ifPresent(resDep -> {
+                        resDep.setStatus(DepositStatus.RELEASED);
+                        depositRepository.save(resDep);
+                    });
+                }
             }
-            // Cộng điểm cho user
-            long hours = Duration.between(rental.getStartTime(), rental.getEndTime()).toHours();
-            int pointPerHour = rental.getVehicle().getPoint();
-            int earnedPoints = (int) (hours * pointPerHour);
 
-            User user = rental.getUser();
-            user.setPoint(user.getPoint() + earnedPoints);
-            userRepository.save(user);
+            // Cộng điểm tích lũy cho user
+            if (rental.getStartTime() != null && rental.getEndTime() != null) {
+                long hours = Duration.between(rental.getStartTime(), rental.getEndTime()).toHours();
+                int pointPerHour = rental.getVehicle() != null ? rental.getVehicle().getPoint() : 0;
+                int earnedPoints = (int) (Math.max(1, hours) * pointPerHour);
+
+                User user = rental.getUser();
+                if (user != null) {
+                    user.setPoint(user.getPoint() + earnedPoints);
+                    userRepository.save(user);
+                }
+            }
 
             rental.setStatus(RentalStatus.COMPLETED);
-            if(rental.getVehicleLog()==null){
+            rentalRepository.save(rental);
+
+            if (rental.getVehicleLog() == null && rental.getVehicle() != null) {
                 rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
+                vehicleRepository.save(rental.getVehicle());
             }
-            Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElseThrow(
-                    () -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS)
-            );
-            emailService.sendPaymentStatusToEmail(payment,null);
+
+            Payment payment = paymentRepository.findByRental_IdAndType(rental.getId(), PaymentType.REFUND).orElse(null);
+            if (payment != null) {
+                try {
+                    emailService.sendPaymentStatusToEmail(payment, null);
+                } catch (Exception e) {
+                    log.warn("Lỗi gửi email thông báo hoàn cọc: {}", e.getMessage());
+                }
+            }
 
             return CheckOutProcessResponse.builder()
                     .processStatus("COMPLETED")
-                    .paymentUrl(null) // Không có URL
+                    .paymentUrl(null)
                     .rental(rentalMapper.toRentalResponse(rental))
                     .build();
         }

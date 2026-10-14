@@ -22,7 +22,6 @@ public class RentalCheckListCreateRequest {
     @NotNull(message = "Rental ID is required")
     private Long rentalId;
 
-    @NotBlank(message = "Staff email is required")
     @Email(message = "Staff email must be a valid email address")
     private String staffEmail;
 

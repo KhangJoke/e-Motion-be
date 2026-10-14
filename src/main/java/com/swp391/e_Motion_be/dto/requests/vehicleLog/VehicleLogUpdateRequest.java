@@ -21,7 +21,6 @@ public class VehicleLogUpdateRequest {
     @NotNull(message = "Images are required")
     private List<String> imgs;
 
-    @NotNull(message = "staffId are required")
     private Long staffId;
 
     @NotNull(message = "RentalId is required")

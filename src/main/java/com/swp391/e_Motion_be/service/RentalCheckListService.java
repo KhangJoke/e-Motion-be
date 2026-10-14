@@ -59,8 +59,11 @@ public class RentalCheckListService {
         // lấy ra các entity liên quan
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-        Staff staff = staffRepository.findByUser_EmailAndIsDeleteFalse(request.getStaffEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND));
+        Staff staff = null;
+        if (request.getStaffEmail() != null && !request.getStaffEmail().isBlank()) {
+            staff = staffRepository.findByUser_EmailAndIsDeleteFalse(request.getStaffEmail())
+                    .orElse(null);
+        }
 
         // check if check in and rental is confirmed
         if (request.getType() == CheckType.CHECK_IN) {
