@@ -102,14 +102,29 @@ public class ReservationService {
         if(documentService.checkExpiredDocumentByUserEmail(request.getUserEmail())){
             throw new AppException(ErrorCode.DOCUMENT_EXPIRED);
         }
-        // Check if start and end times are exact hours
-        if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
-            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        // Check if start and end times are exact hours (chỉ áp dụng cho đặt trước thông thường)
+        if (!Boolean.TRUE.equals(request.getIsInstant())) {
+            if (!isExactHour(request.getStartTime()) || !isExactHour(request.getEndTime())) {
+                throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+            }
         }
         // Check reservation time validity
-        if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
-        request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
-            throw new AppException(ErrorCode.RESERVATION_TIME_MUST_AFTER_NOW_3HOURS);
+        if (!Boolean.TRUE.equals(request.getIsInstant())) {
+            if (request.getStartTime().isBefore(LocalDateTime.now().plusHours(3)) ||
+            request.getStartTime().isAfter(LocalDateTime.now().plusMonths(6))) {
+                throw new AppException(ErrorCode.RESERVATION_TIME_MUST_AFTER_NOW_3HOURS);
+            }
+        } else {
+            // Thuê trực tiếp tại trạm (Instant QR): Bắt đầu ngay tại thời điểm quét xe (xê xích tối đa 30 phút)
+            if (request.getStartTime().isBefore(LocalDateTime.now().minusMinutes(60)) ||
+            request.getStartTime().isAfter(LocalDateTime.now().plusMinutes(30))) {
+                throw new AppException(ErrorCode.INSTANT_RESERVATION_TIME_INVALID);
+            }
+        }
+
+        // Thời gian thuê tối thiểu là 4 tiếng (240 phút)
+        if (Duration.between(request.getStartTime(), request.getEndTime()).toMinutes() < 240) {
+            throw new AppException(ErrorCode.INVALID_TIME_RANGE);
         }
 
         if(request.getEndTime().isAfter(request.getStartTime().plusMonths(1))) {

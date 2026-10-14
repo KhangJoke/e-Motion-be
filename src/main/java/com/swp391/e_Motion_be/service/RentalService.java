@@ -174,22 +174,31 @@ public class RentalService {
     }
 
     public double calculateRentalFee(Vehicle vehicle, LocalDateTime startTime, LocalDateTime endTime) {
-        long hours = Duration.between(startTime, endTime).toHours();
-        double fee = 0;
-        double pricePer4Hours = vehicle.getPricePer4Hours();
+        Duration duration = Duration.between(startTime, endTime);
+        long totalMinutes = duration.toMinutes();
 
-        if(hours < 4){
+        if (totalMinutes < 240) { // Tối thiểu 4 tiếng (240 phút)
             throw new AppException(ErrorCode.INVALID_TIME_RANGE);
         }
-        else if (hours < 8) {
-            fee += pricePer4Hours/4 * hours;
+
+        long hours = duration.toHours();          // Số giờ nguyên (4, 5, 8, 24...)
+        long extraMinutes = totalMinutes % 60;    // Số phút chênh lệch lẻ thêm (0..59)
+
+        double hourlyRate;
+        if (hours < 8) {
+            hourlyRate = vehicle.getPricePer4Hours() / 4.0;
         } else if (hours < 12) {
-            fee += vehicle.getPricePer8Hours()/8* hours;
+            hourlyRate = vehicle.getPricePer8Hours() / 8.0;
         } else if (hours < 24) {
-            fee += vehicle.getPricePer12Hours()/12 * hours;
+            hourlyRate = vehicle.getPricePer12Hours() / 12.0;
         } else {
-            fee += vehicle.getPricePerDay()/24 * hours;
+            hourlyRate = vehicle.getPricePerDay() / 24.0;
         }
+
+        // Tiền = Tiền số giờ nguyên (cũ) + Tiền số phút lẻ chênh lệch thêm
+        double fee = (hourlyRate * hours) + (extraMinutes * (hourlyRate / 60.0));
+
+        fee = Math.round(fee);
         fee = BigDecimal.valueOf(fee)
                 .setScale(2, RoundingMode.HALF_UP)
                 .doubleValue();

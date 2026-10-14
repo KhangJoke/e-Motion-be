@@ -22,10 +22,12 @@ public class CreateReservationRequest {
     private Long vehicleId;
     @NotNull(message = "Station ID must not be blank")
     private Long stationId;
-    @FutureOrPresent(message = "Reservation start time must be future")
+    @NotNull(message = "Reservation start time must not be null")
     private LocalDateTime startTime;
-    @FutureOrPresent(message = "Reservation end time must not be future")
+    @NotNull(message = "Reservation end time must not be null")
     private LocalDateTime endTime;
 
     private PaymentMethod paymentMethod;
+
+    private Boolean isInstant;
 }
