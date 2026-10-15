@@ -1,4 +1,4 @@
-package com.swp391.e_Motion_be.controller;
+﻿package com.swp391.e_Motion_be.controller;
 
 import com.swp391.e_Motion_be.dto.requests.checklist.PageAndFilterCheckListRequest;
 import com.swp391.e_Motion_be.dto.requests.checklist.RentalCheckListCreateRequest;
@@ -42,6 +42,7 @@ public class RentalCheckListController {
     }
 
     @GetMapping("/rentalId")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF') or isAuthenticated()")
     public ApiResponse<List<RentalCheckListResponse>> getCheckListByRentalId(@RequestParam Long rentalId) {
         ApiResponse<List<RentalCheckListResponse>> response = new ApiResponse<>();
         response.setData(rentalCheckListService.getCheckListByRentalId(rentalId));
