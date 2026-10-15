@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RatingResponse {
+    private Long id;
     private String comment;
     private int score;
     private Long userId;

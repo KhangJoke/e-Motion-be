@@ -49,7 +49,7 @@ public class ReportController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<ReportResponse> createReport(@RequestBody @Valid ReportCreationRequest request) {
         ApiResponse<ReportResponse> response = new ApiResponse<>();
         response.setData(reportService.createReport(request));

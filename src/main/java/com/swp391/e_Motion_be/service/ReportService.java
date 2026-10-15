@@ -33,15 +33,31 @@ public class ReportService {
     @Autowired
     private UserService userService;
 
-    public ReportResponse createReport(ReportCreationRequest report){
+        public ReportResponse createReport(ReportCreationRequest report){
         Report newReport = reportMapper.toReportEntity(report);
         if(report.getType().equals(ReportType.REPORT_USER)){
             User user = userRepository.findByEmail(report.getUserEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
             newReport.setUser(user);
+        } else {
+            User user = null;
+            if(report.getUserEmail() != null && !report.getUserEmail().isEmpty()){
+                user = userRepository.findByEmail(report.getUserEmail()).orElse(null);
+            }
+            if(user == null){
+                try {
+                    user = userService.currentUser();
+                } catch (Exception ignored) {}
+            }
+            newReport.setUser(user);
         }
 
-        newReport.setStaff(userService.currentUser().getStaff());
+        try {
+            if (userService.currentUser() != null && userService.currentUser().getStaff() != null) {
+                newReport.setStaff(userService.currentUser().getStaff());
+            }
+        } catch (Exception ignored) {}
+
         reportRepository.save(newReport);
         return  reportMapper.toResponse(newReport);
     }

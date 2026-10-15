@@ -30,12 +30,20 @@ public class RatingService {
     public RatingResponse createRating(RatingCreationRequest request) {
         Rating rating = ratingMapper.toEntity(request);
 
-        // fetch entities
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-
         Rental rental = rentalRepository.findById(request.getRentalId())
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        // fetch entities with fallback to rental user
+        User user = null;
+        if (request.getUserId() != null) {
+            user = userRepository.findById(request.getUserId()).orElse(null);
+        }
+        if (user == null) {
+            user = rental.getUser();
+        }
+        if (user == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTS);
+        }
 
         // set relations
         rating.setUser(user);

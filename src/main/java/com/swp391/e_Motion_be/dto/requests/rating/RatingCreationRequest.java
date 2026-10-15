@@ -20,7 +20,6 @@ public class RatingCreationRequest {
     @Max(value = 5, message = "Score cannot exceed 5")
     private int score;
 
-    @NotNull(message = "UserId is required")
     private Long userId;
 
     @NotNull(message = "RentalId is required")
