@@ -42,6 +42,7 @@ public class RentalCheckListController {
     }
 
     @GetMapping("/rentalId")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF') or isAuthenticated()")
     public ApiResponse<List<RentalCheckListResponse>> getCheckListByRentalId(@RequestParam Long rentalId) {
         ApiResponse<List<RentalCheckListResponse>> response = new ApiResponse<>();
         response.setData(rentalCheckListService.getCheckListByRentalId(rentalId));

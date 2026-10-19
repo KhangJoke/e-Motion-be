@@ -212,14 +212,17 @@ public class RentalService {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
-        RentalCheckList rentalCheckList = rental.getRentalCheckLists().stream()
-                .filter(r -> "CHECK_OUT".equalsIgnoreCase(r.getType().toString()))
-                .findFirst()
-                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_CHECKLIST_NOT_FOUND));
+        RentalCheckList rentalCheckList = rental.getRentalCheckLists() != null
+                ? rental.getRentalCheckLists().stream()
+                        .filter(r -> "CHECK_OUT".equalsIgnoreCase(r.getType().toString()))
+                        .findFirst()
+                        .orElse(null)
+                : null;
 
-        double checkListFee = rentalCheckList.getFee();
-        double reservationDepositAmount = rental.getReservation()!=null ? rental.getReservation().getDeposit().getAmount() : 0;
-        double rentalDepositAmount = rental.getDeposit().getAmount();
+        double checkListFee = rentalCheckList != null ? rentalCheckList.getFee() : 0.0;
+        double reservationDepositAmount = (rental.getReservation() != null && rental.getReservation().getDeposit() != null)
+                ? rental.getReservation().getDeposit().getAmount() : 0.0;
+        double rentalDepositAmount = rental.getDeposit() != null ? rental.getDeposit().getAmount() : 0.0;
 
         VehicleLog vehicleLog = rental.getVehicleLog();
        List<VehicleLogItem> vehicleDamages = vehicleLog != null ? vehicleLog.getRepairItems() : null;
