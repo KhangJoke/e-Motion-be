@@ -98,6 +98,16 @@ public class RentalController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping({ "/{id}/contract/confirm-signed", "/{id}/confirm-signed" })
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF') or isAuthenticated()")
+    public ResponseEntity<ApiResponse<ContractConfirmResponse>> confirmContractSigned(@PathVariable Long id) {
+        ContractConfirmResponse confirmResponse = docuSealService.confirmContractSigned(id);
+        ApiResponse<ContractConfirmResponse> response = new ApiResponse<>();
+        response.setMessage("Contract signed confirmed successfully");
+        response.setData(confirmResponse);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/check-inpayment")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<VnpayResponse> processCheckInPayment(@RequestParam("rentalId") Long id, @RequestParam("point") int point, HttpServletRequest request) throws Exception {
