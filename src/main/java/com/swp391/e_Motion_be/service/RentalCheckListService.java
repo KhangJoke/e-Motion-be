@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -46,6 +47,7 @@ public class RentalCheckListService {
     private final StaffRepository staffRepository;
     private final EmailService emailService;
 
+    @Transactional
     public RentalCheckListResponse createCheckList(RentalCheckListCreateRequest request) {
         // --- Kiểm tra trùng check ---
         boolean alreadyExists = rentalCheckListRepository.findByRental_Id(request.getRentalId())
@@ -195,6 +197,7 @@ public class RentalCheckListService {
         return new PageAndFilterCheckListResponse(checkLists, checkListPage.getTotalPages());
     }
 
+    @Transactional
     public RentalCheckListResponse updateRentalCheckList(Long id, @Valid RentalCheckListUpdateRequest request) {
         RentalCheckList rentalCheckList = rentalCheckListRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_CHECKLIST_NOT_FOUND));
@@ -216,8 +219,17 @@ public class RentalCheckListService {
         }
         rentalCheckList.setCurrentBattery(request.getCurrentBattery());
         rentalCheckList.setImg(request.getImg());
+        // Lưu pin mới vào DB trước để calculateFee query được giá trị pin mới nhất
+        rentalCheckList = rentalCheckListRepository.save(rentalCheckList);
+        if (rentalCheckList.getType() == CheckType.CHECK_OUT) {
+            double fee = calculateFee(rentalCheckList.getRental().getId());
+            rentalCheckList.setFee(fee);
+            if (rentalCheckList.getRental() != null && rentalCheckList.getRental().getVehicle() != null && request.getCurrentBattery() != null) {
+                rentalCheckList.getRental().getVehicle().setBatteryLevel((int) Math.round(request.getCurrentBattery()));
+            }
+            rentalCheckList = rentalCheckListRepository.save(rentalCheckList);
+        }
 
-        rentalCheckListRepository.save(rentalCheckList);
         return rentalCheckListMapper.toRentalCheckListResponse(rentalCheckList);
     }
 }

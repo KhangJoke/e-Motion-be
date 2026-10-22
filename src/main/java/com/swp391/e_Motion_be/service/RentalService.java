@@ -13,6 +13,7 @@ import com.swp391.e_Motion_be.enums.payment.PaymentMethod;
 import com.swp391.e_Motion_be.enums.payment.PaymentStatus;
 import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
+import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.RentalMapper;
 import com.swp391.e_Motion_be.repository.*;
@@ -389,6 +390,21 @@ public class RentalService {
                         paymentService.refundPayment(refundRequest);
                     } catch (Exception e) {
                         log.warn("Không thể hoàn tiền tự động qua cổng thanh toán: {}", e.getMessage());
+                        String refundTxnRef = "REFUND" + System.currentTimeMillis() + (100000 + new Random().nextInt(900000));
+                        Payment refundPayment = Payment.builder()
+                                .amount(Math.abs(balance))
+                                .method(PaymentMethod.CASH)
+                                .status(PaymentStatus.SUCCESS)
+                                .type(PaymentType.REFUND)
+                                .txnRef(refundTxnRef)
+                                .description("Hoàn tiền cọc trả xe cho đơn thuê #" + rental.getId() + " (Thủ công / Tiền mặt)")
+                                .responseCode("00")
+                                .transactionNo(refundTxnRef)
+                                .payDate(LocalDateTime.now())
+                                .user(rental.getUser())
+                                .rental(rental)
+                                .build();
+                        paymentRepository.save(refundPayment);
                     }
                 } else {
                     // Tạo bản ghi REFUND ghi nhận hoàn cọc cho Rental
@@ -624,14 +640,20 @@ public class RentalService {
 
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
-        if(!rental.getUser().getEmail().equals(user.getEmail())){
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+        if (user.getRole() != Role.ROLE_STAFF && user.getRole() != Role.ROLE_ADMIN) {
+            if (rental.getUser() != null && !rental.getUser().getEmail().equals(user.getEmail())) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
         }
 
         RentalResponse response = rentalMapper.toRentalResponse(rental);
-        String redisValue = (String) redisTemplate.opsForValue().get("paymentUrl:" + rental.getId());
-        if(redisValue != null){
-            response.setPaymentUrl(redisValue);
+        try {
+            String redisValue = (String) redisTemplate.opsForValue().get("paymentUrl:" + rental.getId());
+            if (redisValue != null) {
+                response.setPaymentUrl(redisValue);
+            }
+        } catch (Exception e) {
+            log.warn("Could not retrieve paymentUrl from Redis for rental: " + rental.getId(), e);
         }
         return response;
     }

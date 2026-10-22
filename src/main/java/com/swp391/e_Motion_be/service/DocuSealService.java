@@ -1,15 +1,20 @@
 package com.swp391.e_Motion_be.service;
 
+import com.swp391.e_Motion_be.dto.responses.rental.ContractConfirmResponse;
 import com.swp391.e_Motion_be.entity.Rental;
+import com.swp391.e_Motion_be.entity.User;
 import com.swp391.e_Motion_be.enums.ContractStatus;
 import com.swp391.e_Motion_be.enums.DocumentType;
 import com.swp391.e_Motion_be.enums.ErrorCode;
 import com.swp391.e_Motion_be.enums.RentalStatus;
+import com.swp391.e_Motion_be.enums.Role;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.repository.DocumentRepository;
 import com.swp391.e_Motion_be.repository.RentalRepository;
+import com.swp391.e_Motion_be.service.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -23,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocuSealService {
@@ -37,6 +43,8 @@ public class DocuSealService {
     private EmailService emailService;
     @Autowired
     private DocumentRepository documentRepository;
+    @Autowired
+    private UserService userService;
 
     @Transactional
     public String createContract(Long id) {
@@ -177,20 +185,49 @@ public class DocuSealService {
     }
 
     @Transactional
-    public void confirmContractSigned(Long rentalId) {
+    public ContractConfirmResponse confirmContractSigned(Long rentalId) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
-        rental.setStatus(RentalStatus.CONTRACTING);
+        User currentUser = null;
+        try {
+            currentUser = userService.currentUser();
+        } catch (Exception ignored) {
+        }
+
+        if (currentUser != null) {
+            boolean isStaffOrAdmin = currentUser.getRole() == Role.ROLE_ADMIN || currentUser.getRole() == Role.ROLE_STAFF;
+            boolean isOwner = rental.getUser() != null && currentUser.getEmail() != null &&
+                    currentUser.getEmail().equalsIgnoreCase(rental.getUser().getEmail());
+
+            if (!isStaffOrAdmin && !isOwner) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+        }
+
         rental.setContractStatus(ContractStatus.SIGNED);
+        if (rental.getStatus() == RentalStatus.PENDING) {
+            rental.setStatus(RentalStatus.CONTRACTING);
+        }
+
         try {
             if (rental.getSubmissionId() > 0) {
-                rental.setSubmissionUrl(getDocumentUrl(rental.getId()));
+                String docUrl = getDocumentUrl(rental.getId());
+                if (docUrl != null && !docUrl.isBlank()) {
+                    rental.setSubmissionUrl(docUrl);
+                }
             }
         } catch (Exception e) {
-            // Document may not be immediately available from DocuSeal API, ignore and proceed
+            log.warn("Không thể lấy file tài liệu DocuSeal cho rental {}: {}", rentalId, e.getMessage());
         }
-        rentalRepository.save(rental);
-    }
 
+        rentalRepository.save(rental);
+
+        return ContractConfirmResponse.builder()
+                .rentalId(rental.getId())
+                .status(rental.getStatus())
+                .contractStatus(rental.getContractStatus())
+                .activatedAt(LocalDateTime.now())
+                .build();
+    }
 }

@@ -15,6 +15,7 @@ public class PayOSResponse {
     private String accountNumber;
     private String accountName;
     private String bin;
+    private String bankName;
     private Long orderCode;
     private Double amount;
     private String description;
