@@ -641,16 +641,20 @@ public class RentalService {
                 .orElse(null);
     }
 
+    @Transactional
     public boolean cancelRental(long rentalId) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
-        if(rental.getStatus() != RentalStatus.PENDING && (rental.getStatus() != RentalStatus.CONTRACTING && rental.getContractStatus() != ContractStatus.PENDING)){
+        if (rental.getStatus() == RentalStatus.ONGOING || rental.getStatus() == RentalStatus.COMPLETED) {
             throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
 
         rental.setStatus(RentalStatus.CANCELLED);
-        rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
+        if (rental.getVehicle() != null) {
+            rental.getVehicle().setStatus(VehicleStatus.AVAILABLE);
+            vehicleRepository.save(rental.getVehicle());
+        }
         rentalRepository.save(rental);
         return true;
     }

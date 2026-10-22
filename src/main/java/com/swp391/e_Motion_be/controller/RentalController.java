@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rentals")
@@ -95,6 +96,20 @@ public class RentalController {
         ApiResponse<String> response = new ApiResponse<>();
         response.setMessage("Contract created successfully");
         response.setData(contractUrl);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/contract/confirm-signed")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN') or isAuthenticated()")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> confirmContractSigned(@PathVariable Long id) {
+        docuSealService.confirmContractSigned(id);
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>();
+        response.setMessage("Contract confirmed signed successfully");
+        response.setData(Map.of(
+                "rentalId", id,
+                "status", "CONTRACTING",
+                "contractStatus", "SIGNED"
+        ));
         return ResponseEntity.ok(response);
     }
 

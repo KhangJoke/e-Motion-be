@@ -1,7 +1,6 @@
 package com.swp391.e_Motion_be.dto.requests.rental;
 
 import com.swp391.e_Motion_be.validator.validateTimeVehicleRequest.ValidTimeRequest;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 @ValidTimeRequest
 public class RentalCreateRequest {
     @NotNull(message = "Start time is required")
-    @FutureOrPresent(message = "Start time must be now or in the future")
     LocalDateTime startTime;
     @NotNull(message = "End time is required")
     LocalDateTime endTime;

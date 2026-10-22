@@ -176,4 +176,21 @@ public class DocuSealService {
         throw new AppException(ErrorCode.DOCUSEAL_DOCUMENT_NOT_FOUND);
     }
 
+    @Transactional
+    public void confirmContractSigned(Long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        rental.setStatus(RentalStatus.CONTRACTING);
+        rental.setContractStatus(ContractStatus.SIGNED);
+        try {
+            if (rental.getSubmissionId() > 0) {
+                rental.setSubmissionUrl(getDocumentUrl(rental.getId()));
+            }
+        } catch (Exception e) {
+            // Document may not be immediately available from DocuSeal API, ignore and proceed
+        }
+        rentalRepository.save(rental);
+    }
+
 }
