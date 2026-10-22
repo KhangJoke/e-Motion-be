@@ -186,6 +186,7 @@ public enum ErrorCode {
     QUERY_FAILED(HttpStatus.BAD_REQUEST, "Truy vấn VnPay thất bại"),
     PAYMENT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "Xử lý thanh toán thất bại"),
     RENTAL_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán thuê xe"),
+    NO_COMPENSATION_FEE_REQUIRED(HttpStatus.BAD_REQUEST, "Đơn thuê không cần bù thêm tiền (không phát sinh phí đền bù hoặc tiền cọc đã đủ chi trả)"),
     DEPOSIT_CANNOT_BE_PAID(HttpStatus.BAD_REQUEST, "Không thể thanh toán đặt cọc"),
     CREATE_PAYMENT_URL_FAILED(HttpStatus.BAD_REQUEST, "Tạo đường dẫn thanh toán thất bại"),
     REFUND_IS_PROCESSING(HttpStatus.BAD_REQUEST, "Yêu cầu hoàn tiền đang được xử lý"),

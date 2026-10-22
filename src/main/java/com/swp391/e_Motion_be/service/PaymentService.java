@@ -459,7 +459,7 @@ public class PaymentService {
             Payment originalPayment = paymentRepository.findByTxnRef(request.getTxnRef())
                     .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTS));
 
-            if (originalPayment.getMethod() == PaymentMethod.PAYOS || "999999".equals(originalPayment.getTransactionNo())) {
+            if (originalPayment.getMethod() == PaymentMethod.PAYOS || "999999".equals(originalPayment.getTransactionNo()) || (request.getTxnRef() != null && request.getTxnRef().startsWith("TXN_"))) {
                 String refundTxnRef = "REFUND" + System.currentTimeMillis() +
                         (100000 + new Random().nextInt(900000));
 
