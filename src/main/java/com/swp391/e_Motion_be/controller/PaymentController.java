@@ -1,5 +1,6 @@
 package com.swp391.e_Motion_be.controller;
 
+import com.swp391.e_Motion_be.dto.requests.payment.CompensationPaymentRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.PayOSWebhookRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.PaymentRequest;
@@ -70,6 +71,36 @@ public class PaymentController {
         response.setMessage("Create PayOS payment link successfully");
         response.setStatus(200);
         response.setData(payOSService.createPaymentLink(reservationId));
+        return response;
+    }
+
+    @PostMapping({
+            "/payos/create-link/rental/{rentalId}",
+            "/rentals/{rentalId}/compensation-payment-link",
+            "/rental/{rentalId}/compensation-payment-link",
+            "/payos/rental/{rentalId}/compensation-payment-link"
+    })
+    @PreAuthorize("permitAll()")
+    public ApiResponse<PayOSResponse> createCompensationPaymentLink(
+            @PathVariable Long rentalId,
+            @RequestBody(required = false) CompensationPaymentRequest requestBody
+    ) {
+        ApiResponse<PayOSResponse> response = new ApiResponse<>();
+        response.setMessage("Tạo liên kết thanh toán đền bù thành công");
+        response.setStatus(200);
+        response.setCode(1000);
+        response.setData(payOSService.createRentalCompensationPaymentLink(rentalId, requestBody));
+        return response;
+    }
+
+    @PostMapping({"/payos/confirm/rental/{rentalId}", "/payos/check/rental/{rentalId}"})
+    @PreAuthorize("permitAll()")
+    public ApiResponse<PaymentResponse> confirmRentalPayOSPayment(@PathVariable Long rentalId) {
+        ApiResponse<PaymentResponse> response = new ApiResponse<>();
+        response.setMessage("Confirm PayOS rental payment successfully");
+        response.setStatus(200);
+        response.setCode(1000);
+        response.setData(payOSService.checkAndConfirmRentalPayment(rentalId));
         return response;
     }
 
