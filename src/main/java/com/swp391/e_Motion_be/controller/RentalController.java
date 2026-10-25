@@ -24,6 +24,7 @@ import com.swp391.e_Motion_be.dto.requests.rental.RentalUpdateStatusRequest;
 import com.swp391.e_Motion_be.dto.responses.ApiResponse;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.ContractConfirmResponse;
+import com.swp391.e_Motion_be.dto.responses.rental.ExtendRentalPreviewResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalHistoryResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.PageAndFilterRentalResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.RentalListResponse;
@@ -151,9 +152,23 @@ public class RentalController {
     @PostMapping("/{id}/extend")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<VnpayResponse> extendRentalReturnTime(@PathVariable Long id,
-            @RequestBody LocalDateTime newReturnTime, HttpServletRequest request) throws Exception {
+            @RequestBody String rawTime, HttpServletRequest request) throws Exception {
+        String cleaned = rawTime.replace("\"", "").trim();
+        LocalDateTime newReturnTime = LocalDateTime.parse(cleaned);
         ApiResponse<VnpayResponse> response = new ApiResponse<>();
         response.setData(rentalService.extendRentalReturnTime(id, newReturnTime, request.getRemoteAddr()));
+        return response;
+    }
+
+    @PostMapping("/{id}/preview-extend")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<ExtendRentalPreviewResponse> previewExtendRental(
+            @PathVariable Long id,
+            @RequestBody String rawTime) {
+        String cleaned = rawTime.replace("\"", "").trim();
+        LocalDateTime newReturnTime = LocalDateTime.parse(cleaned);
+        ApiResponse<ExtendRentalPreviewResponse> response = new ApiResponse<>();
+        response.setData(rentalService.previewExtendRental(id, newReturnTime));
         return response;
     }
 

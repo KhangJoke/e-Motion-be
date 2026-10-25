@@ -100,7 +100,7 @@ public class PaymentController {
         response.setMessage("Confirm PayOS rental payment successfully");
         response.setStatus(200);
         response.setCode(1000);
-        response.setData(payOSService.checkAndConfirmRentalPayment(rentalId));
+        response.setData(payOSService.checkAndConfirmPayment(String.valueOf(rentalId)));
         return response;
     }
 

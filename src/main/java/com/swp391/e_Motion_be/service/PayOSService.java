@@ -16,6 +16,8 @@ import com.swp391.e_Motion_be.enums.payment.PaymentType;
 import com.swp391.e_Motion_be.enums.vehicle.VehicleStatus;
 import com.swp391.e_Motion_be.exception.AppException;
 import com.swp391.e_Motion_be.mapper.PaymentMapper;
+import com.swp391.e_Motion_be.dto.message.RentalExtendMessage;
+import com.swp391.e_Motion_be.rabbitmq.producer.RentalEventProducer;
 import com.swp391.e_Motion_be.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +56,7 @@ public class PayOSService {
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RentalEventProducer rentalEventProducer;
 
     @Value("${hold.fee.value:5000}")
     private double holdFeeValue;
@@ -234,6 +237,92 @@ public class PayOSService {
     }
 
     /**
+     * Tạo thông tin thanh toán VietQR / PayOS cho phụ phí gia hạn hợp đồng thuê xe
+     */
+    @Transactional
+    public PayOSResponse createRentalExtensionPaymentLink(Long rentalId, double amount) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        if (amount <= 0) {
+            log.warn("Rental #{} does not require extension fee payment. Amount: {}", rentalId, amount);
+            throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
+        }
+
+        long orderCode = Long.parseLong(String.valueOf(System.currentTimeMillis()).substring(4) + (rentalId % 1000));
+        String description = "GIA HAN DON " + rentalId;
+        if (description.length() > 25) {
+            description = description.substring(0, 25);
+        }
+
+        if (payOS == null || !payOSConfig.isConfigured()) {
+            log.warn("PayOS is not configured, creating mock response for extension of rental #{}", rentalId);
+            String mockUrl = "https://pay.payos.vn/web/" + orderCode;
+            saveOrUpdateRentalExtensionPaymentRecord(rental, amount, orderCode, description, PaymentMethod.PAYOS);
+            return PayOSResponse.builder()
+                    .checkoutUrl(mockUrl)
+                    .qrCode("https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + URLEncoder.encode(mockUrl, StandardCharsets.UTF_8))
+                    .accountNumber("0000000000")
+                    .accountName("EMOTION RENTAL")
+                    .bin("970422")
+                    .bankName("MBBank")
+                    .orderCode(orderCode)
+                    .amount(amount)
+                    .description(description)
+                    .status("PENDING")
+                    .build();
+        }
+
+        try {
+            PaymentLinkItem item = PaymentLinkItem.builder()
+                    .name("GIA HAN DON " + rentalId)
+                    .quantity(1)
+                    .price((long) amount)
+                    .build();
+
+            CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
+                    .orderCode(orderCode)
+                    .amount((long) amount)
+                    .description(description)
+                    .items(Collections.singletonList(item))
+                    .returnUrl(payOSConfig.getReturnUrl())
+                    .cancelUrl(payOSConfig.getCancelUrl())
+                    .build();
+
+            CreatePaymentLinkResponse checkoutData = payOS.paymentRequests().create(paymentData);
+            log.info("Created PayOS extension payment link for rental #{}: orderCode={}, url={}, account={}, name={}",
+                    rentalId, orderCode, checkoutData.getCheckoutUrl(), checkoutData.getAccountNumber(), checkoutData.getAccountName());
+
+            saveOrUpdateRentalExtensionPaymentRecord(rental, amount, orderCode, description, PaymentMethod.PAYOS);
+
+            String officialQrImageUrl = "https://img.vietqr.io/image/" + checkoutData.getBin() + "-"
+                    + checkoutData.getAccountNumber() + "-compact2.png?amount=" + (long) amount
+                    + "&addInfo=" + URLEncoder.encode(description, StandardCharsets.UTF_8) + "&accountName="
+                    + URLEncoder.encode(checkoutData.getAccountName(), StandardCharsets.UTF_8);
+
+            String bankName = resolveBankName(checkoutData.getBin());
+
+            return PayOSResponse.builder()
+                    .checkoutUrl(checkoutData.getCheckoutUrl())
+                    .qrCode(officialQrImageUrl)
+                    .accountNumber(checkoutData.getAccountNumber())
+                    .accountName(checkoutData.getAccountName())
+                    .bin(checkoutData.getBin())
+                    .bankName(bankName)
+                    .orderCode(orderCode)
+                    .amount(amount)
+                    .description(description)
+                    .status("PENDING")
+                    .build();
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("PayOS SDK error creating extension payment link for rental #{}: {}", rentalId, e.getMessage(), e);
+            throw new AppException(ErrorCode.CREATE_PAYMENT_URL_FAILED);
+        }
+    }
+
+    /**
      * Tiếp nhận Webhook tự động từ PayOS Cloud Server
      */
     @Transactional
@@ -259,13 +348,17 @@ public class PayOSService {
                     log.info("PayOS webhook matched Rental penalty payment #{} for rental #{}", payment.getId(), payment.getRental().getId());
                     return confirmRentalCompensation(payment, ref);
                 }
+                if (payment.getType() == PaymentType.RENTAL_EXTENSION && payment.getRental() != null) {
+                    log.info("PayOS webhook matched Rental extension payment #{} for rental #{}", payment.getId(), payment.getRental().getId());
+                    return confirmRentalExtension(payment, ref);
+                }
                 if (payment.getDeposit() != null && payment.getDeposit().getReservation() != null) {
                     return confirmReservation(payment.getDeposit().getReservation(), ref);
                 }
             }
         }
 
-        // 2. Kiểm tra theo nội dung chuyển khoản "DEN BU DON {rentalId}"
+        // 2. Kiểm tra theo nội dung chuyển khoản "DEN BU DON {rentalId}" hoặc "GIA HAN DON {rentalId}"
         if (description.toUpperCase().contains("DEN BU DON")) {
             String rentalIdStr = description.replaceAll("[^0-9]", "").trim();
             if (!rentalIdStr.isEmpty()) {
@@ -276,6 +369,23 @@ public class PayOSService {
                     if (payment != null) {
                         log.info("PayOS webhook matched description for rental penalty #{} for rental #{}", payment.getId(), rentalId);
                         return confirmRentalCompensation(payment, ref);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse rentalId from description: {}", description);
+                }
+            }
+        }
+
+        if (description.toUpperCase().contains("GIA HAN DON")) {
+            String rentalIdStr = description.replaceAll("[^0-9]", "").trim();
+            if (!rentalIdStr.isEmpty()) {
+                try {
+                    Long rentalId = Long.parseLong(rentalIdStr);
+                    Payment payment = paymentRepository.findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType.RENTAL_EXTENSION, rentalId)
+                            .orElse(null);
+                    if (payment != null) {
+                        log.info("PayOS webhook matched description for rental extension #{} for rental #{}", payment.getId(), rentalId);
+                        return confirmRentalExtension(payment, ref);
                     }
                 } catch (Exception e) {
                     log.warn("Failed to parse rentalId from description: {}", description);
@@ -316,11 +426,18 @@ public class PayOSService {
                 if (payment.getType() == PaymentType.PENALTY_FEE_RENTAL && payment.getRental() != null) {
                     return checkAndConfirmRentalPayment(payment.getRental().getId());
                 }
+                if (payment.getType() == PaymentType.RENTAL_EXTENSION && payment.getRental() != null) {
+                    return checkAndConfirmRentalExtensionPayment(payment.getRental().getId());
+                }
             }
             try {
                 Long rentalId = Long.parseLong(cleanCode);
                 Optional<Rental> rentalOpt = rentalRepository.findById(rentalId);
                 if (rentalOpt.isPresent()) {
+                    Payment p = paymentRepository.findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType.RENTAL_EXTENSION, rentalId).orElse(null);
+                    if (p != null && p.getStatus() == PaymentStatus.PENDING) {
+                        return checkAndConfirmRentalExtensionPayment(rentalId);
+                    }
                     return checkAndConfirmRentalPayment(rentalId);
                 }
             } catch (NumberFormatException ignored) {}
@@ -399,6 +516,48 @@ public class PayOSService {
                 throw e;
             } catch (Exception e) {
                 log.error("PayOS inquiry error for rental #{}: {}", rental.getId(), e.getMessage());
+                throw new AppException(ErrorCode.PAYMENT_NOT_RECEIVED);
+            }
+        }
+
+        throw new AppException(ErrorCode.PAYMENT_NOT_RECEIVED);
+    }
+
+    /**
+     * Kênh kiểm tra và đối soát thanh toán gia hạn chuyến đi theo Rental ID
+     */
+    @Transactional
+    public PaymentResponse checkAndConfirmRentalExtensionPayment(Long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        Payment payment = paymentRepository.findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType.RENTAL_EXTENSION, rental.getId())
+                .orElse(null);
+
+        if (payment == null) {
+            throw new AppException(ErrorCode.PAYMENT_NOT_EXISTS);
+        }
+
+        if (payment.getStatus() == PaymentStatus.SUCCESS) {
+            return paymentMapper.toPaymentResponse(payment);
+        }
+
+        if (payOS != null && payOSConfig.isConfigured() && payment.getTxnRef() != null) {
+            try {
+                long orderCode = Long.parseLong(payment.getTxnRef());
+                PaymentLink paymentLink = payOS.paymentRequests().get(orderCode);
+                if (paymentLink != null && paymentLink.getStatus() == PaymentLinkStatus.PAID) {
+                    log.info("PayOS confirmed rental extension payment status is PAID for orderCode: {}", orderCode);
+                    return confirmRentalExtension(payment, "PAYOS_VERIFIED_" + orderCode);
+                } else {
+                    log.warn("PayOS rental extension payment for orderCode {} is not PAID (current status: {})",
+                            orderCode, paymentLink != null ? paymentLink.getStatus() : "null");
+                    throw new AppException(ErrorCode.PAYMENT_NOT_RECEIVED);
+                }
+            } catch (AppException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("PayOS inquiry error for rental extension #{}: {}", rental.getId(), e.getMessage());
                 throw new AppException(ErrorCode.PAYMENT_NOT_RECEIVED);
             }
         }
@@ -562,6 +721,91 @@ public class PayOSService {
                 .description(description)
                 .status(PaymentStatus.PENDING)
                 .type(PaymentType.PENALTY_FEE_RENTAL)
+                .method(method)
+                .txnRef(String.valueOf(orderCode))
+                .build();
+        paymentRepository.save(payment);
+    }
+
+    private PaymentResponse confirmRentalExtension(Payment payment, String transactionNo) {
+        payment.setStatus(PaymentStatus.SUCCESS);
+        payment.setMethod(PaymentMethod.PAYOS);
+        payment.setBankCode("MBBANK");
+        payment.setTransactionNo(transactionNo != null ? transactionNo : "PAYOS_TXN_" + System.currentTimeMillis());
+        payment.setPayDate(LocalDateTime.now());
+        paymentRepository.save(payment);
+
+        Rental rental = payment.getRental();
+        if (rental != null) {
+            LocalDateTime oldEndTime = rental.getEndTime();
+            if (rental.getPendingEndTime() != null) {
+                rental.setEndTime(rental.getPendingEndTime());
+                rental.setRentFee(rental.getPendingRentFee() != null ? rental.getPendingRentFee() : rental.getRentFee());
+                rental.setPendingEndTime(null);
+                rental.setPendingRentFee(null);
+            }
+            if (rental.getPreStatus() == RentalStatus.OVERDUE) {
+                if (rental.getEndTime().isBefore(LocalDateTime.now())) {
+                    rental.setStatus(RentalStatus.OVERDUE);
+                } else {
+                    rental.setStatus(RentalStatus.ONGOING);
+                    rental.setExpiringNotified(false);
+                    rental.setOverdueNotified(false);
+                }
+            } else {
+                rental.setStatus(rental.getPreStatus() != null ? rental.getPreStatus() : RentalStatus.ONGOING);
+            }
+            rental.setPreStatus(null);
+            rentalRepository.save(rental);
+            log.info("Rental #{} extension confirmed via PayOS: newEndTime={}", rental.getId(), rental.getEndTime());
+
+            // Xóa key Redis
+            String extendRentalKey = "extendRental:" + rental.getId();
+            redisTemplate.delete(extendRentalKey);
+            String paymentUrlKey = "paymentUrl:" + rental.getId();
+            redisTemplate.delete(paymentUrlKey);
+
+            // Bắn event RabbitMQ thông báo gia hạn thành công
+            if (rentalEventProducer != null) {
+                rentalEventProducer.sendRentalExtendEvent(RentalExtendMessage.builder()
+                        .rentalId(rental.getId())
+                        .oldEndTime(oldEndTime)
+                        .newEndTime(rental.getEndTime())
+                        .additionalFee(payment.getAmount())
+                        .userEmail(rental.getUser() != null ? rental.getUser().getEmail() : null)
+                        .extendedAt(LocalDateTime.now())
+                        .build());
+            }
+
+            try {
+                emailService.sendPaymentStatusToEmail(payment, null);
+            } catch (Exception e) {
+                log.error("Error sending rental extension email: {}", e.getMessage());
+            }
+        }
+
+        return paymentMapper.toPaymentResponse(payment);
+    }
+
+    private void saveOrUpdateRentalExtensionPaymentRecord(Rental rental, double amount, long orderCode, String description, PaymentMethod method) {
+        Payment latest = paymentRepository.findTopByTypeAndRentalIdOrderByCreatedAtDesc(PaymentType.RENTAL_EXTENSION, rental.getId())
+                .orElse(null);
+        if (latest != null && latest.getStatus() == PaymentStatus.PENDING) {
+            latest.setMethod(method);
+            latest.setAmount(amount);
+            latest.setTxnRef(String.valueOf(orderCode));
+            latest.setDescription(description);
+            paymentRepository.save(latest);
+            return;
+        }
+
+        Payment payment = Payment.builder()
+                .rental(rental)
+                .user(rental.getUser())
+                .amount(amount)
+                .description(description)
+                .status(PaymentStatus.PENDING)
+                .type(PaymentType.RENTAL_EXTENSION)
                 .method(method)
                 .txnRef(String.valueOf(orderCode))
                 .build();

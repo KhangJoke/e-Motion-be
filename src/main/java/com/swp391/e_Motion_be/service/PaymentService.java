@@ -37,6 +37,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import com.swp391.e_Motion_be.dto.message.RentalExtendMessage;
+import com.swp391.e_Motion_be.rabbitmq.producer.RentalEventProducer;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -56,6 +59,7 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final EmailService emailService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RentalEventProducer rentalEventProducer;
 
     @Transactional
     public VnpayResponse createPaymentUrl(CreatePaymentUrlRequest request, String ipAddr) throws Exception {
@@ -384,6 +388,19 @@ public class PaymentService {
             log.info("Rental extension payment processed: {}", payment.getId());
             String extendRentalKey = "extendRental:" + rental.getId();
             redisTemplate.delete(extendRentalKey);
+            String paymentUrlKey = "paymentUrl:" + rental.getId();
+            redisTemplate.delete(paymentUrlKey);
+
+            if (rentalEventProducer != null) {
+                rentalEventProducer.sendRentalExtendEvent(RentalExtendMessage.builder()
+                        .rentalId(rental.getId())
+                        .oldEndTime(rental.getStartTime())
+                        .newEndTime(rental.getEndTime())
+                        .additionalFee(payment.getAmount())
+                        .userEmail(rental.getUser() != null ? rental.getUser().getEmail() : null)
+                        .extendedAt(LocalDateTime.now())
+                        .build());
+            }
         }
     }
 

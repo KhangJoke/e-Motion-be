@@ -60,11 +60,25 @@ public class RabbitMQConfig {
                 .with(HOLD_ROUTING_KEY);
     }
 
+    public static final String RENTAL_EXTEND_EXCHANGE = "rental.extend.exchange";
+    public static final String RENTAL_EXTEND_ROUTING_KEY = "rental.extend.routing";
+    public static final String RENTAL_EXTEND_QUEUE = "rental.extend.notification.queue";
+
     @Bean
-    public Binding bindingCancelProcessQueue() {
-        return BindingBuilder.bind(reservationCancelProcessQueue())
-                .to(reservationCancelExchange())
-                .with(CANCEL_ROUTING_KEY);
+    public DirectExchange rentalExtendExchange() {
+        return new DirectExchange(RENTAL_EXTEND_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public Queue rentalExtendNotificationQueue() {
+        return new Queue(RENTAL_EXTEND_QUEUE, true);
+    }
+
+    @Bean
+    public Binding bindingRentalExtendQueue() {
+        return BindingBuilder.bind(rentalExtendNotificationQueue())
+                .to(rentalExtendExchange())
+                .with(RENTAL_EXTEND_ROUTING_KEY);
     }
 
     @Bean

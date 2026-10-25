@@ -4,6 +4,7 @@ import com.swp391.e_Motion_be.dto.requests.deposit.DepositCreateRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.CreatePaymentUrlRequest;
 import com.swp391.e_Motion_be.dto.requests.payment.RefundRequest;
 import com.swp391.e_Motion_be.dto.requests.rental.*;
+import com.swp391.e_Motion_be.dto.responses.PayOSResponse;
 import com.swp391.e_Motion_be.dto.responses.VnpayResponse;
 import com.swp391.e_Motion_be.dto.responses.rental.*;
 import com.swp391.e_Motion_be.dto.vehicleLog.VehicleLogItem;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -58,6 +60,7 @@ public class RentalService {
     private final RentalMapper rentalMapper;
     private final DepositService depositService;
     private final PaymentService paymentService;
+    private final PayOSService payOSService;
     private final UserService userService;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -481,50 +484,103 @@ public class RentalService {
                 .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
 
         // Validate new return time
-        if (!isExactHour(newReturnTime) || !isExactHour(newReturnTime)) {
+        if (!isExactHour(newReturnTime)) {
             throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
         }
-        // New return time must be at least 1 hour after current end time
-        if (newReturnTime.isBefore(rental.getEndTime().plusHours(1))) {
+        // New return time must be at least 1 hour after current end time and after now
+        if (newReturnTime.isBefore(rental.getEndTime().plusHours(1)) || newReturnTime.isBefore(LocalDateTime.now())) {
             throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
         }
-        // Extension requests must be made at least 2 hours before current start time
-        if(rental.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
-            throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
-        }
-        // Only CONFIRM reservations can be extended
-        if(rental.getStatus() != RentalStatus.CONFIRM && rental.getStatus() != RentalStatus.ONGOING && rental.getStatus() != RentalStatus.OVERDUE) {
-            throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
+        // Only CONFIRM, ONGOING, OVERDUE, PENDING_EXTEND_FEE rentals can be extended
+        if (rental.getStatus() != RentalStatus.CONFIRM
+                && rental.getStatus() != RentalStatus.ONGOING
+                && rental.getStatus() != RentalStatus.OVERDUE
+                && rental.getStatus() != RentalStatus.PENDING_EXTEND_FEE) {
+            throw new AppException(ErrorCode.INVALID_RENTAL_STATUS);
         }
         // Check if vehicle is available for the extended period
         if (isVehicleUnavailable(rental.getVehicle().getId(), rental.getStartTime(), newReturnTime, null, rental.getId())) {
             throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
         }
 
-        // Calculate new fee with extended time
-        Rental tempRental = Rental.builder()
-                .startTime(rental.getStartTime())
-                .endTime(newReturnTime)
-                .vehicle(rental.getVehicle())
-                .build();
-        double newFee = calculateRentalFee(tempRental.getVehicle(), tempRental.getStartTime(), tempRental.getEndTime());
+        // Calculate extension fee using Mioto standard (hourly rate capped at daily rate)
+        long additionalHours = Duration.between(rental.getEndTime(), newReturnTime).toHours();
+        double additionalFee = calculateExtensionFee(rental.getVehicle(), additionalHours);
+        double newFee = rental.getRentFee() + additionalFee;
 
         // Store pending values
         rental.setPendingEndTime(newReturnTime);
         rental.setPendingRentFee(newFee);
-        rental.setPreStatus(rental.getStatus());
-        rental.setStatus(RentalStatus.PENDING_EXTEND_FEE);
+        if (rental.getStatus() != RentalStatus.PENDING_EXTEND_FEE) {
+            rental.setPreStatus(rental.getStatus());
+            rental.setStatus(RentalStatus.PENDING_EXTEND_FEE);
+        }
         rentalRepository.save(rental);
+
+        // Try PayOS first for VietQR support
+        try {
+            PayOSResponse payOSResponse = payOSService.createRentalExtensionPaymentLink(rental.getId(), additionalFee);
+            if (payOSResponse != null && payOSResponse.getCheckoutUrl() != null) {
+                redisTemplate.opsForValue().set("paymentUrl:" + rental.getId(), payOSResponse.getCheckoutUrl(), 15, TimeUnit.MINUTES);
+                return new VnpayResponse(payOSResponse.getCheckoutUrl(), payOSResponse.getQrCode());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to create PayOS extension payment link, falling back to VNPay: {}", e.getMessage());
+        }
 
         CreatePaymentUrlRequest request = CreatePaymentUrlRequest.builder()
                 .rentalId(rental.getId())
                 .type(PaymentType.RENTAL_EXTENSION)
-                .amount(newFee - rental.getRentFee())
+                .amount(additionalFee)
                 .description("Extension Payment for Rental ID: " + rental.getId())
                 .userEmail(rental.getUser().getEmail())
                 .build();
 
-        return paymentService.createPaymentUrl(request, ipAddr);
+        VnpayResponse vnpayResponse = paymentService.createPaymentUrl(request, ipAddr);
+        if (vnpayResponse != null && vnpayResponse.getUrl() != null) {
+            redisTemplate.opsForValue().set("paymentUrl:" + rental.getId(), vnpayResponse.getUrl(), 15, TimeUnit.MINUTES);
+        }
+        return vnpayResponse;
+    }
+
+    public ExtendRentalPreviewResponse previewExtendRental(Long id, LocalDateTime newReturnTime) {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RENTAL_NOT_FOUND));
+
+        if (!isExactHour(newReturnTime)) {
+            throw new AppException(ErrorCode.TIME_MUST_BE_EXACT_HOUR);
+        }
+        if (newReturnTime.isBefore(rental.getEndTime().plusHours(1))) {
+            throw new AppException(ErrorCode.RENTAL_EXTEND_TIME_INVALID);
+        }
+
+        long additionalHours = Duration.between(rental.getEndTime(), newReturnTime).toHours();
+        double additionalFee = calculateExtensionFee(rental.getVehicle(), additionalHours);
+        double newFee = rental.getRentFee() + additionalFee;
+
+        return ExtendRentalPreviewResponse.builder()
+                .additionalFee(additionalFee)
+                .newRentFee(newFee)
+                .currentRentFee(rental.getRentFee())
+                .additionalHours(additionalHours)
+                .newReturnTime(newReturnTime)
+                .build();
+    }
+
+    public double calculateExtensionFee(Vehicle vehicle, long additionalHours) {
+        if (additionalHours <= 0) {
+            return 0.0;
+        }
+        long days = additionalHours / 24;
+        long remainingHours = additionalHours % 24;
+
+        double hourlyRate = vehicle.getPricePer4Hours() / 4.0;
+        double dailyRate = vehicle.getPricePerDay();
+
+        double daysFee = days * dailyRate;
+        double remainingHoursFee = Math.min(remainingHours * hourlyRate, dailyRate);
+
+        return Math.round(daysFee + remainingHoursFee);
     }
 
     // Check if vehicle is unavailable due to existing reservations or rentals
